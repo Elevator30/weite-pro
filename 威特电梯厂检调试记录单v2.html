@@ -3349,7 +3349,7 @@ function exportNoticePDF() {
   container.style.cssText = 'position:absolute;left:-9999px;top:0;z-index:-1;';
   document.body.appendChild(container);
   var div = document.createElement('div');
-  div.style.cssText = 'width:595px;padding:57px;font-family:SimSun,serif;background:#fff;color:#000;font-size:12px;line-height:1.5;';
+  div.style.cssText = 'width:595px;padding:57px;font-family:SimSun,serif;background:#fff;color:#000;font-size:8px;line-height:1.5;';
   div.innerHTML = htmlContent;
   container.appendChild(div);
 
@@ -3437,7 +3437,7 @@ function exportCheckPDF() {
     var divW = isLand ? 842 : 595;
     var divH = isLand ? 595 : 842;
     var div = document.createElement('div');
-    div.style.cssText = 'width:' + divW + 'px;height:' + divH + 'px;padding:15px 20px;font-family:SimSun,serif;background:#fff;color:#000;font-size:9px;line-height:1.3;box-sizing:border-box;';
+    div.style.cssText = 'width:' + divW + 'px;height:' + divH + 'px;padding:15px 20px;font-family:SimSun,serif;background:#fff;color:#000;font-size:8px;line-height:1.3;box-sizing:border-box;';
     div.innerHTML = sec.html;
     container.appendChild(div);
 
@@ -3770,7 +3770,7 @@ function buildNoticeHTML(task, dateStr, pageNum, ngItems, totalPages) {
     h += '③如有异议，请在收到本通知书之日起5个工作日内提出。</div>';
 
     // 页码
-    h += '<div style="text-align:center;margin-top:12px;font-size:10px;">第2页，共' + totalNotPages + '页</div>';
+    h += '<div style="text-align:center;margin-top:12px;font-size:8px;">第2页，共' + totalNotPages + '页</div>';
     h += '</div>';
   }
 
