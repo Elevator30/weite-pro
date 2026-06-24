@@ -3514,6 +3514,7 @@ function buildNoticeFullHTML(task, dateStr, ngItems) {
   var logoBase64 = WEITE_LOGO;
   var h = '';
   // 外层div：所有子元素继承font-family（由容器div设置）
+  h += '<style>div,table,tr,td,span,p,img{font-family:\'Songti SC\',SimSun,STSong,serif!important;}</style>';
   h += '<div style="line-height:1.2;">';
   // 页眉：左logo，中标题，右文件编号
   h += '<div style="position:relative;text-align:center;margin-bottom:2px;">';
@@ -3523,7 +3524,7 @@ function buildNoticeFullHTML(task, dateStr, ngItems) {
   h += '<div style="text-align:right;margin-bottom:4px;">文件编号 WT/S-G-2024-001(A)</div>';
 
   // 一整张大表格 - font-family在table级设，所有td继承
-  h += '<table style="width:100%;border-collapse:collapse;font-size:10px;font-family:Songti SC,SimSun,STSong,serif;">';
+  h += '<table style="width:100%;border-collapse:collapse;font-size:10px;">';
 
   // 信息行1: 项目名称 | 地址 | 型号 | 型号值 | 产品编号 | 编号值
   h += '<tr>';
