@@ -1,0 +1,2292 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>差旅费报销助手</title>
+<script defer src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js" onerror="window._xlsxLoadFail=true"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" onerror="window._jspdfLoadFail=true"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" onerror="window._h2cLoadFail=true"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: #f5f6fa; color: #333; line-height: 1.6; -webkit-tap-highlight-color: transparent; }
+.container { max-width: 480px; margin: 0 auto; padding: 0 16px 40px; }
+.header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 24px 16px; border-radius: 0 0 20px 20px; margin: 0 -16px 20px; }
+.header h1 { font-size: 20px; font-weight: 600; }
+.header .month { font-size: 14px; opacity: 0.9; margin-top: 4px; }
+.stats-card { background: white; border-radius: 16px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+.stats-card .title { font-size: 14px; color: #999; margin-bottom: 16px; }
+.stat-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f5f5f5; font-size: 15px; }
+.stat-row:last-child { border-bottom: none; }
+.stat-row .label { color: #666; }
+.stat-row .value { font-weight: 600; font-size: 18px; }
+.stat-row .value.red { color: #e74c3c; }
+.stat-row .value.blue { color: #3498db; }
+.stat-row .value.green { color: #27ae60; }
+.qty-card { background: white; border-radius: 16px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+.qty-card .title { font-size: 14px; color: #999; margin-bottom: 12px; }
+.qty-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 14px; }
+.qty-row .label { color: #666; }
+.qty-row .value { font-weight: 600; }
+.btn-primary { width: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 14px; padding: 16px; font-size: 16px; font-weight: 600; cursor: pointer; margin-bottom: 12px; box-shadow: 0 4px 12px rgba(102,126,234,0.3); }
+.btn-primary:active { opacity: 0.9; }
+.btn-row { display: flex; gap: 12px; margin-top: 8px; }
+.btn-secondary { flex: 1; background: white; color: #667eea; border: 2px solid #667eea; border-radius: 14px; padding: 14px; font-size: 15px; font-weight: 600; cursor: pointer; }
+.btn-secondary:active { background: #f8f9ff; }
+.modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 200; display: none; align-items: flex-end; justify-content: center; }
+.modal-overlay.active { display: flex; }
+.modal-content { background: white; width: 100%; max-width: 480px; max-height: 92vh; border-radius: 24px 24px 0 0; overflow-y: auto; -webkit-overflow-scrolling: touch; animation: slideUp 0.3s ease; }
+/* 查看费用弹窗：从顶部弹出，占50vh */
+#viewModal { align-items: flex-start; justify-content: center; }
+#viewModal .modal-content { max-height: 50vh; border-radius: 0 0 24px 24px; animation: slideDown 0.3s ease; }
+@keyframes slideDown { from { transform: translateY(-100%); } to { transform: translateY(0); } }
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.modal-header { padding: 20px 20px 0; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; background: white; z-index: 10; }
+.modal-header h2 { font-size: 18px; font-weight: 600; }
+.modal-header .close-btn { width: 32px; height: 32px; border-radius: 50%; background: #f5f5f5; border: none; font-size: 18px; cursor: pointer; }
+.modal-body { padding: 16px 20px 20px; }
+.form-group { margin-bottom: 16px; }
+.form-group label { display: block; font-size: 13px; color: #666; margin-bottom: 6px; font-weight: 500; }
+.form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px 14px; border: 1.5px solid #e0e0e0; border-radius: 12px; font-size: 15px; -webkit-appearance: none; background: white; }
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #667eea; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.project-select { position: relative; }
+.project-select input { width: 100%; padding: 12px 14px; border: 1.5px solid #e0e0e0; border-radius: 12px; font-size: 15px; }
+.project-dropdown { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #e0e0e0; border-radius: 12px; margin-top: 4px; max-height: 200px; overflow-y: auto; z-index: 50; box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: none; }
+.project-dropdown.active { display: block; }
+.project-dropdown .pd-item { padding: 12px 14px; font-size: 14px; cursor: pointer; border-bottom: 1px solid #f5f5f5; }
+.project-dropdown .pd-item:last-child { border-bottom: none; }
+.project-dropdown .pd-item:active { background: #f5f5f5; }
+.project-dropdown .pd-new { color: #667eea; font-weight: 600; }
+.meal-config { background: #f8f9ff; border-radius: 12px; padding: 14px; margin-bottom: 16px; }
+.meal-config .mc-title { font-size: 13px; font-weight: 600; margin-bottom: 10px; color: #667eea; }
+.meal-day-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #e8e8e8; font-size: 13px; }
+.meal-day-row:last-child { border-bottom: none; }
+.meal-day-row select { padding: 4px 10px; border-radius: 8px; border: 1px solid #ddd; font-size: 13px; }
+.receipt-upload { border: 2px dashed #ddd; border-radius: 12px; padding: 24px; text-align: center; cursor: pointer; }
+.receipt-upload:active { border-color: #667eea; background: #f8f9ff; }
+#headerMenu > div:active { background: #f0f2ff; }
+.receipt-upload .icon { font-size: 32px; margin-bottom: 6px; }
+.receipt-upload .text { font-size: 13px; color: #999; }
+.receipt-upload input { display: none; }
+.receipt-preview { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+.receipt-preview .thumb { width: 70px; height: 70px; border-radius: 8px; object-fit: cover; border: 1px solid #eee; }
+.receipt-preview .thumb.pdf { display: flex; align-items: center; justify-content: center; background: #f5f5f5; font-size: 20px; }
+.ocr-result { background: #e8f5e9; border-radius: 12px; padding: 14px; margin-bottom: 16px; border: 1px solid #c8e6c9; }
+.ocr-result .ocr-title { font-size: 13px; font-weight: 600; color: #2e7d32; margin-bottom: 8px; }
+.ocr-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px; }
+.ocr-row .label { color: #666; }
+.ocr-row .value { font-weight: 600; color: #333; }
+.modal-footer { padding: 0 20px 20px; display: flex; gap: 10px; }
+.modal-footer button { flex: 1; padding: 14px; border-radius: 12px; font-size: 15px; font-weight: 600; border: none; cursor: pointer; }
+.btn-save { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+.btn-cancel { background: #f5f5f5; color: #666; }
+.export-options { display: flex; flex-direction: column; gap: 10px; padding: 16px 20px 20px; }
+.export-option { background: white; border: 2px solid #e0e0e0; border-radius: 14px; padding: 16px; cursor: pointer; }
+.export-option:active { border-color: #667eea; }
+.export-option .title { font-size: 15px; font-weight: 600; margin-bottom: 3px; }
+.export-option .desc { font-size: 12px; color: #999; }
+.toast { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.75); color: white; padding: 12px 24px; border-radius: 20px; font-size: 14px; z-index: 300; display: none; }
+.empty-state { text-align: center; padding: 40px 20px; color: #999; }
+.empty-state .icon { font-size: 40px; margin-bottom: 10px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <h1>差旅费报销助手</h1>
+        <div class="month" id="currentMonth">加载中...</div>
+      </div>
+      <div style="position:relative;">
+        <button onclick="toggleHeaderMenu()" id="headerMenuBtn" style="background:rgba(255,255,255,0.25);color:#fff;border:1.5px solid rgba(255,255,255,0.5);border-radius:10px;padding:8px 12px;font-size:18px;font-weight:700;cursor:pointer;line-height:1;">⋮</button>
+        <div id="headerMenu" style="display:none;position:absolute;right:0;top:40px;background:#fff;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.15);min-width:160px;z-index:100;overflow:hidden;">
+          <div onclick="openPrintModal();closeHeaderMenu()" style="padding:14px 18px;font-size:14px;color:#333;border-bottom:1px solid #f0f0f0;cursor:pointer;">📄 打印报销单</div>
+          <div onclick="showExcelDateRange();closeHeaderMenu()" style="padding:14px 18px;font-size:14px;color:#333;border-bottom:1px solid #f0f0f0;cursor:pointer;">📊 导出Excel</div>
+          <div onclick="openExportModal();closeHeaderMenu()" style="padding:14px 18px;font-size:14px;color:#333;border-bottom:1px solid #f0f0f0;cursor:pointer;">📁 更多操作</div>
+          <div onclick="openSettingsModal();closeHeaderMenu()" style="padding:14px 18px;font-size:14px;color:#333;cursor:pointer;">⚙️ 设置</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="stats-card">
+    <div class="title">📊 本月汇总</div>
+    <div class="stat-row"><span class="label">出差天数</span><span class="value" id="statDays">0天</span></div>
+    <div class="stat-row"><span class="label">总台量</span><span class="value" id="statQty">0台</span></div>
+    <div class="stat-row"><span class="label">报销金额</span><span class="value red" id="statSelf">¥0.00</span></div>
+    <div class="stat-row"><span class="label">携程金额</span><span class="value blue" id="statCtrip">¥0.00</span></div>
+  </div>
+
+  <div class="qty-card">
+    <div class="title">🔧 台量明细</div>
+    <div id="qtyDetail">
+      <div class="qty-row"><span class="label" style="color:#999">📋 暂无数据</span></div>
+    </div>
+  </div>
+
+  <div class="btn-row" style="margin-top:4px;">
+    <button class="btn-primary" onclick="openExpenseModal()" style="margin-bottom:0;font-size:15px;padding:14px;">+ 新增项目</button>
+    <button class="btn-secondary" onclick="openViewModal()" style="font-size:15px;padding:14px;">📋 查看费用</button>
+  </div>
+</div>
+
+<!-- 查看费用弹窗：从顶部弹出 -->
+<div class="modal-overlay" id="viewModal" style="align-items:flex-start;">
+  <div class="modal-content" style="max-height:60vh;border-radius:0 0 24px 24px;animation:slideDown 0.3s ease;">
+    <div class="modal-header">
+      <h2>📋 查看费用</h2>
+      <button class="close-btn" onclick="closeModal('viewModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div id="viewProjectList" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;"></div>
+      <div id="viewExpenseList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 新增费用弹窗 -->
+<div class="modal-overlay" id="expenseModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>新增费用</h2>
+      <button class="close-btn" onclick="closeModal('expenseModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>选择项目</label>
+        <div class="project-select">
+          <input type="text" id="selProject" placeholder="输入项目名称搜索" onfocus="showProjectDropdown()" oninput="filterProjects()">
+          <div class="project-dropdown" id="projectDropdown"></div>
+        </div>
+      </div>
+
+      <div id="newProjectFields" style="display:none;">
+        <div class="form-group">
+          <label>工作性质 / 台量</label>
+          <div id="newWorkItems"></div>
+          <div style="margin-top:6px;"><span onclick="addNewWorkItem()" style="color:#667eea;font-size:13px;cursor:pointer;">+ 添加一行</span></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>起始日期</label>
+            <input type="date" id="newStartDate" onchange="calcMealDays()">
+          </div>
+          <div class="form-group">
+            <label>结束日期（可后补）</label>
+            <input type="date" id="newEndDate" onchange="calcMealDays()">
+          </div>
+        </div>
+        <div class="form-group">出差天数：<strong id="newDays">0</strong> 天</div>
+        <div class="form-group">
+          <label>主要目的地是否省会</label>
+          <select id="newIsCapital" onchange="calcMealDays()">
+            <option value="no">非省会（20元/天）</option>
+            <option value="yes">省会（30元/天）</option>
+          </select>
+        </div>
+
+        <div class="meal-config" id="mealConfig" style="display:none;">
+          <div class="mc-title">📅 逐日餐补设置</div>
+          <div id="mealDays"></div>
+          <div style="margin-top:10px;font-size:14px;font-weight:600;">预计餐补：<span id="newMealAmount" style="color:#e74c3c;">¥0.00</span></div>
+        </div>
+      </div>
+
+      <hr style="border:none;border-top:1px solid #f0f0f0;margin:16px 0;">
+
+      <div class="form-group">
+        <label>费用日期</label>
+        <input type="date" id="expDate">
+      </div>
+      <div class="form-group">
+        <label>费用类别</label>
+        <div id="expCategoryTabs" style="display:flex;gap:0;border:1.5px solid #e0e0e0;border-radius:12px;overflow:hidden;margin-bottom:10px;">
+          <div onclick="selectExpCategory('intercity')" id="catTab_intercity" style="flex:1;text-align:center;padding:10px 0;font-size:14px;font-weight:600;cursor:pointer;background:#667eea;color:#fff;border-right:1px solid #e0e0e0;">🚄 城市交通</div>
+          <div onclick="selectExpCategory('local')" id="catTab_local" style="flex:1;text-align:center;padding:10px 0;font-size:14px;font-weight:600;cursor:pointer;background:#fff;color:#666;border-right:1px solid #e0e0e0;">🚕 市内交通</div>
+          <div onclick="selectExpCategory('other')" id="catTab_other" style="flex:1;text-align:center;padding:10px 0;font-size:14px;font-weight:600;cursor:pointer;background:#fff;color:#666;">🏨 其他费用</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>出行方式</label>
+        <select id="expType">
+          <option value="train">高铁/火车</option>
+          <option value="plane">飞机</option>
+          <option value="bus">长途汽车</option>
+          <option value="ship">轮船</option>
+        </select>
+      </div>
+      <div id="tripFields">
+        <div class="form-row">
+          <div class="form-group">
+            <label>出发地</label>
+            <input type="text" id="expFrom" placeholder="如：长沙">
+          </div>
+          <div class="form-group">
+            <label>到达地</label>
+            <input type="text" id="expTo" placeholder="如：隆回">
+          </div>
+        </div>
+      </div>
+      <div id="cityFields" style="display:none;">
+        <div class="form-group">
+          <label>城市</label>
+          <input type="text" id="expCity" placeholder="如：长沙">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>支付方</label>
+        <select id="expPayer" onchange="togglePayerReceipt()">
+          <option value="self">自付（需报销）</option>
+          <option value="ctrip">携程（已垫付）</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>金额（元）</label>
+        <input type="number" id="expAmount" placeholder="0.00" step="0.01">
+      </div>
+      <div class="form-group" id="receiptSection">
+        <label>票据</label>
+        <select id="expReceipt" onchange="toggleReceiptCount()">
+          <option value="yes">有票据</option>
+          <option value="no">无票据</option>
+        </select>
+        <div id="receiptCountWrap" style="display:flex;align-items:center;gap:6px;margin-top:6px;">
+          <span style="font-size:13px;white-space:nowrap;">张数</span>
+          <input type="number" id="expReceiptCount" value="1" min="1" max="99" inputmode="decimal" style="width:50px;padding:4px 6px;font-size:14px;border:1.5px solid #e0e0e0;border-radius:8px;">
+        </div>
+      </div>
+      <!-- 有发票时显示：发票上传 -->
+      <div class="form-group" id="invoiceUploadSection" style="display:none;">
+        <label>上传发票</label>
+        <div class="receipt-upload" onclick="document.getElementById('invoiceInput').click()">
+          <div class="icon">🧾</div>
+          <div class="text">点击拍照或上传发票图片</div>
+          <input type="file" id="invoiceInput" accept="image/*,.pdf" multiple onchange="handleReceiptUpload(event)">
+        </div>
+        <div class="receipt-preview" id="expReceiptPreview"></div>
+      </div>
+      <!-- 无发票时显示：照片上传 -->
+      <div class="form-group" id="photoUploadSection" style="display:none;">
+        <label>上传照片留档</label>
+        <div class="receipt-upload" onclick="document.getElementById('photoInput').click()">
+          <div class="icon">📷</div>
+          <div class="text">点击拍照或上传照片作为凭证</div>
+          <input type="file" id="photoInput" accept="image/*" multiple onchange="handleReceiptUpload(event)">
+        </div>
+        <div class="receipt-preview" id="expPhotoPreview"></div>
+      </div>
+      <div class="form-group">
+        <label>明细说明</label>
+        <textarea id="expDetail" rows="2" placeholder="备注说明"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('expenseModal')">取消</button>
+      <button class="btn-save" onclick="saveExpense()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 导出弹窗 -->
+<div class="modal-overlay" id="exportModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>导出数据</h2>
+      <button class="close-btn" onclick="closeModal('exportModal')">×</button>
+    </div>
+    <div class="export-options">
+      <div class="export-option" onclick="showExcelDateRange()">
+        <div class="title">📊 导出Excel</div>
+        <div class="desc">月度汇总、项目明细、费用明细、分类统计</div>
+      </div>
+      <div class="export-option" onclick="closeModal('exportModal');openPrintModal()">
+        <div class="title">📄 生成报销单PDF</div>
+        <div class="desc">按公司模板格式，可打印</div>
+      </div>
+      <div class="export-option" onclick="exportBackup()">
+        <div class="title">💾 备份数据</div>
+        <div class="desc">导出JSON，换手机可恢复</div>
+      </div>
+      <div class="export-option" onclick="closeModal('exportModal');document.getElementById('jsonImportInput').click()">
+        <div class="title">📥 导入JSON备份</div>
+        <div class="desc">从JSON备份文件恢复数据</div>
+      </div>
+      <div class="export-option" onclick="closeModal('exportModal');document.getElementById('excelImportInput').click()">
+        <div class="title">📥 导入Excel数据</div>
+        <div class="desc">从导出的Excel文件恢复项目和费用</div>
+      </div>
+      <input type="file" id="jsonImportInput" accept=".json" style="display:none" onchange="importJSON(event)">
+      <input type="file" id="excelImportInput" accept=".xlsx,.xls" style="display:none" onchange="importExcel(event)">
+    </div>
+  </div>
+</div>
+
+<!-- Excel日期范围弹窗 -->
+<div class="modal-overlay" id="excelDateModal">
+  <div class="modal-content" style="max-width:360px;">
+    <div class="modal-header">
+      <h2>导出Excel</h2>
+      <button class="close-btn" onclick="closeModal('excelDateModal')">×</button>
+    </div>
+    <div style="padding:10px 0;">
+      <div class="form-group">
+        <label>起始日期</label>
+        <input type="date" id="excelStartDate" style="width:100%;padding:10px 12px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:15px;">
+      </div>
+      <div class="form-group">
+        <label>截止日期</label>
+        <input type="date" id="excelEndDate" style="width:100%;padding:10px 12px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:15px;">
+      </div>
+      <div style="font-size:12px;color:#999;margin:-6px 0 10px;">留空则按当前月份导出</div>
+      <button class="btn-primary" onclick="exportExcel()">导出</button>
+    </div>
+  </div>
+</div>
+
+<!-- 设置弹窗 -->
+<div class="modal-overlay" id="settingsModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>⚙️ 设置</h2>
+      <button class="close-btn" onclick="closeModal('settingsModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>出差人（默认）</label>
+        <input type="text" id="settingName" placeholder="袁章兴">
+      </div>
+      <div class="form-group">
+        <label>部门（默认）</label>
+        <input type="text" id="settingDept" placeholder="工程部">
+      </div>
+      <div class="form-group">
+        <label>报销人签名</label>
+        <div style="position:relative;border:1.5px solid #e0e0e0;border-radius:12px;overflow:hidden;">
+          <canvas id="signaturePad" width="800" height="300" style="width:100%;height:250px;background:#fafafa;touch-action:none;border-radius:12px;"></canvas>
+          <button onclick="clearSignature()" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.5);color:#fff;border:none;border-radius:50%;width:24px;height:24px;font-size:12px;cursor:pointer;line-height:24px;">×</button>
+        </div>
+        <div style="font-size:12px;color:#999;margin-top:4px;">在上方区域手写签名，打印时自动显示在报销人位置</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('settingsModal')">取消</button>
+      <button class="btn-save" onclick="saveSettings()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 打印选择弹窗 -->
+<div class="modal-overlay" id="printModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>📄 选择打印项目</h2>
+      <button class="close-btn" onclick="closeModal('printModal')">×</button>
+    </div>
+    <div class="modal-body" id="printProjectList">
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let projects = JSON.parse(localStorage.getItem('travelProjects') || '[]');
+let expenses = JSON.parse(localStorage.getItem('travelExpenses') || '[]');
+let currentMonth = new Date().toISOString().slice(0, 7);
+let tempReceipts = [];
+let mealDaySettings = [];
+let isNewProject = false;
+let currentProject = null;
+let ocrData = null;
+
+function selectExpCategory(cat) {
+  // 更新tab样式
+  ['intercity','local','other'].forEach(function(c) {
+    var el = document.getElementById('catTab_' + c);
+    if (el) {
+      el.style.background = c === cat ? '#667eea' : '#fff';
+      el.style.color = c === cat ? '#fff' : '#666';
+    }
+  });
+  // 更新子类型选项
+  var sel = document.getElementById('expType');
+  sel.innerHTML = '';
+  if (cat === 'intercity') {
+    sel.innerHTML = '<option value="train">高铁/火车</option><option value="plane">飞机</option><option value="bus">长途汽车</option><option value="ship">轮船</option>';
+    document.getElementById('tripFields').style.display = 'block';
+    document.getElementById('cityFields').style.display = 'none';
+  } else if (cat === 'local') {
+    sel.innerHTML = '<option value="taxi">打的</option><option value="didi">网约车/滴滴</option><option value="bus_local">公交</option><option value="subway">地铁</option>';
+    document.getElementById('tripFields').style.display = 'none';
+    document.getElementById('cityFields').style.display = 'block';
+  } else {
+    sel.innerHTML = '<option value="hotel">住宿</option><option value="meal">餐补</option><option value="subsidy">途中补贴</option><option value="other">其他</option>';
+    document.getElementById('tripFields').style.display = 'none';
+    document.getElementById('cityFields').style.display = 'none';
+  }
+}
+
+// 确保所有费用和项目id唯一（修复旧数据）
+function ensureUniqueIds() {
+  var usedIds = {};
+  projects.forEach(function(p, i) {
+    if (!p.id || usedIds[p.id]) { p.id = 'p_' + Date.now() + '_' + i + '_' + Math.random().toString(36).slice(2,6); }
+    usedIds[p.id] = true;
+  });
+  expenses.forEach(function(e, i) {
+    if (!e.id || usedIds[e.id]) { e.id = 'e_' + Date.now() + '_' + i + '_' + Math.random().toString(36).slice(2,6); }
+    usedIds[e.id] = true;
+  });
+  localStorage.setItem('travelProjects', JSON.stringify(projects));
+  localStorage.setItem('travelExpenses', JSON.stringify(expenses));
+}
+
+function init() {
+  ensureUniqueIds();
+  updateHomeStats();
+  document.getElementById('currentMonth').textContent = formatMonth(currentMonth);
+  document.getElementById('expDate').value = new Date().toISOString().slice(0, 10);
+  document.getElementById('newStartDate').value = new Date().toISOString().slice(0, 10);
+}
+
+function formatMonth(ym) {
+  const [y, m] = ym.split('-');
+  return y + '年' + parseInt(m) + '月';
+}
+
+function getMonthProjects() {
+  return projects.filter(p => p.startDate.startsWith(currentMonth) || (p.endDate && p.endDate.startsWith(currentMonth)) || isProjectActiveInMonth(p));
+}
+
+function isProjectActiveInMonth(p) {
+  const [y, m] = currentMonth.split('-').map(Number);
+  const monthStart = new Date(y, m - 1, 1);
+  const monthEnd = new Date(y, m, 0);
+  const pStart = new Date(p.startDate);
+  const pEnd = p.endDate ? new Date(p.endDate) : new Date();
+  return pStart <= monthEnd && pEnd >= monthStart;
+}
+
+function getProjectExpenses(pid) {
+  return expenses.filter(e => e.projectId === pid);
+}
+
+function updateHomeStats() {
+  const monthProjects = getMonthProjects();
+  let totalDays = 0, totalQty = 0;
+  let selfAmount = 0, ctripAmount = 0;
+  const qtyByType = { '技术支持': 0, '厂检': 0, '土勘': 0, '维保检查': 0, '培训': 0, '其他': 0 };
+
+  monthProjects.forEach(p => {
+    const days = calcDateDiff(p.startDate, p.endDate);
+    totalDays += days;
+    totalQty += getProjectTotalQty(p);
+    addQtyByType(qtyByType, p);
+    getProjectExpenses(p.id).forEach(e => {
+      if (e.payer === 'self') selfAmount += e.amount;
+      else ctripAmount += e.amount;
+    });
+  });
+
+  document.getElementById('statDays').textContent = totalDays + '天';
+  document.getElementById('statQty').textContent = totalQty + '台';
+  document.getElementById('statSelf').textContent = '¥' + selfAmount.toFixed(2);
+  document.getElementById('statCtrip').textContent = '¥' + ctripAmount.toFixed(2);
+
+  let qtyHtml = '';
+  for (const [type, qty] of Object.entries(qtyByType)) {
+    if (qty > 0) qtyHtml += '<div class="qty-row"><span class="label">' + type + '</span><span class="value">' + qty + '台</span></div>';
+  }
+  if (!qtyHtml) qtyHtml = '<div class="qty-row"><span class="label" style="color:#999">暂无数据</span></div>';
+  document.getElementById('qtyDetail').innerHTML = qtyHtml;
+}
+
+// 获取项目的workItems（兼容旧数据）
+function getWorkItems(p) {
+  if (p.workItems && p.workItems.length > 0) return p.workItems;
+  if (p.workType) return [{type: p.workType, qty: p.quantity || 0}];
+  return [];
+}
+
+function getProjectTotalQty(p) {
+  return getWorkItems(p).reduce((s, w) => s + (w.qty || 0), 0);
+}
+
+function addQtyByType(qtyByType, p) {
+  getWorkItems(p).forEach(w => {
+    if (qtyByType[w.type] !== undefined) qtyByType[w.type] += w.qty || 0;
+  });
+}
+
+function calcDateDiff(start, end) {
+  if (!start) return 0;
+  const s = new Date(start);
+  const e = end ? new Date(end) : new Date();
+  return Math.max(1, Math.ceil((e - s) / (1000 * 60 * 60 * 24)) + 1);
+}
+
+function getAllProjectNames() {
+  return [...new Set(projects.map(p => p.name))];
+}
+
+function showProjectDropdown() {
+  const dropdown = document.getElementById('projectDropdown');
+  const names = getAllProjectNames();
+  let html = '';
+  if (names.length > 0) {
+    html += names.map(n => '<div class="pd-item" onclick="selectProject(\'' + n.replace(/'/g, "\\'") + '\')">' + n + '</div>').join('');
+  }
+  html += '<div class="pd-item pd-new" onclick="selectNewProject()">+ 新建项目</div>';
+  dropdown.innerHTML = html;
+  dropdown.classList.add('active');
+}
+
+function filterProjects() {
+  const val = document.getElementById('selProject').value.trim();
+  const dropdown = document.getElementById('projectDropdown');
+  const names = getAllProjectNames().filter(n => n.includes(val));
+  let html = '';
+  if (names.length > 0) {
+    html += names.map(n => '<div class="pd-item" onclick="selectProject(\'' + n.replace(/'/g, "\\'") + '\')">' + n + '</div>').join('');
+  }
+  if (val && !getAllProjectNames().includes(val)) {
+    html += '<div class="pd-item pd-new" onclick="selectNewProjectName(\'' + val.replace(/'/g, "\\'") + '\')">新建「' + val + '」</div>';
+  }
+  dropdown.innerHTML = html;
+  dropdown.classList.add('active');
+}
+
+function selectProject(name) {
+  document.getElementById('selProject').value = name;
+  document.getElementById('projectDropdown').classList.remove('active');
+  currentProject = projects.find(p => p.name === name);
+  isNewProject = false;
+  document.getElementById('newProjectFields').style.display = 'none';
+}
+
+function selectNewProject() {
+  document.getElementById('projectDropdown').classList.remove('active');
+  isNewProject = true;
+  currentProject = null;
+  document.getElementById('newProjectFields').style.display = 'block';
+  document.getElementById('selProject').value = document.getElementById('selProject').value || '';
+  newWorkItemIdx = 0;
+  document.getElementById('newWorkItems').innerHTML = '';
+  addNewWorkItem();
+}
+
+var newWorkItemIdx = 0;
+var WT_OPTIONS = ['技术支持','厂检','土勘','维保检查','培训','其他'];
+
+function addNewWorkItem(type, qty) {
+  var idx = newWorkItemIdx++;
+  var opts = WT_OPTIONS.map(w => '<option value="'+w+'"'+(w===type?' selected':'')+'>'+w+'</option>').join('');
+  var html = '<div id="nwi_'+idx+'" style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">';
+  html += '<select id="nwi_type_'+idx+'" style="flex:1;padding:10px 8px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:14px;">'+opts+'</select>';
+  html += '<input type="number" id="nwi_qty_'+idx+'" value="'+(qty||'')+'" placeholder="台量" inputmode="decimal" style="width:70px;padding:10px 8px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:14px;">';
+  html += '<span onclick="removeNewWorkItem('+idx+')" style="color:#e74c3c;font-size:16px;cursor:pointer;padding:4px;">×</span>';
+  html += '</div>';
+  document.getElementById('newWorkItems').insertAdjacentHTML('beforeend', html);
+}
+
+function removeNewWorkItem(idx) {
+  var el = document.getElementById('nwi_'+idx);
+  if (el) el.remove();
+}
+
+function getNewWorkItems() {
+  var items = [];
+  var container = document.getElementById('newWorkItems');
+  container.querySelectorAll('[id^="nwi_type_"]').forEach(sel => {
+    var idx = sel.id.replace('nwi_type_','');
+    var qtyEl = document.getElementById('nwi_qty_'+idx);
+    if (qtyEl) {
+      var t = sel.value;
+      var q = parseInt(qtyEl.value) || 0;
+      if (t && q > 0) items.push({type: t, qty: q});
+    }
+  });
+  return items;
+}
+
+function selectNewProjectName(name) {
+  document.getElementById('selProject').value = name;
+  selectNewProject();
+}
+
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.project-select')) {
+    document.getElementById('projectDropdown').classList.remove('active');
+    var vd = document.getElementById('viewProjectDropdown');
+    if (vd) vd.style.display = 'none';
+  }
+});
+
+function calcMealDays() {
+  const start = document.getElementById('newStartDate').value;
+  const end = document.getElementById('newEndDate').value;
+  const days = calcDateDiff(start, end);
+  document.getElementById('newDays').textContent = days;
+  generateMealDayRows(days);
+  updateMealPreview();
+}
+
+function generateMealDayRows(days) {
+  const container = document.getElementById('mealDays');
+  const isCapital = document.getElementById('newIsCapital').value;
+  mealDaySettings = [];
+  let html = '';
+  for (let i = 0; i < days; i++) {
+    mealDaySettings.push(isCapital);
+    const date = new Date(document.getElementById('newStartDate').value);
+    date.setDate(date.getDate() + i);
+    const dateStr = (date.getMonth() + 1) + '/' + date.getDate();
+    html += '<div class="meal-day-row"><span>第' + (i + 1) + '天 (' + dateStr + ')</span><select onchange="updateMealDay(' + i + ', this.value)"><option value="no"' + (isCapital === 'no' ? ' selected' : '') + '>非省会 20元</option><option value="yes"' + (isCapital === 'yes' ? ' selected' : '') + '>省会 30元</option></select></div>';
+  }
+  container.innerHTML = html;
+  document.getElementById('mealConfig').style.display = days > 0 ? 'block' : 'none';
+}
+
+function updateMealDay(idx, val) {
+  mealDaySettings[idx] = val;
+  updateMealPreview();
+}
+
+function updateMealPreview() {
+  const days = parseInt(document.getElementById('newDays').textContent) || 0;
+  if (days === 0) {
+    document.getElementById('newMealAmount').textContent = '¥0.00';
+    return;
+  }
+  if (mealDaySettings.length === 0) calcMealDays();
+  let total = 0;
+  mealDaySettings.forEach(v => { total += v === 'yes' ? 30 : 20; });
+  document.getElementById('newMealAmount').textContent = '¥' + total.toFixed(2);
+}
+
+// OCR识别功能
+function handleOCRUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const imgData = e.target.result;
+    simulateOCR(imgData, file.name);
+  };
+  reader.readAsDataURL(file);
+}
+
+function simulateOCR(imgData, filename) {
+  let guessedType = 'other';
+  let guessedDate = new Date().toISOString().slice(0, 10);
+  const lowerName = filename.toLowerCase();
+  if (lowerName.includes('滴滴') || lowerName.includes('didi')) guessedType = 'didi';
+  else if (lowerName.includes('地铁') || lowerName.includes('subway')) guessedType = 'subway';
+  else if (lowerName.includes('公交')) guessedType = 'bus_local';
+  else if (lowerName.includes('高铁') || lowerName.includes('火车')) guessedType = 'train';
+  else if (lowerName.includes('飞机') || lowerName.includes('航空')) guessedType = 'plane';
+  else if (lowerName.includes('酒店') || lowerName.includes('住宿')) guessedType = 'hotel';
+
+  const resultHtml = '<div class="ocr-result"><div class="ocr-title">🔍 OCR识别结果（请核对）</div><div class="ocr-row"><span class="label">识别金额</span><span class="value"><input type="number" id="ocrAmount" placeholder="手动填写" style="width:120px;padding:4px 8px;border:1px solid #ddd;border-radius:6px;"></span></div><div class="ocr-row"><span class="label">识别日期</span><span class="value"><input type="date" id="ocrDate" value="' + guessedDate + '" style="width:120px;padding:4px 8px;border:1px solid #ddd;border-radius:6px;"></span></div><div class="ocr-row"><span class="label">猜测类型</span><span class="value" style="color:#667eea">' + getTypeLabel(guessedType) + '</span></div><div style="margin-top:10px;font-size:12px;color:#999">提示：金额和日期请手动核对填写</div></div>';
+  document.getElementById('ocrResult').innerHTML = resultHtml;
+  document.getElementById('expType').value = guessedType;
+  document.getElementById('expDate').value = guessedDate;
+  ocrData = { data: imgData, name: filename };
+  showToast('截图已上传，请核对识别结果');
+}
+
+function getTypeLabel(type) {
+  const labels = { train: '高铁/火车', plane: '飞机', bus: '长途汽车', ship: '轮船', didi: '网约车/滴滴', subway: '地铁', bus_local: '公交', taxi: '打的', hotel: '住宿', meal: '餐费', subsidy: '补贴', other: '其他' };
+  return labels[type] || '其他';
+}
+
+function handleReceiptUpload(event) {
+  const files = Array.from(event.target.files);
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      tempReceipts.push({ id: 'r_' + Date.now() + '_' + Math.random().toString(36).slice(2,6), name: file.name, type: file.type, data: e.target.result });
+      renderCurrentReceiptPreview();
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function renderCurrentReceiptPreview() {
+  // 判断当前是发票区还是照片区
+  var invoiceSection = document.getElementById('invoiceUploadSection');
+  var previewId = (invoiceSection && invoiceSection.style.display !== 'none') ? 'expReceiptPreview' : 'expPhotoPreview';
+  var preview = document.getElementById(previewId);
+  if (!preview) return;
+  preview.innerHTML = tempReceipts.map(r => r.type === 'application/pdf' ? '<div class="thumb pdf">📄</div>' : '<img class="thumb" src="' + r.data + '">').join('');
+}
+
+function renderReceiptPreview() {
+  renderCurrentReceiptPreview();
+}
+
+function saveExpense() {
+  const projName = document.getElementById('selProject').value.trim();
+  if (!projName) { showToast('请填写项目名称'); return; }
+
+  let projectId;
+  if (isNewProject) {
+    var workItems = getNewWorkItems();
+    var totalQty = workItems.reduce((s, w) => s + w.qty, 0);
+    var mainWorkType = workItems.length > 0 ? workItems[0].type : '其他';
+    const startDate = document.getElementById('newStartDate').value;
+    const endDate = document.getElementById('newEndDate').value;
+    if (!startDate) { showToast('请填写起始日期'); return; }
+    const days = calcDateDiff(startDate, endDate);
+    let mealAmount = 0;
+    mealDaySettings.forEach(v => { mealAmount += v === 'yes' ? 30 : 20; });
+    const newProject = { id: 'p_' + Date.now() + '_' + Math.random().toString(36).slice(2,6), name: projName, workType: mainWorkType, quantity: totalQty, workItems: workItems, startDate, endDate, days, mealSettings: [...mealDaySettings], mealAmount, createdAt: new Date().toISOString() };
+    projects.push(newProject);
+    localStorage.setItem('travelProjects', JSON.stringify(projects));
+    projectId = newProject.id;
+    if (mealAmount > 0) {
+      expenses.push({ id: 'e_' + Date.now() + '_' + Math.random().toString(36).slice(2,6), projectId, date: startDate, type: 'meal', payer: 'self', amount: mealAmount, receipt: 'no', detail: '出差餐补（' + days + '天）', mealDays: days, receipts: [], createdAt: new Date().toISOString() });
+    }
+  } else {
+    projectId = currentProject ? currentProject.id : null;
+    if (!projectId) { showToast('请选择或新建项目'); return; }
+  }
+
+  const ocrAmount = document.getElementById('ocrAmount') ? parseFloat(document.getElementById('ocrAmount').value) : 0;
+  const ocrDate = document.getElementById('ocrDate') ? document.getElementById('ocrDate').value : '';
+  const date = ocrDate || document.getElementById('expDate').value;
+  const type = document.getElementById('expType').value;
+  const payer = document.getElementById('expPayer').value;
+  const amount = ocrAmount || parseFloat(document.getElementById('expAmount').value) || 0;
+  const receipt = document.getElementById('expReceipt').value;
+  const receiptCount = receipt === 'yes' ? (parseInt(document.getElementById('expReceiptCount').value) || 1) : 0;
+  const detail = document.getElementById('expDetail').value.trim();
+  const expFrom = (document.getElementById('expFrom') ? document.getElementById('expFrom').value.trim() : '');
+  const expTo = (document.getElementById('expTo') ? document.getElementById('expTo').value.trim() : '');
+  const expCity = (document.getElementById('expCity') ? document.getElementById('expCity').value.trim() : '');
+
+  if (!date || amount <= 0) { showToast('请填写日期和金额'); return; }
+
+  const allReceipts = [...tempReceipts];
+  if (ocrData) allReceipts.push(ocrData);
+
+  var expObj = { id: 'e_' + Date.now() + '_' + Math.random().toString(36).slice(2,6), projectId, date, type, payer, amount, receipt, receiptCount: receiptCount, detail, receipts: allReceipts, createdAt: new Date().toISOString() };
+  if (expFrom) expObj.from = expFrom;
+  if (expTo) expObj.to = expTo;
+  if (expCity) expObj.city = expCity;
+  expenses.push(expObj);
+  localStorage.setItem('travelExpenses', JSON.stringify(expenses));
+  closeModal('expenseModal');
+  resetForm();
+  updateHomeStats();
+  showToast('保存成功');
+}
+
+function toggleReceiptCount() {
+  var wrap = document.getElementById('receiptCountWrap');
+  wrap.style.display = document.getElementById('expReceipt').value === 'yes' ? 'flex' : 'none';
+}
+
+// 携程/自付联动票据上传
+function togglePayerReceipt() {
+  var payer = document.getElementById('expPayer').value;
+  var receiptSection = document.getElementById('receiptSection');
+  var invoiceSection = document.getElementById('invoiceUploadSection');
+  var photoSection = document.getElementById('photoUploadSection');
+  if (payer === 'ctrip') {
+    // 携程：隐藏票据选项和上传区，默认无发票
+    receiptSection.style.display = 'none';
+    invoiceSection.style.display = 'none';
+    photoSection.style.display = 'none';
+    document.getElementById('expReceipt').value = 'no';
+    tempReceipts = [];
+  } else {
+    // 自付：显示票据选项
+    receiptSection.style.display = '';
+    // 根据有无发票显示对应上传区
+    toggleReceiptUpload();
+  }
+}
+
+// 根据有无发票切换上传区
+function toggleReceiptUpload() {
+  var hasReceipt = document.getElementById('expReceipt').value === 'yes';
+  var invoiceSection = document.getElementById('invoiceUploadSection');
+  var photoSection = document.getElementById('photoUploadSection');
+  if (hasReceipt) {
+    invoiceSection.style.display = '';
+    photoSection.style.display = 'none';
+  } else {
+    invoiceSection.style.display = 'none';
+    photoSection.style.display = '';
+  }
+  // 切换时清空已上传
+  tempReceipts = [];
+  var invPreview = document.getElementById('expReceiptPreview');
+  if (invPreview) invPreview.innerHTML = '';
+  var phPreview = document.getElementById('expPhotoPreview');
+  if (phPreview) phPreview.innerHTML = '';
+}
+
+// 票据有无选择时同时切换上传区
+var origToggleReceiptCount = toggleReceiptCount;
+toggleReceiptCount = function() {
+  origToggleReceiptCount();
+  toggleReceiptUpload();
+};
+function resetForm() {
+  document.getElementById('selProject').value = '';
+  document.getElementById('newProjectFields').style.display = 'none';
+  document.getElementById('newQuantity').value = '';
+  document.getElementById('newEndDate').value = '';
+  document.getElementById('newDays').textContent = '0';
+  document.getElementById('newMealAmount').textContent = '¥0.00';
+  document.getElementById('mealConfig').style.display = 'none';
+  document.getElementById('expAmount').value = '';
+  document.getElementById('expDetail').value = '';
+  if (document.getElementById('expFrom')) document.getElementById('expFrom').value = '';
+  if (document.getElementById('expTo')) document.getElementById('expTo').value = '';
+  if (document.getElementById('expCity')) document.getElementById('expCity').value = '';
+  document.getElementById('tripFields').style.display = 'none';
+  document.getElementById('cityFields').style.display = 'none';
+  document.getElementById('receiptCountWrap').style.display = 'flex';
+  document.getElementById('expReceiptCount').value = '1';
+  document.getElementById('expReceiptPreview').innerHTML = '';
+  document.getElementById('expPhotoPreview').innerHTML = '';
+  document.getElementById('receiptSection').style.display = '';
+  document.getElementById('invoiceUploadSection').style.display = 'none';
+  document.getElementById('photoUploadSection').style.display = 'none';
+  document.getElementById('expReceipt').value = 'yes';
+  tempReceipts = [];
+  mealDaySettings = [];
+  isNewProject = false;
+  currentProject = null;
+  ocrData = null;
+}
+
+function openExportModal() {
+  document.getElementById('exportModal').classList.add('active');
+}
+
+function showExcelDateRange() {
+  // 预填当前月份首尾
+  var mStart = currentMonth + '-01';
+  var d = new Date(parseInt(currentMonth.split('-')[0]), parseInt(currentMonth.split('-')[1]), 0);
+  var mEnd = currentMonth + '-' + String(d.getDate()).padStart(2, '0');
+  document.getElementById('excelStartDate').value = mStart;
+  document.getElementById('excelEndDate').value = mEnd;
+  closeModal('exportModal');
+  closeHeaderMenu();
+  document.getElementById('excelDateModal').classList.add('active');
+}
+
+function toggleHeaderMenu() {
+  var m = document.getElementById('headerMenu');
+  m.style.display = m.style.display === 'none' ? 'block' : 'none';
+}
+function closeHeaderMenu() {
+  var m = document.getElementById('headerMenu');
+  if (m) m.style.display = 'none';
+}
+// 点击页面其他区域关闭菜单
+document.addEventListener('click', function(e) {
+  var m = document.getElementById('headerMenu');
+  var b = document.getElementById('headerMenuBtn');
+  if (m && b && !b.contains(e.target) && !m.contains(e.target)) {
+    m.style.display = 'none';
+  }
+});
+
+function exportExcel() {
+  if (typeof XLSX === 'undefined') { showToast('Excel库加载失败，请刷新页面重试'); return; }
+
+  // 读取日期范围
+  var startDate = document.getElementById('excelStartDate').value;
+  var endDate = document.getElementById('excelEndDate').value;
+
+  // 筛选项目：项目起始日期或费用日期在范围内
+  var filteredProjects;
+  var rangeLabel;
+  if (startDate && endDate) {
+    rangeLabel = startDate + '至' + endDate;
+    filteredProjects = projects.filter(function(p) {
+      // 项目开始日期在范围内
+      if (p.startDate >= startDate && p.startDate <= endDate) return true;
+      // 项目有费用在范围内
+      var exps = expenses.filter(function(e) { return e.projectId === p.id && e.date >= startDate && e.date <= endDate; });
+      return exps.length > 0;
+    });
+  } else {
+    // 无日期范围则按当前月份
+    filteredProjects = getMonthProjects();
+    rangeLabel = currentMonth;
+  }
+
+  if (filteredProjects.length === 0) { showToast('选定范围内无数据'); return; }
+
+  const typeLabels = { train: '高铁/火车', plane: '飞机', bus: '长途汽车', ship: '轮船', didi: '网约车/滴滴', subway: '地铁', bus_local: '公交', taxi: '打的', hotel: '住宿', meal: '餐费', subsidy: '补贴', other: '其他' };
+  const expTypeLabels = { train: '高铁/火车', plane: '飞机', bus: '长途汽车', ship: '轮船', didi: '打的/网约车', subway: '公交/地铁', bus_local: '公交/地铁', taxi: '打的/网约车', hotel: '住宿', meal: '餐补', subsidy: '其它', other: '其它' };
+
+  let totalDays = 0, totalQty = 0, selfAmount = 0, ctripAmount = 0;
+  const qtyByType = { '技术支持': 0, '厂检': 0, '土勘': 0, '维保检查': 0, '培训': 0, '其他': 0 };
+  const expByType = { '高铁/火车': 0, '公交/地铁': 0, '打的/网约车': 0, '大巴': 0, '住宿': 0, '餐补': 0, '其它': 0, '飞机': 0 };
+
+  filteredProjects.forEach(p => {
+    totalDays += p.days;
+    totalQty += getProjectTotalQty(p);
+    addQtyByType(qtyByType, p);
+    var pExps = (startDate && endDate) ? expenses.filter(function(e) { return e.projectId === p.id && e.date >= startDate && e.date <= endDate; }) : getProjectExpenses(p.id);
+    pExps.forEach(e => {
+      if (e.payer === 'self') selfAmount += e.amount;
+      else ctripAmount += e.amount;
+      const label = expTypeLabels[e.type] || '其它';
+      if (expByType[label] !== undefined) expByType[label] += e.amount;
+    });
+  });
+
+  const summaryData = [{ '范围': rangeLabel, '出差天数': totalDays, '总台量': totalQty, '技术支持': qtyByType['技术支持'], '厂检': qtyByType['厂检'], '土勘': qtyByType['土勘'], '维保检查': qtyByType['维保检查'], '培训': qtyByType['培训'], '其他': qtyByType['其他'], '报销金额': selfAmount, '携程金额': ctripAmount, '差旅总金额': selfAmount + ctripAmount }];
+
+  const projectData = filteredProjects.map(p => {
+    const exps = (startDate && endDate) ? expenses.filter(function(e) { return e.projectId === p.id && e.date >= startDate && e.date <= endDate; }) : getProjectExpenses(p.id);
+    const self = exps.filter(e => e.payer === 'self').reduce((s, e) => s + e.amount, 0);
+    const ctrip = exps.filter(e => e.payer === 'ctrip').reduce((s, e) => s + e.amount, 0);
+    return { '项目名称': p.name, '工作性质': getWorkItems(p).map(w=>w.type+w.qty+'台').join(' '), '台量': getProjectTotalQty(p), '起始日期': p.startDate, '截止日期': p.endDate || '未结束', '出差天数': p.days, '报销金额': self, '携程金额': ctrip, '差旅总金额': self + ctrip };
+  });
+
+  const expenseData = [];
+  filteredProjects.forEach(p => {
+    var pExps = (startDate && endDate) ? expenses.filter(function(e) { return e.projectId === p.id && e.date >= startDate && e.date <= endDate; }) : getProjectExpenses(p.id);
+    pExps.forEach(e => {
+      expenseData.push({ '日期': e.date, '项目名称': p.name, '费用类型': typeLabels[e.type], '明细': e.detail || '', '支付方': e.payer === 'ctrip' ? '携程' : '自付', '金额': e.amount, '票据': e.receipt === 'yes' ? '有' : '无', '票据附件': (e.receipts || []).map(r => r.name).join('; ') });
+    });
+  });
+
+  const typeStatData = [{ '范围': rangeLabel, '高铁/火车': expByType['高铁/火车'], '公交/地铁': expByType['公交/地铁'], '打的/网约车': expByType['打的/网约车'], '大巴': expByType['大巴'], '住宿': expByType['住宿'], '餐补': expByType['餐补'], '其它': expByType['其它'], '飞机': expByType['飞机'] }];
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(summaryData), '月度汇总');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(projectData), '项目明细');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(expenseData), '费用明细');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(typeStatData), '分类统计');
+  XLSX.writeFile(wb, '差旅费报销_' + rangeLabel.replace(/-/g,'') + '.xlsx');
+  closeModal('excelDateModal');
+  showToast('Excel导出成功');
+}
+
+// === 设置功能 ===
+function getSettings() {
+  var s = localStorage.getItem('travelSettings');
+  if (s) return JSON.parse(s);
+  return { name: '袁章兴', dept: '工程部' };
+}
+
+var sigCanvas = null, sigCtx = null, sigDrawing = false;
+var sigLastX = 0, sigLastY = 0;
+
+function sigGetPos(e) {
+  var rect = sigCanvas.getBoundingClientRect();
+  var scaleX = sigCanvas.width / rect.width;
+  var scaleY = sigCanvas.height / rect.height;
+  var touch = e.touches ? e.touches[0] : e;
+  return { x: (touch.clientX - rect.left) * scaleX, y: (touch.clientY - rect.top) * scaleY };
+}
+
+function sigDrawLine(x1, y1, x2, y2) {
+  sigCtx.beginPath();
+  sigCtx.moveTo(x1, y1);
+  sigCtx.lineTo(x2, y2);
+  sigCtx.stroke();
+}
+
+function initSignaturePad() {
+  sigCanvas = document.getElementById('signaturePad');
+  if (!sigCanvas) return;
+  sigCtx = sigCanvas.getContext('2d');
+  sigCtx.strokeStyle = '#000';
+  sigCtx.fillStyle = '#000';
+  sigCtx.lineWidth = 25;
+  sigCtx.lineCap = 'round';
+  sigCtx.lineJoin = 'round';
+  // Load existing signature
+  var s = getSettings();
+  if (s.signature) {
+    var img = new Image();
+    img.onload = function() {
+      sigCtx.drawImage(img, 0, 0, sigCanvas.width, sigCanvas.height);
+    };
+    img.src = s.signature;
+  }
+  // Touch events (iOS primary)
+  sigCanvas.addEventListener('touchstart', function(e) {
+    e.preventDefault();
+    sigDrawing = true;
+    var pos = sigGetPos(e);
+    sigLastX = pos.x; sigLastY = pos.y;
+    sigCtx.beginPath();
+    sigCtx.arc(pos.x, pos.y, sigCtx.lineWidth / 2, 0, Math.PI * 2);
+    sigCtx.fill();
+  }, { passive: false });
+  sigCanvas.addEventListener('touchmove', function(e) {
+    e.preventDefault();
+    if (!sigDrawing) return;
+    var pos = sigGetPos(e);
+    sigDrawLine(sigLastX, sigLastY, pos.x, pos.y);
+    sigLastX = pos.x; sigLastY = pos.y;
+  }, { passive: false });
+  sigCanvas.addEventListener('touchend', function(e) { e.preventDefault(); sigDrawing = false; }, { passive: false });
+  // Mouse events (desktop fallback)
+  sigCanvas.addEventListener('mousedown', function(e) {
+    sigDrawing = true;
+    var pos = sigGetPos(e);
+    sigLastX = pos.x; sigLastY = pos.y;
+    sigCtx.beginPath();
+    sigCtx.arc(pos.x, pos.y, sigCtx.lineWidth / 2, 0, Math.PI * 2);
+    sigCtx.fill();
+  });
+  sigCanvas.addEventListener('mousemove', function(e) {
+    if (!sigDrawing) return;
+    var pos = sigGetPos(e);
+    sigDrawLine(sigLastX, sigLastY, pos.x, pos.y);
+    sigLastX = pos.x; sigLastY = pos.y;
+  });
+  sigCanvas.addEventListener('mouseup', function() { sigDrawing = false; });
+  sigCanvas.addEventListener('mouseleave', function() { sigDrawing = false; });
+}
+
+function clearSignature() {
+  if (sigCtx && sigCanvas) sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
+}
+
+function openSettingsModal() {
+  var s = getSettings();
+  document.getElementById('settingName').value = s.name || '';
+  document.getElementById('settingDept').value = s.dept || '';
+  document.getElementById('settingsModal').classList.add('active');
+  setTimeout(initSignaturePad, 100);
+}
+
+function saveSettings() {
+  var name = document.getElementById('settingName').value.trim() || '袁章兴';
+  var dept = document.getElementById('settingDept').value.trim() || '工程部';
+  var signature = '';
+  if (sigCanvas && sigCtx) {
+    // Check if canvas has any non-transparent pixels
+    var imgData = sigCtx.getImageData(0, 0, sigCanvas.width, sigCanvas.height).data;
+    var hasContent = false;
+    for (var i = 3; i < imgData.length; i += 4) { if (imgData[i] > 0) { hasContent = true; break; } }
+    if (hasContent) signature = sigCanvas.toDataURL('image/png');
+  }
+  var existing = getSettings();
+  localStorage.setItem('travelSettings', JSON.stringify({ name: name, dept: dept, signature: signature || existing.signature || '' }));
+  closeModal('settingsModal');
+  showToast('设置已保存');
+}
+
+// === 数字转大写金额 ===
+function numToChinese(num) {
+  if (isNaN(num) || num === 0) return '零元整';
+  var digits = ['零','壹','贰','叁','肆','伍','陆','柒','捌','玖'];
+  var radices = ['', '拾', '佰', '仟'];
+  var bigRadices = ['', '万', '亿'];
+  var s = '';
+  var n = Math.abs(num);
+  var yuan = Math.floor(n);
+  var jiao = Math.floor(n * 10) % 10;
+  var fen = Math.round(n * 100) % 10;
+  if (yuan > 0) {
+    var zeroCount = 0;
+    var str = yuan.toString();
+    for (var i = 0; i < str.length; i++) {
+      var p = str.length - i - 1;
+      var d = parseInt(str[i]);
+      var q = p % 4;
+      var z = Math.floor(p / 4);
+      if (d === 0) { zeroCount++; }
+      else {
+        if (zeroCount > 0) s += digits[0];
+        zeroCount = 0;
+        s += digits[d] + radices[q];
+      }
+      if (q === 0 && zeroCount < 4) s += bigRadices[z];
+    }
+    s += '元';
+  }
+  if (jiao === 0 && fen === 0) { s += '整'; }
+  else {
+    if (jiao > 0) { s += digits[jiao] + '角'; }
+    else if (yuan > 0) { s += '零'; }
+    if (fen > 0) { s += digits[fen] + '分'; }
+  }
+  return s;
+}
+
+// === 构建报销单HTML模板 ===（竖版A4，严格对照纸模板）
+function buildReimbursementForm(project, exps, settings) {
+  // 费用类型 → 交通工具显示名
+  var typeToTransport = {
+    train: '高铁', plane: '飞机', bus: '汽车', ship: '轮船',
+    didi: '网约车', subway: '地铁', bus_local: '公交', taxi: '打的'
+  };
+  var isInterCity = function(t) { return ['train','plane','bus','ship'].indexOf(t) >= 0; };
+  var isTransport = function(t) { return ['train','plane','bus','ship','taxi','didi','subway','bus_local'].indexOf(t) >= 0; };
+  var preprintedItems = ['行李费', '市内车费', '住宿费', '邮电费', '不买卧铺补贴'];
+
+  var totals = {车船费:0, 途中补贴:0, 住勤费:0, 其他费用:0};
+  var totalReceipts = 0;
+  var selfTotal = 0;
+  var transportItems = [];   // 城际交通
+  var localTransportMap = {}; // 市内交通按城市分组: {cityName: {count, receipts, amount, isCtrip, firstDate, lastDate}}
+  var subsidyItems = [];    // 途中补贴(含餐补)
+  var hotelItems = [];      // 住勤费
+  var otherExpMap = {};
+  var extraOtherItems = [];
+
+  exps.forEach(function(e) {
+    var isCtrip = e.payer === 'ctrip';
+    if (e.payer === 'self') selfTotal += e.amount;
+    if (e.receipt === 'yes') totalReceipts += (e.receiptCount || 1);
+    if (isInterCity(e.type)) {
+      // 城际交通
+      var transport = typeToTransport[e.type] || '其他';
+      if (!isCtrip) totals['车船费'] += e.amount;
+      transportItems.push({
+        transport: transport,
+        receiptCount: e.receiptCount || (e.receipt === 'yes' ? 1 : 0),
+        amountDisplay: isCtrip ? '携程' : e.amount.toFixed(2),
+        isCtrip: isCtrip,
+        from: e.from || '',
+        to: e.to || '',
+        date: e.date
+      });
+    } else if (isTransport(e.type)) {
+      // 市内交通 → 按城市分组
+      if (!isCtrip) totals['车船费'] += e.amount;
+      var ltCity = e.city || '未指定';
+      if (!localTransportMap[ltCity]) localTransportMap[ltCity] = {count:0, receipts:0, amount:0, isCtrip:false, firstDate:'', lastDate:''};
+      var ltData = localTransportMap[ltCity];
+      ltData.count++;
+      ltData.receipts += (e.receiptCount || (e.receipt === 'yes' ? 1 : 0));
+      if (!isCtrip) ltData.amount += e.amount;
+      if (isCtrip) ltData.isCtrip = true;
+      if (e.date) {
+        if (!ltData.firstDate || e.date < ltData.firstDate) ltData.firstDate = e.date;
+        if (!ltData.lastDate || e.date > ltData.lastDate) ltData.lastDate = e.date;
+      }
+    } else if (e.type === 'subsidy') {
+      totals['途中补贴'] += e.amount;
+      subsidyItems.push({
+        type: 'subsidy',
+        amountDisplay: e.amount.toFixed(2)
+      });
+    } else if (e.type === 'meal') {
+      totals['途中补贴'] += e.amount;
+      var mealDays = e.mealDays || 0;
+      if (!mealDays && e.detail) { var m = e.detail.match(/(\d+)天/); if (m) mealDays = parseInt(m[1]); }
+      subsidyItems.push({
+        type: 'meal',
+        amountDisplay: e.amount.toFixed(2),
+        mealDays: mealDays
+      });
+    } else if (e.type === 'hotel') {
+      totals['住勤费'] += e.amount;
+      hotelItems.push({ amountDisplay: e.amount.toFixed(2) });
+      var key = '住宿费';
+      if (!otherExpMap[key]) otherExpMap[key] = {amount:0, receipts:0, isCtrip:false};
+      if (isCtrip) { otherExpMap[key].isCtrip = true; }
+      else { otherExpMap[key].amount += e.amount; totals['其他费用'] += e.amount; }
+      otherExpMap[key].receipts += (e.receiptCount || (e.receipt === 'yes' ? 1 : 0));
+    } else {
+      var key = e.detail || '其他';
+      if (!otherExpMap[key]) {
+        otherExpMap[key] = {amount:0, receipts:0, isCtrip:false};
+        if (preprintedItems.indexOf(key) < 0 && extraOtherItems.indexOf(key) < 0) {
+          extraOtherItems.push(key);
+        }
+      }
+      if (isCtrip) { otherExpMap[key].isCtrip = true; }
+      else { otherExpMap[key].amount += e.amount; totals['其他费用'] += e.amount; }
+      otherExpMap[key].receipts += (e.receiptCount || (e.receipt === 'yes' ? 1 : 0));
+    }
+  });
+
+  // 市内交通按城市分行，每城一行"打车"
+  Object.keys(localTransportMap).forEach(function(city) {
+    var ltData = localTransportMap[city];
+    if (ltData.count > 0) {
+      transportItems.push({
+        transport: '打车',
+        receiptCount: ltData.receipts,
+        amountDisplay: ltData.isCtrip && ltData.amount === 0 ? '携程' : ltData.amount.toFixed(2),
+        isCtrip: ltData.isCtrip && ltData.amount === 0,
+        from: city,
+        to: city,
+        date: ltData.lastDate || '',
+        firstDate: ltData.firstDate || '',
+        isLocal: true
+      });
+    }
+  });
+  var today = new Date();
+  var workDesc = getWorkItems(project).map(function(w){ return w.type + w.qty + '台'; }).join(' ');
+
+  // 辅助函数：生成td，支持dbl-r
+  function td(text, dblRight, cls, colspan) {
+    var classes = [];
+    if (cls) classes.push(cls);
+    if (dblRight) classes.push('dbl-r');
+    var c = classes.length > 0 ? ' class="' + classes.join(' ') + '"' : '';
+    var cs = colspan > 1 ? ' colspan="' + colspan + '"' : '';
+    return '<td' + c + cs + '>' + (text || '') + '</td>';
+  }
+
+  // CSS - 单表32列架构，固定列宽，双竖线独立列
+  var html = '<style>';
+  html += '.rb-form{width:794px;padding:12px 32px 6px 57px;font-family:SimSun,STSong,"宋体",serif;color:#000;background:#fff;line-height:1.3;}';
+  html += '.rb-top{text-align:center;}';
+  html += '.rb-title{font-size:22px;font-weight:bold;letter-spacing:8px;}';
+  html += '.rb-dbl-line{border-bottom:3px double #000;margin-top:2px;}';
+  html += '.rb-date-row{text-align:right;font-size:12px;padding:2px 0 3px;}';
+  html += '.rb-body{display:flex;align-items:stretch;}';
+  html += '.rb-side{writing-mode:vertical-rl;font-size:11px;letter-spacing:3px;padding:10px 3px 10px 0;flex-shrink:0;text-align:center;color:#000;}';
+  html += '.rb-table-wrap{width:100%;border:2px solid #000;}';
+  html += '.rb-main{width:100%;border-collapse:collapse;border:none;margin:0;font-size:11px;table-layout:fixed;}';
+  html += '.rb-main td,.rb-main th{border:0.5px solid #000;padding:1px 2px;text-align:center;overflow:hidden;white-space:nowrap;}';
+  html += '.rb-main td:first-child,.rb-main th:first-child{border-left:none;}';
+  html += '.rb-main td:last-child,.rb-main th:last-child{border-right:none;}';
+  html += '.rb-t1 td:last-child,.rb-main td:last-child,.rb-main th:last-child{border-right:none;}';
+  html += '.rb-t1 td{border-top:none;border-bottom:none;}';
+  // removed last-section rule - signature row uses border:none on its own
+  html += '.rb-main td{height:20px;}';
+  html += '.rb-main .th-group{background:#fff;font-weight:normal;font-size:11px;padding:2px 1px;height:22px;}';
+  html += '.rb-main .th-sub{background:#fff;font-size:10px;padding:1px;font-weight:normal;}';
+  html += '.rb-main .td-ctrip{color:#3498db;}';
+  html += '.rb-main .td-total{font-weight:normal;background:#fff;border-top:0.5px solid #000;}';
+  html += '.rb-main .td-lbl{text-align:center;padding:0 2px;font-size:11px;font-weight:normal;background:#fff;white-space:normal;}';
+  html += '.rb-main .td-lbl-sm{text-align:justify;padding:0 1px;font-size:9px;font-weight:normal;background:#fff;letter-spacing:1px;text-align-last:justify;white-space:normal;word-break:break-all;line-height:1.3;}';
+  html += '.settle-lbl{text-align:center;font-weight:normal;background:#fff;padding:2px 3px;font-size:10px;white-space:normal;line-height:1.2;}';
+  html += '.settle-val{text-align:center;padding:1px 2px;font-size:11px;}';
+  html += '.dbl-col{border-top:none !important;border-bottom:none !important;padding:0 !important;border-left:0.5px solid #000 !important;border-right:0.5px solid #000 !important;}';
+  html += '.no-border-r{border-right:none !important;}';
+  html += '.no-border-l{border-left:none !important;}';
+  html += '.dashed-line{border-bottom:1px dashed #999 !important;}';
+  html += '.split-cell{padding:0 !important;vertical-align:top;}';
+  html += '.split-cell div.split-top{border-bottom:1px solid #000;padding:1px 2px;font-size:10px;text-align:center;height:15px;line-height:15px;overflow:hidden;white-space:nowrap;}';
+  html += '.split-cell div.split-bottom{padding:1px 2px;font-size:10px;text-align:center;height:15px;line-height:15px;overflow:hidden;white-space:nowrap;}';
+  html += '.split-dashed div.split-top{border-bottom:1px dashed #999;padding:1px 2px;font-size:10px;text-align:center;height:15px;line-height:15px;overflow:hidden;white-space:nowrap;}';
+  html += '.split-dashed div.split-bottom{padding:1px 2px;font-size:10px;text-align:center;height:15px;line-height:15px;overflow:hidden;white-space:nowrap;}';
+  html += '.split-sm div.split-top{border-bottom:1px solid #000;padding:0 2px;font-size:9px;text-align:center;height:13px;line-height:13px;overflow:hidden;white-space:nowrap;}';
+  html += '.split-sm div.split-bottom{padding:0 2px;font-size:9px;text-align:center;height:13px;line-height:13px;overflow:hidden;white-space:nowrap;}';
+  html += '.split-sm-dashed div.split-top{border-bottom:1px dashed #999;padding:0 2px;font-size:9px;text-align:center;height:13px;line-height:13px;overflow:hidden;white-space:nowrap;}';
+  html += '.split-sm-dashed div.split-bottom{padding:0 2px;font-size:9px;text-align:center;height:13px;line-height:13px;overflow:hidden;white-space:nowrap;}';
+  html += '.settle-blank{border:none !important;background:transparent;font-size:10px;padding:0;height:auto;overflow:visible;white-space:normal;line-height:1.3;}';
+  html += '.rb-signs{display:flex;padding:8px 0 2px;font-size:13px;}';
+  html += '.rb-footer{text-align:right;font-size:10px;color:#999;margin-top:2px;}';
+  html += '</style>';
+
+  html += '<div class="rb-form">';
+
+  // 标题区（左上角VEITE logo + 居中标题）
+  html += '<div class="rb-top" style="position:relative;">';
+  html += '<img src="data:image/png;base64,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" style="position:absolute;left:0;top:75%;transform:translateY(-50%);height:32px;width:auto;">';
+  html += '<span style="display:inline-block;">';
+  html += '<div class="rb-title">出 差 旅 费 报 销 单</div>';
+  html += '<div class="rb-dbl-line"></div>';
+  html += '</span>';
+  html += '</div>';
+
+  // 报销日期
+  html += '<div class="rb-date-row">报销日期：' + today.getFullYear() + '年' + (today.getMonth()+1) + '月' + today.getDate() + '日</div>';
+
+  // 主体
+  html += '<div class="rb-body">';
+  html += '<div class="rb-side">不敷填写时可另附清单</div>';
+  html += '<div class="rb-table-wrap">';
+
+  // === 单表32列架构：所有行共享colgroup，双竖线独立列 ===
+  // 列宽精确按纸模板(青联纸品103号)Excel数据分配
+  html += '<table class="rb-main">';
+
+  // 32列colgroup（D到AI，不含C列——C列由rb-side侧栏替代）
+  // 双竖线列: col5(H), col11(N), col15(R), col23(Z), col28(AE) 各0.29%
+  html += '<colgroup>';
+  html += '<col style="width:2.59%"><col style="width:2.59%"><col style="width:2.59%"><col style="width:6.63%"><col style="width:0.29%">';
+  html += '<col style="width:2.59%"><col style="width:2.59%"><col style="width:2.59%"><col style="width:3.31%"><col style="width:3.31%"><col style="width:0.29%">';
+  html += '<col style="width:6.05%"><col style="width:5.48%"><col style="width:6.92%"><col style="width:0.29%">';
+  html += '<col style="width:2.59%"><col style="width:2.59%"><col style="width:2.59%"><col style="width:2.31%"><col style="width:2.31%"><col style="width:3.03%"><col style="width:3.03%"><col style="width:0.29%">';
+  html += '<col style="width:2.31%"><col style="width:2.31%"><col style="width:2.31%"><col style="width:6.05%"><col style="width:0.29%">';
+  html += '<col style="width:3.58%"><col style="width:3.58%"><col style="width:3.64%"><col style="width:6.19%">';
+  html += '</colgroup>';
+
+  // 行1: 部门/出差人/出差事由（无双竖线，colspan跨过双竖线列）
+  html += '<tr style="height:24px;">';
+  html += '<td class="td-lbl" colspan="3">部 门</td>';
+  html += '<td class="td-info" colspan="6">' + (settings.dept || '工程部') + '</td>';
+  html += '<td class="td-lbl" colspan="3">出 差 人</td>';
+  html += '<td class="td-info" colspan="7">' + (settings.name || '袁章兴') + '</td>';
+  html += '<td class="td-lbl" colspan="6">出 差 事 由</td>';
+  html += '<td class="td-info-overflow" colspan="7">' + (project.name || '') + (workDesc ? '（' + workDesc + '）' : '') + '</td>';
+  html += '</tr>';
+
+  // 行2: 大分类头（th-group），双竖线列独立
+  html += '<tr style="height:22px;">';
+  html += '<th class="th-group" colspan="4">出  发</th>';
+  html += '<th class="dbl-col"></th>';
+  html += '<th class="th-group" colspan="5">到  达</th>';
+  html += '<th class="dbl-col"></th>';
+  html += '<th class="th-group" rowspan="2">交 通<br>工 具</th>';
+  html += '<th class="th-group" rowspan="2">单据<br>张数</th>';
+  html += '<th class="th-group" rowspan="2">车船费</th>';
+  html += '<th class="dbl-col"></th>';
+  html += '<th class="th-group" colspan="7">途 中 补 贴</th>';
+  html += '<th class="dbl-col"></th>';
+  html += '<th class="th-group" colspan="4">住 勤 费</th>';
+  html += '<th class="dbl-col"></th>';
+  html += '<th class="th-group" colspan="4">其 他 费 用</th>';
+  html += '</tr>';
+
+  // 行3: 子分类头（th-sub），双竖线列独立
+  html += '<tr style="height:20px;">';
+  html += '<th class="th-sub">月</th><th class="th-sub">日</th><th class="th-sub">时</th><th class="th-sub">地 点</th>';
+  html += '<th class="dbl-col"></th>';
+  html += '<th class="th-sub">月</th><th class="th-sub">日</th><th class="th-sub">时</th><th class="th-sub" colspan="2">地 点</th>';
+  html += '<th class="dbl-col"></th>';
+  html += '<th class="dbl-col"></th>';
+  html += '<th class="th-sub">早</th><th class="th-sub">中</th><th class="th-sub">晚</th><th class="th-sub" colspan="2">夜间</th><th class="th-sub" colspan="2">金 额</th>';
+  html += '<th class="dbl-col"></th>';
+  html += '<th class="th-sub">早</th><th class="th-sub">中</th><th class="th-sub">晚</th><th class="th-sub">金 额</th>';
+  html += '<th class="dbl-col"></th>';
+  html += '<th class="th-sub" colspan="2">项 目</th><th class="th-sub">单据</th><th class="th-sub">金 额</th>';
+  html += '</tr>';
+
+  // 数据行（32列，双竖线列独立）
+  var otherItems = preprintedItems.concat(extraOtherItems);
+  var transportCount = transportItems.length;
+  var subsidyCount = subsidyItems.length;
+  var hotelCount = hotelItems.length;
+  var otherCount = otherItems.length;
+  var dataRowCount = Math.max(transportCount, subsidyCount, hotelCount, otherCount, 7);
+
+  for (var i = 0; i < dataRowCount; i++) {
+    html += '<tr>';
+
+    // 出发/到达/车船费（城际+市内合并行）
+    if (i < transportCount) {
+      var tItem = transportItems[i];
+      if (tItem.isLocal) {
+        // 市内交通合并行：出发=最早日期+城市，到达=最晚日期+城市
+        if (tItem.firstDate) {
+          var fd = new Date(tItem.firstDate);
+          html += td(fd.getMonth()+1, false); html += td(fd.getDate(), false); html += td('', false); html += td(tItem.from, false);
+        } else {
+          html += td('', false); html += td('', false); html += td('', false); html += td(tItem.from, false);
+        }
+        html += '<td class="dbl-col"></td>';
+        if (tItem.date) {
+          var ld = new Date(tItem.date);
+          html += td(ld.getMonth()+1, false); html += td(ld.getDate(), false); html += td('', false); html += td(tItem.to, false, '', 2);
+        } else {
+          html += td('', false); html += td('', false); html += td('', false); html += td(tItem.to, false, '', 2);
+        }
+      } else {
+        // 城际交通
+        if (tItem.date) {
+          var d = new Date(tItem.date);
+          html += td(d.getMonth()+1, false); html += td(d.getDate(), false); html += td('', false); html += td(tItem.from, false);
+        } else {
+          html += td('', false); html += td('', false); html += td('', false); html += td('', false);
+        }
+        html += '<td class="dbl-col"></td>';
+        if (tItem.date) {
+          var d2 = new Date(tItem.date);
+          html += td(d2.getMonth()+1, false); html += td(d2.getDate(), false); html += td('', false); html += td(tItem.to, false, '', 2);
+        } else {
+          html += td('', false); html += td('', false); html += td('', false); html += td('', false, '', 2);
+        }
+      }
+      html += '<td class="dbl-col"></td>';
+      var cc = tItem.isCtrip ? 'td-ctrip' : '';
+      html += td(tItem.transport, false, cc); html += td(tItem.receiptCount > 0 ? tItem.receiptCount : '', false); html += td(tItem.amountDisplay, false, cc);
+      html += '<td class="dbl-col"></td>';
+    } else {
+      html += td('', false); html += td('', false); html += td('', false); html += td('', false);
+      html += '<td class="dbl-col"></td>';
+      html += td('', false); html += td('', false); html += td('', false); html += td('', false, '', 2);
+      html += '<td class="dbl-col"></td>';
+      html += td('', false); html += td('', false); html += td('', false);
+      html += '<td class="dbl-col"></td>';
+    }
+
+    // 途中补贴（含餐补）
+    if (i < subsidyCount) {
+      var sItem = subsidyItems[i];
+      if (sItem.type === 'meal') {
+        html += td('', false); html += td('', false); html += td('', false); html += td(sItem.mealDays > 0 ? sItem.mealDays : '', false, '', 2); html += td(sItem.amountDisplay, false, '', 2);
+      } else {
+        html += td('', false); html += td('', false); html += td('', false); html += td('', false, '', 2); html += td(sItem.amountDisplay, false, '', 2);
+      }
+      html += '<td class="dbl-col"></td>';
+    } else {
+      html += td('', false); html += td('', false); html += td('', false); html += td('', false, '', 2); html += td('', false, '', 2);
+      html += '<td class="dbl-col"></td>';
+    }
+
+    // 住勤费
+    if (i < hotelCount) {
+      var hItem = hotelItems[i];
+      html += td('', false); html += td('', false); html += td('', false); html += td(hItem.amountDisplay, false);
+      html += '<td class="dbl-col"></td>';
+    } else {
+      html += td('', false); html += td('', false); html += td('', false); html += td('', false);
+      html += '<td class="dbl-col"></td>';
+    }
+
+    // 右侧：其他费用
+    if (i < otherCount) {
+      var oItem = otherItems[i];
+      var itemDisplay = oItem === '不买卧铺补贴' ? '不买卧铺<br>补　贴' : oItem;
+      html += td(itemDisplay, false, 'td-lbl-sm', 2);
+      var data = otherExpMap[oItem];
+      if (data) {
+        var occ = data.isCtrip ? 'td-ctrip' : '';
+        html += td(data.receipts > 0 ? data.receipts : '', false);
+        html += td(data.isCtrip ? '携程' : (data.amount > 0 ? data.amount.toFixed(2) : ''), false, occ);
+      } else {
+        html += td('', false); html += td('', false);
+      }
+    } else {
+      html += td('', false, '', 2); html += td('', false); html += td('', false);
+    }
+
+    html += '</tr>';
+  }
+
+  // 合计行（32列）
+  html += '<tr>';
+  html += '<td class="td-total" colspan="10">合&emsp;&emsp;&emsp;计</td>';
+  html += '<td class="dbl-col td-total"></td>';
+  html += '<td class="td-total"></td>';
+  html += '<td class="td-total">' + totalReceipts + '</td>';
+  html += '<td class="td-total">' + (totals['车船费'] > 0 ? totals['车船费'].toFixed(2) : '') + '</td>';
+  html += '<td class="dbl-col td-total"></td>';
+  html += '<td class="td-total"></td><td class="td-total"></td><td class="td-total"></td><td class="td-total" colspan="2"></td>';
+  html += '<td class="td-total" colspan="2">' + (totals['途中补贴'] > 0 ? totals['途中补贴'].toFixed(2) : '') + '</td>';
+  html += '<td class="dbl-col td-total"></td>';
+  html += '<td class="td-total"></td><td class="td-total"></td><td class="td-total"></td>';
+  html += '<td class="td-total">' + (totals['住勤费'] > 0 ? totals['住勤费'].toFixed(2) : '') + '</td>';
+  html += '<td class="dbl-col td-total"></td>';
+  html += '<td class="td-total" colspan="2"></td>';
+  html += '<td class="td-total"></td>';
+  html += '<td class="td-total">' + (totals['其他费用'] > 0 ? totals['其他费用'].toFixed(2) : '') + '</td>';
+  html += '</tr>';
+
+  // 报销总额行（双行结构，按Excel: row16+row17各4mm=8mm合并）
+  // 结构: D-E(rowspan2)=报销总额, F-G(rowspan2)=人民币(大写), H(隐藏), I-T(rowspan2)=大写金额, U-X(rowspan2)=¥小写, Y-AA(rowspan2)=预支旅费, AB-AF(2行)=月日/空白, AG-AH(2行)=补领不足/归还多余, AI(rowspan2)
+  html += '<tr>';
+  // D-E: 报销/总额 (vertical-center, 2 cols, rowspan=2)
+  html += '<td colspan="2" rowspan="2" style="vertical-align:middle;font-size:8px;font-weight:normal;padding:1px 2px;line-height:1.2;border-left:0.5px solid #000 !important;border-right:0.5px solid #000 !important;">报销<br>总额</td>';
+  // F-G: 人民币(大写) (vertical-center, 2 cols, rowspan=2)
+  html += '<td colspan="2" rowspan="2" style="vertical-align:middle;font-size:8px;font-weight:normal;padding:1px 2px;line-height:1.2;border-right:none !important;">人民币<br>(大写)</td>';
+  // H: double-line列在此区域隐藏 (0.5mm, rowspan=2, 无边框)
+  html += '<td rowspan="2" class="dbl-col" style="border-right:none !important;"></td>';
+  // I-T: 大写金额填写区 (12 cols, rowspan=2, 右边无边框——与¥小写之间无框线)
+  html += '<td colspan="12" rowspan="2" style="vertical-align:middle;font-size:10px;padding:1px 3px;text-align:center;word-break:break-all;line-height:1.3;border-right:none !important;border-left:none !important;">' + numToChinese(selfTotal) + '</td>';
+  // U-X: ¥小写金额 (4 cols, rowspan=2, 左边无边框)
+  html += '<td colspan="4" rowspan="2" style="vertical-align:middle;font-size:11px;padding:1px 2px;border-left:none !important;border-right:0.5px solid #000 !important;">¥' + selfTotal.toFixed(2) + '</td>';
+  // Y-AA: 预支/旅费 (3 cols, rowspan=2, 包含Z双竖线列)
+  html += '<td colspan="3" rowspan="2" style="vertical-align:middle;font-size:8px;font-weight:normal;padding:1px 2px;line-height:1.2;border-left:0.5px solid #000 !important;border-right:0.5px solid #000 !important;">预支<br>旅费</td>';
+  // AB-AF: 月日 (5 cols, row16 only, 包含AE双竖线列)
+  html += '<td colspan="5" style="font-size:8px;padding:1px 2px;border-bottom:none !important;border-left:0.5px solid #000 !important;">&nbsp;&nbsp;月&nbsp;&nbsp;&nbsp;&nbsp;日</td>';
+  // AG-AH: 补领不足 (2 cols, row16 only, AG和AH之间无边框)
+  html += '<td colspan="2" style="font-size:8px;font-weight:normal;padding:1px 2px;border-right:none !important;">补领不足</td>';
+  // AI: (rowspan=2)
+  html += '<td style="border-left:none !important;"></td>';
+  html += '</tr>';
+  // Row 17: 只有AB-AF和AG-AH两块
+  html += '<tr>';
+  // AB-AF: 空白填写行 (5 cols, row17)
+  html += '<td colspan="5" style="font-size:8px;padding:1px 2px;border-top:none !important;border-left:0.5px solid #000 !important;">&nbsp;</td>';
+  // AG-AH: 归还多余 (2 cols, row17, AG和AH之间无边框)
+  html += '<td colspan="2" style="font-size:8px;font-weight:normal;padding:1px 2px;border-right:none !important;">归还多余</td>';
+  html += '<td style="border-left:none !important;"></td>';
+  html += '</tr>';
+
+  html += '</table>'; // rb-main
+  html += '</div>'; // rb-table-wrap
+  html += '</div>'; // rb-body
+
+  // 签名行（在表格框线外，Excel row18=7mm）
+  // 签名用占位标记，后续由jsPDF直接绘制高清签名图
+  var signHtml = '';
+  if (settings.signature) {
+    signHtml = '<span style="position:absolute;left:72%;top:6px;">报销人：</span><span id="sigPlaceholder" style="position:absolute;left:79%;top:2px;display:inline-block;width:60px;height:24px;"></span>';
+  } else {
+    signHtml = '<span style="position:absolute;left:72%;top:6px;">报销人：</span>';
+  }
+  html += '<div id="signRow" style="position:relative;font-size:9px;padding:6px 0 0 0;height:36px;overflow:visible;"><span style="position:absolute;left:12%;top:6px;">主管</span><span style="position:absolute;left:43%;top:6px;">审核</span>' + signHtml + '</div>';
+
+  html += '<div class="rb-footer"></div>';
+  html += '</div>'; // rb-form
+  return html;
+}
+
+// === 打印项目选择 ===
+function openPrintModal() {
+  var monthProjects = getMonthProjects();
+  var container = document.getElementById('printProjectList');
+  if (monthProjects.length === 0) {
+    container.innerHTML = '<div style="text-align:center;padding:30px;color:#999;">本月无项目数据</div>';
+  } else {
+    var html = '';
+    monthProjects.forEach(function(p) {
+      var exps = getProjectExpenses(p.id);
+      var selfAmt = exps.filter(function(e){return e.payer==='self';}).reduce(function(s,e){return s+e.amount;},0);
+      var isPrinted = p.printed ? true : false;
+      html += '<div onclick="exportPDF(\'' + p.id + '\')" style="display:flex;justify-content:space-between;align-items:center;padding:14px;border:1.5px solid #e0e0e0;border-radius:12px;margin-bottom:10px;cursor:pointer;' + (isPrinted ? 'opacity:0.6;' : '') + '">';
+      html += '<div>';
+      html += '<div style="font-size:15px;font-weight:600;color:#333;">' + p.name + '</div>';
+      html += '<div style="font-size:12px;color:#999;margin-top:4px;">' + p.startDate + ' · ¥' + selfAmt.toFixed(2) + '</div>';
+      html += '</div>';
+      html += '<div style="display:flex;align-items:center;gap:8px;">';
+      if (isPrinted) html += '<span style="font-size:11px;color:#27ae60;background:#e8f5e9;padding:2px 8px;border-radius:8px;">已打印</span>';
+      html += '<span style="color:#667eea;font-size:18px;">📄</span>';
+      html += '</div></div>';
+    });
+    container.innerHTML = html;
+  }
+  document.getElementById('printModal').classList.add('active');
+}
+
+// === 生成报销单PDF ===
+async function exportPDF(projectId) {
+  if (typeof window.jspdf === 'undefined') { showToast('PDF库加载失败，请刷新页面重试'); return; }
+  if (typeof html2canvas === 'undefined') { showToast('打印库加载失败，请刷新页面重试'); return; }
+  var monthProjects = getMonthProjects();
+  if (monthProjects.length === 0) { showToast('本月无数据'); return; }
+
+  // 如果指定了项目ID，只打印该项目
+  var printProjects = projectId ? monthProjects.filter(function(p){ return p.id === projectId; }) : monthProjects;
+  if (printProjects.length === 0) { showToast('项目不存在'); return; }
+
+  var settings = getSettings();
+  var jsPDF = window.jspdf.jsPDF;
+  var doc = new jsPDF('p', 'mm', 'a4');  // 竖版A4，匹配纸模板
+
+  closeModal('printModal');
+  showToast('正在生成报销单...');
+
+  for (var idx = 0; idx < printProjects.length; idx++) {
+    if (idx > 0) doc.addPage();
+    var p = printProjects[idx];
+    var exps = getProjectExpenses(p.id);
+
+    // 创建临时渲染容器（position:absolute;left:-9999px 绝不能用opacity:0）
+    var container = document.createElement('div');
+    container.style.cssText = 'position:absolute;left:-9999px;top:0;width:794px;background:#fff;';
+    container.innerHTML = buildReimbursementForm(p, exps, settings);
+    document.body.appendChild(container);
+
+    try {
+      // 先计算签名占位符位置（html2canvas前，确保DOM已渲染）
+      var sigPosInfo = null;
+      if (settings.signature) {
+        var sigPlaceholder = container.querySelector('#sigPlaceholder');
+        var signRow = container.querySelector('#signRow');
+        if (sigPlaceholder && signRow) {
+          var sigRect = sigPlaceholder.getBoundingClientRect();
+          var containerRect = container.getBoundingClientRect();
+          sigPosInfo = {
+            leftPx: sigRect.left - containerRect.left,
+            topPx: sigRect.top - containerRect.top,
+            widthPx: sigRect.width,
+            heightPx: sigRect.height,
+            containerWidth: containerRect.width || 794
+          };
+        }
+      }
+
+      var canvas = await html2canvas(container, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+      var imgData = canvas.toDataURL('image/jpeg', 0.95);
+      var pdfWidth = 210;  // A4竖版宽度mm
+      var pdfHeight = Math.min((canvas.height * pdfWidth) / canvas.width, 297);
+      doc.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+
+      // 裁剪线：104mm处，虚线+剪刀箭头
+      doc.setDrawColor(180, 180, 180);
+      doc.setLineDashPattern([4, 3], 0);
+      doc.setLineWidth(0.3);
+      doc.line(15, 104, 195, 104);
+      // 左端剪刀标记 V
+      doc.line(10, 102.5, 13, 104);
+      doc.line(10, 105.5, 13, 104);
+      // 右端剪刀标记 V
+      doc.line(197, 102.5, 200, 104);
+      doc.line(197, 105.5, 200, 104);
+      // 恢复默认
+      doc.setTextColor(0);
+      doc.setLineDashPattern([], 0);
+
+      // 高清签名：直接用jsPDF绘制签名图到PDF，绕过html2canvas缩放限制
+      if (sigPosInfo && settings.signature) {
+        var pxToMm = pdfWidth / sigPosInfo.containerWidth;
+        var sigXmm = sigPosInfo.leftPx * pxToMm;
+        var sigYmm = sigPosInfo.topPx * pxToMm;
+        var sigWmm = sigPosInfo.widthPx * pxToMm;
+        var sigHmm = sigPosInfo.heightPx * pxToMm;
+        // 直接添加高清签名PNG到PDF
+        doc.addImage(settings.signature, 'PNG', sigXmm, sigYmm, sigWmm, sigHmm);
+      }
+    } catch(err) {
+      console.error('PDF render error:', err);
+      showToast('生成失败，请重试');
+    }
+
+    document.body.removeChild(container);
+  }
+
+  // 文件名：月份+项目名+事由
+  var fileProjectName = printProjects.length === 1 ? printProjects[0].name : '';
+  var fileWorkDesc = printProjects.length === 1 ? getWorkItems(printProjects[0]).map(function(w){ return w.type + w.qty + '台'; }).join('') : '';
+  var fileName = '报销单_' + currentMonth.replace('-','') + (fileProjectName ? '_' + fileProjectName : '') + (fileWorkDesc ? '_' + fileWorkDesc : '') + '.pdf';
+  doc.save(fileName);
+  closeModal('exportModal');
+
+  // 标记已打印的项目
+  printProjects.forEach(function(p) {
+    p.printed = true;
+    p.printedAt = new Date().toISOString();
+  });
+  localStorage.setItem('travelProjects', JSON.stringify(projects));
+
+  // === 票据附件A4横版2×2排版 ===
+  var allReceiptImages = [];
+  printProjects.forEach(function(p) {
+    var exps = getProjectExpenses(p.id);
+    exps.forEach(function(e) {
+      if (e.receipts && e.receipts.length > 0) {
+        e.receipts.forEach(function(r) {
+          if (r.data && r.data.indexOf('data:image') === 0) {
+            allReceiptImages.push(r.data);
+          }
+        });
+      }
+    });
+  });
+
+  if (allReceiptImages.length > 0) {
+    var receiptDoc = new jsPDF('l', 'mm', 'a4');  // 横版A4
+    var pageW = 297, pageH = 210;
+    var rMargin = 10;
+    var rCols = 2, rRows = 2;
+    var rCellW = (pageW - rMargin * 2 - (rCols - 1) * 5) / rCols;
+    var rCellH = (pageH - rMargin * 2 - 15 - (rRows - 1) * 5) / rRows;
+    var perPage = rCols * rRows;
+
+    // 异步加载图片尺寸后依次绘制
+    var receiptPromises = allReceiptImages.map(function(imgData) {
+      return new Promise(function(resolve) {
+        var img = new Image();
+        img.onload = function() { resolve({ data: imgData, w: img.width, h: img.height }); };
+        img.onerror = function() { resolve({ data: imgData, w: 0, h: 0 }); };
+        img.src = imgData;
+      });
+    });
+
+    Promise.all(receiptPromises).then(function(imgInfos) {
+      for (var ri = 0; ri < imgInfos.length; ri++) {
+        if (ri % perPage === 0) {
+          if (ri > 0) receiptDoc.addPage();
+          receiptDoc.setFontSize(10);
+          receiptDoc.setTextColor(100, 100, 100);
+          receiptDoc.text('票据附件', rMargin, rMargin + 8);
+          receiptDoc.setTextColor(0);
+        }
+        var posInPage = ri % perPage;
+        var rCol = posInPage % rCols;
+        var rRow = Math.floor(posInPage / rCols);
+        var rx = rMargin + rCol * (rCellW + 5);
+        var ry = rMargin + 15 + rRow * (rCellH + 5);
+
+        // 画边框
+        receiptDoc.setDrawColor(200, 200, 200);
+        receiptDoc.setLineWidth(0.3);
+        receiptDoc.rect(rx, ry, rCellW, rCellH);
+
+        // 按宽高比适配图片，不拉伸变形
+        try {
+          var info = imgInfos[ri];
+          var drawW = rCellW - 4, drawH = rCellH - 4;
+          if (info.w > 0 && info.h > 0) {
+            var ratio = Math.min(drawW / info.w, drawH / info.h);
+            drawW = info.w * ratio;
+            drawH = info.h * ratio;
+          }
+          var offsetX = rx + 2 + (rCellW - 4 - drawW) / 2;
+          var offsetY = ry + 2 + (rCellH - 4 - drawH) / 2;
+          var fmt = info.data.indexOf('data:image/png') === 0 ? 'PNG' : 'JPEG';
+          receiptDoc.addImage(info.data, fmt, offsetX, offsetY, drawW, drawH, undefined, 'FAST');
+        } catch(imgErr) {
+          console.warn('票据图片添加失败:', imgErr);
+        }
+      }
+
+      var receiptFileName = '票据附件_' + currentMonth.replace('-','') + (fileProjectName ? '_' + fileProjectName : '') + '.pdf';
+      receiptDoc.save(receiptFileName);
+      showToast('报销单生成成功（含' + imgInfos.length + '张票据附件）');
+    });
+  } else {
+    showToast('报销单生成成功');
+  }
+}
+
+function exportBackup() {
+  const data = { projects, expenses, exportDate: new Date().toISOString() };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = '差旅费备份_' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  closeModal('exportModal');
+  showToast('备份成功');
+}
+
+function importJSON(event) {
+  var file = event.target.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      var data = JSON.parse(e.target.result);
+      if (data.projects && data.expenses) {
+        if (projects.length > 0 || expenses.length > 0) {
+          if (!confirm('当前已有数据，导入将覆盖，确定继续？')) return;
+        }
+        projects = data.projects;
+        expenses = data.expenses;
+        localStorage.setItem('travelProjects', JSON.stringify(projects));
+        localStorage.setItem('travelExpenses', JSON.stringify(expenses));
+        updateHomeStats();
+        showToast('导入成功！已恢复' + projects.length + '个项目，' + expenses.length + '笔费用');
+      } else {
+        showToast('文件格式不正确');
+      }
+    } catch(err) {
+      showToast('导入失败：文件解析错误');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+function importExcel(event) {
+  if (typeof XLSX === 'undefined') { showToast('Excel库加载失败，请刷新页面重试'); return; }
+  var file = event.target.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      var wb = XLSX.read(e.target.result, { type: 'array' });
+      var typeMap = {'高铁/火车':'train','飞机':'plane','长途汽车':'bus','轮船':'ship','网约车/滴滴':'didi','地铁':'subway','公交':'bus_local','打的':'taxi','住宿':'hotel','餐费':'meal','补贴':'subsidy','其他':'other'};
+      var payerMap = {'自付':'self','自费(报销)':'self','携程':'ctrip','携程支付':'ctrip'};
+      // 读取项目明细
+      var projSheet = wb.Sheets['项目明细'];
+      var projectMap = {};
+      if (projSheet) {
+        var projData = XLSX.utils.sheet_to_json(projSheet);
+        projData.forEach(function(row) {
+          var pName = row['项目名称'];
+          if (!pName) return;
+          var workStr = row['工作性质'] || '';
+          var qtyMatch = workStr.match(/(\d+)/);
+          var qty = qtyMatch ? parseInt(qtyMatch[1]) : 0;
+          var workType = workStr.replace(/\d+台?/, '').trim() || '其他';
+          var proj = {
+            id: 'p_' + Date.now() + Math.random().toString(36).substr(2,6),
+            name: pName,
+            workType: workType,
+            quantity: qty,
+            workItems: [{ type: workType, qty: qty }],
+            startDate: row['起始日期'] || '',
+            endDate: row['截止日期'] || '',
+            days: row['出差天数'] || 1,
+            mealSettings: [],
+            mealAmount: 0,
+            createdAt: new Date().toISOString()
+          };
+          // 处理日期格式
+          if (proj.startDate && typeof proj.startDate === 'number') {
+            var d = new Date((proj.startDate - 25569) * 86400 * 1000);
+            proj.startDate = d.toISOString().slice(0,10);
+          }
+          if (proj.endDate && typeof proj.endDate === 'number') {
+            var d2 = new Date((proj.endDate - 25569) * 86400 * 1000);
+            proj.endDate = d2.toISOString().slice(0,10);
+          }
+          projects.push(proj);
+          projectMap[pName] = proj.id;
+        });
+      }
+      // 读取费用明细
+      var expSheet = wb.Sheets['费用明细'];
+      if (expSheet) {
+        var expData = XLSX.utils.sheet_to_json(expSheet);
+        expData.forEach(function(row) {
+          var pName = row['项目名称'];
+          var projId = projectMap[pName];
+          if (!projId) return;
+          var date = row['日期'] || '';
+          if (date && typeof date === 'number') {
+            var d = new Date((date - 25569) * 86400 * 1000);
+            date = d.toISOString().slice(0,10);
+          }
+          var typeStr = row['费用类型'] || '其他';
+          var expType = typeMap[typeStr] || 'other';
+          var payerStr = row['支付方'] || '自付';
+          var payer = payerMap[payerStr] || 'self';
+          var amount = parseFloat(row['金额']) || 0;
+          var detail = row['明细'] || '';
+          var receipt = row['票据'] === '有' ? 'yes' : 'no';
+          // 解析出发地/到达地
+          var from = '', to = '';
+          if (detail && detail.indexOf('-') > 0 && ['train','plane','bus','ship'].indexOf(expType) >= 0) {
+            var parts = detail.split('-');
+            from = parts[0].trim();
+            to = parts[1].trim();
+          }
+          var exp = {
+            id: 'e_' + Date.now() + Math.random().toString(36).substr(2,9),
+            projectId: projId,
+            date: date,
+            type: expType,
+            payer: payer,
+            amount: amount,
+            receipt: receipt,
+            detail: detail,
+            receipts: [],
+            createdAt: new Date().toISOString()
+          };
+          if (from) exp.from = from;
+          if (to) exp.to = to;
+          expenses.push(exp);
+        });
+      }
+      localStorage.setItem('travelProjects', JSON.stringify(projects));
+      localStorage.setItem('travelExpenses', JSON.stringify(expenses));
+      updateHomeStats();
+      showToast('导入成功！' + projects.length + '个项目，' + expenses.length + '笔费用');
+    } catch(err) {
+      console.error('Excel import error:', err);
+      showToast('导入失败：' + err.message);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+  event.target.value = '';
+}
+
+function openExpenseModal() {
+  document.getElementById('expenseModal').classList.add('active');
+  document.getElementById('expDate').value = new Date().toISOString().slice(0, 10);
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('active');
+}
+
+// === 查看费用功能 ===
+var viewProject = null;
+
+function openViewModal() {
+  viewProject = null;
+  document.getElementById('viewExpenseList').innerHTML = '';
+  // 渲染项目标签列表
+  var listEl = document.getElementById('viewProjectList');
+  var names = getAllProjectNames();
+  if (names.length === 0) {
+    listEl.innerHTML = '<div style="color:#999;font-size:14px;">暂无项目</div>';
+  } else {
+    listEl.innerHTML = names.map(function(n) {
+      return '<button onclick="selectViewProject(\'' + n.replace(/'/g, "\\'") + '\')" style="padding:8px 16px;border:1.5px solid #667eea;border-radius:20px;background:#fff;color:#667eea;font-size:14px;font-weight:500;cursor:pointer;">' + n + '</button>';
+    }).join('');
+  }
+  document.getElementById('viewModal').classList.add('active');
+}
+
+function selectViewProject(name) {
+  // 更新选中状态
+  viewProject = projects.find(p => p.name === name);
+  var listEl = document.getElementById('viewProjectList');
+  var btns = listEl.querySelectorAll('button');
+  btns.forEach(function(btn) {
+    if (btn.textContent === name) {
+      btn.style.background = '#667eea';
+      btn.style.color = '#fff';
+    } else {
+      btn.style.background = '#fff';
+      btn.style.color = '#667eea';
+    }
+  });
+  renderViewExpenses();
+}
+
+function renderViewExpenses() {
+  if (!viewProject) return;
+  const projExpenses = expenses.filter(e => e.projectId === viewProject.id);
+  const container = document.getElementById('viewExpenseList');
+  const typeLabels = {'train':'高铁/火车','bus':'公交/地铁','taxi':'打的/网约车','coach':'大巴','hotel':'住宿','meal':'餐补','other':'其它','flight':'飞机'};
+  const payerLabels = {'self':'自费(报销)','ctrip':'携程支付'};
+
+  let totalSelf = 0, totalCtrip = 0;
+  projExpenses.forEach(e => {
+    if (e.payer === 'self') totalSelf += e.amount;
+    else totalCtrip += e.amount;
+  });
+
+  let html = '<div style="background:#f8f9ff;border-radius:12px;padding:14px;margin-bottom:14px;">';
+  html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">';
+  html += '<div style="font-size:14px;font-weight:600;color:#333;">' + viewProject.name + (viewProject.printed ? ' <span style="font-size:11px;color:#27ae60;background:#e8f5e9;padding:1px 6px;border-radius:6px;">已打印</span>' : '') + '</div>';
+  html += '<span onclick="editViewProject()" style="font-size:13px;color:#667eea;cursor:pointer;">✏️编辑</span>';
+  html += '</div>';
+  html += '<div style="display:flex;gap:12px;font-size:13px;">';
+  html += '<span>出差 <b>' + (viewProject.days || 0) + '</b> 天</span>';
+  html += '<span>台量 <b>' + getProjectTotalQty(viewProject) + '</b> 台</span>';
+  html += '<span style="color:#e74c3c">自费 ¥' + totalSelf.toFixed(2) + '</span>';
+  html += '<span style="color:#3498db">携程 ¥' + totalCtrip.toFixed(2) + '</span>';
+  html += '</div></div>';
+
+  if (projExpenses.length === 0) {
+    html += '<div style="text-align:center;padding:30px;color:#999;font-size:14px;">该项目暂无费用记录</div>';
+  } else {
+    projExpenses.forEach((e, i) => {
+      const tLabel = typeLabels[e.type] || e.type;
+      const pLabel = payerLabels[e.payer] || e.payer;
+      const pColor = e.payer === 'self' ? '#e74c3c' : '#3498db';
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #f0f0f0;' + (i === 0 ? 'border-top:1px solid #f0f0f0;' : '') + '">';
+      html += '<div style="flex:1;" onclick="editViewExpense(\'' + e.id + '\')">';
+      html += '<div style="font-size:14px;color:#333;">' + (e.detail || tLabel) + '</div>';
+      html += '<div style="font-size:12px;color:#999;margin-top:3px;">' + e.date + ' · ' + tLabel + ' · ' + pLabel + '</div>';
+      html += '</div>';
+      html += '<div style="display:flex;align-items:center;gap:10px;">';
+      html += '<div style="font-size:16px;font-weight:600;color:' + pColor + ';">¥' + e.amount.toFixed(2) + '</div>';
+      html += '<div onclick="deleteViewExpense(\'' + e.id + '\')" style="color:#e74c3c;font-size:18px;padding:4px 6px;cursor:pointer;">×</div>';
+      html += '</div>';
+      html += '</div>';
+    });
+  }
+
+  container.innerHTML = html;
+}
+
+var editWorkItemIdx = 0;
+
+function editViewProject() {
+  if (!viewProject) return;
+  editWorkItemIdx = 0;
+  var items = getWorkItems(viewProject);
+  var itemsHtml = '';
+  items.forEach(w => { itemsHtml += buildEditWorkItemRow(w.type, w.qty); });
+  if (!itemsHtml) itemsHtml = buildEditWorkItemRow('技术支持', '');
+
+  var html = '<div style="background:#fff;border-radius:12px;padding:16px;">';
+  html += '<div style="font-size:15px;font-weight:600;margin-bottom:14px;color:#667eea;">✏️ 修改项目</div>';
+  html += '<div class="form-group"><label>项目名称</label><input type="text" id="editProjName" value="'+viewProject.name.replace(/"/g,'&quot;')+'" style="width:100%;padding:10px 12px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:15px;"></div>';
+  html += '<div class="form-group"><label>工作性质 / 台量</label><div id="editWorkItems">'+itemsHtml+'</div><div style="margin-top:6px;"><span onclick="addEditWorkItem()" style="color:#667eea;font-size:13px;cursor:pointer;">+ 添加一行</span></div></div>';
+  html += '<div class="form-group"><label>起始日期</label><input type="date" id="editProjStart" value="'+(viewProject.startDate||'')+'" style="width:100%;padding:10px 12px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:15px;"></div>';
+  html += '<div class="form-group"><label>结束日期</label><input type="date" id="editProjEnd" value="'+(viewProject.endDate||'')+'" style="width:100%;padding:10px 12px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:15px;"></div>';
+  html += '<div style="display:flex;gap:10px;margin-top:16px;">';
+  html += '<button onclick="renderViewExpenses()" style="flex:1;padding:12px;border:none;border-radius:10px;font-size:14px;font-weight:600;background:#f5f5f5;color:#666;cursor:pointer;">取消</button>';
+  html += '<button onclick="saveViewProject()" style="flex:1;padding:12px;border:none;border-radius:10px;font-size:14px;font-weight:600;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;cursor:pointer;">保存</button>';
+  html += '</div></div>';
+  document.getElementById('viewExpenseList').innerHTML = html;
+}
+
+function buildEditWorkItemRow(type, qty) {
+  var idx = editWorkItemIdx++;
+  var opts = WT_OPTIONS.map(w => '<option value="'+w+'"'+(w===type?' selected':'')+'>'+w+'</option>').join('');
+  var html = '<div id="ewi_'+idx+'" style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">';
+  html += '<select id="ewi_type_'+idx+'" style="flex:1;padding:10px 8px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:14px;">'+opts+'</select>';
+  html += '<input type="number" id="ewi_qty_'+idx+'" value="'+(qty||'')+'" placeholder="台量" inputmode="decimal" style="width:70px;padding:10px 8px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:14px;">';
+  html += '<span onclick="removeEditWorkItem('+idx+')" style="color:#e74c3c;font-size:16px;cursor:pointer;padding:4px;">×</span>';
+  html += '</div>';
+  return html;
+}
+
+function addEditWorkItem(type, qty) {
+  document.getElementById('editWorkItems').insertAdjacentHTML('beforeend', buildEditWorkItemRow(type||'技术支持', qty||''));
+}
+
+function removeEditWorkItem(idx) {
+  var el = document.getElementById('ewi_'+idx);
+  if (el) el.remove();
+}
+
+function getEditWorkItems() {
+  var items = [];
+  var container = document.getElementById('editWorkItems');
+  if (!container) return items;
+  container.querySelectorAll('[id^="ewi_type_"]').forEach(sel => {
+    var idx = sel.id.replace('ewi_type_','');
+    var qtyEl = document.getElementById('ewi_qty_'+idx);
+    if (qtyEl) {
+      var t = sel.value;
+      var q = parseInt(qtyEl.value) || 0;
+      if (t && q > 0) items.push({type: t, qty: q});
+    }
+  });
+  return items;
+}
+
+function saveViewProject() {
+  if (!viewProject) return;
+  var name = document.getElementById('editProjName').value.trim();
+  if (!name) { showToast('项目名称不能为空'); return; }
+  var workItems = getEditWorkItems();
+  var totalQty = workItems.reduce((s, w) => s + w.qty, 0);
+  var mainWorkType = workItems.length > 0 ? workItems[0].type : '其他';
+  viewProject.name = name;
+  viewProject.workType = mainWorkType;
+  viewProject.quantity = totalQty;
+  viewProject.workItems = workItems;
+  viewProject.startDate = document.getElementById('editProjStart').value;
+  viewProject.endDate = document.getElementById('editProjEnd').value;
+  viewProject.days = calcDateDiff(viewProject.startDate, viewProject.endDate);
+  localStorage.setItem('travelProjects', JSON.stringify(projects));
+  document.getElementById('viewProjectInput').value = name;
+  renderViewExpenses();
+  updateHomeStats();
+  showToast('项目已更新');
+}
+
+function deleteViewExpense(eid) {
+  if (!confirm('确定删除这条费用记录？')) return;
+  expenses = expenses.filter(e => e.id !== eid);
+  localStorage.setItem('travelExpenses', JSON.stringify(expenses));
+  renderViewExpenses();
+  updateHomeStats();
+  showToast('已删除');
+}
+
+function editViewExpense(eid) {
+  editExpId = eid;
+  editTempReceipts = [];
+  var exp = expenses.find(e => e.id === eid);
+  if (!exp) return;
+  var typeLabels = {'train':'高铁/火车','plane':'飞机','bus':'长途汽车','ship':'轮船','didi':'网约车/滴滴','subway':'地铁','bus_local':'公交','taxi':'打的','hotel':'住宿','meal':'餐补','subsidy':'途中补贴','other':'其他'};
+  var payerLabels = {'self':'自费(报销)','ctrip':'携程支付'};
+  // 判断当前费用属于哪个类别
+  var intercityTypes = ['train','plane','bus','ship'];
+  var localTypes = ['taxi','didi','bus_local','subway'];
+  var currentCat = intercityTypes.indexOf(exp.type) >= 0 ? 'intercity' : (localTypes.indexOf(exp.type) >= 0 ? 'local' : 'other');
+  var isTransport = intercityTypes.indexOf(exp.type) >= 0;
+
+  var html = '<div style="background:#fff;border-radius:12px;padding:16px;">';
+  html += '<div style="font-size:15px;font-weight:600;margin-bottom:14px;color:#667eea;">✏️ 修改费用</div>';
+  html += '<div class="form-group"><label>日期</label><input type="date" id="editExpDate" value="'+exp.date+'" style="width:100%;padding:10px 12px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:15px;"></div>';
+  // 分类tab
+  html += '<div class="form-group"><label>费用类别</label>';
+  html += '<div style="display:flex;gap:0;border:1.5px solid #e0e0e0;border-radius:10px;overflow:hidden;margin-bottom:8px;">';
+  html += '<div onclick="selectEditCategory(\'intercity\')" id="editCatTab_intercity" style="flex:1;text-align:center;padding:8px 0;font-size:13px;font-weight:600;cursor:pointer;background:'+(currentCat==='intercity'?'#667eea':'#fff')+';color:'+(currentCat==='intercity'?'#fff':'#666')+';border-right:1px solid #e0e0e0;">🚄 城市交通</div>';
+  html += '<div onclick="selectEditCategory(\'local\')" id="editCatTab_local" style="flex:1;text-align:center;padding:8px 0;font-size:13px;font-weight:600;cursor:pointer;background:'+(currentCat==='local'?'#667eea':'#fff')+';color:'+(currentCat==='local'?'#fff':'#666')+';border-right:1px solid #e0e0e0;">🚕 市内交通</div>';
+  html += '<div onclick="selectEditCategory(\'other\')" id="editCatTab_other" style="flex:1;text-align:center;padding:8px 0;font-size:13px;font-weight:600;cursor:pointer;background:'+(currentCat==='other'?'#667eea':'#fff')+';color:'+(currentCat==='other'?'#fff':'#666')+';">🏨 其他费用</div>';
+  html += '</div></div>';
+  // 子类型select
+  html += '<div class="form-group"><label>出行方式</label><select id="editExpType" style="width:100%;padding:10px 12px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:15px;"></select></div>';
+  html += '<div id="editTripFields" style="display:'+(isTransport?'block':'none')+';">';
+  html += '<div class="form-row"><div class="form-group"><label>出发地</label><input type="text" id="editExpFrom" value="'+(exp.from||'')+'" style="width:100%;padding:10px 12px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:15px;"></div>';
+  html += '<div class="form-group"><label>到达地</label><input type="text" id="editExpTo" value="'+(exp.to||'')+'" style="width:100%;padding:10px 12px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:15px;"></div></div>';
+  html += '</div>';
+  html += '<div id="editCityFields" style="display:'+(currentCat==='local'?'block':'none')+';">';
+  html += '<div class="form-group"><label>城市</label><input type="text" id="editExpCity" value="'+(exp.city||'')+'" style="width:100%;padding:10px 12px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:15px;"></div>';
+  html += '</div>';
+  html += '<div class="form-group"><label>支付方式</label><select id="editExpPayer" onchange="toggleEditPayerReceipt()" style="width:100%;padding:10px 12px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:15px;"><option value="self"'+(exp.payer==='self'?' selected':'')+'>自付（需报销）</option><option value="ctrip"'+(exp.payer==='ctrip'?' selected':'')+'>携程（已垫付）</option></select></div>';
+  html += '<div class="form-group"><label>金 额</label><input type="number" id="editExpAmount" value="'+exp.amount+'" step="0.01" style="width:100%;padding:10px 12px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:15px;"></div>';
+  html += '<div id="editReceiptArea"' + (exp.payer === 'ctrip' ? ' style="display:none;"' : '') + '>';
+  html += '<div class="form-group"><label>票据</label><select id="editExpReceipt" onchange="toggleEditReceiptCount()" style="width:100%;padding:10px 12px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:15px;"><option value="yes"'+(exp.receipt!=="no"?" selected":"")+'>有票据</option><option value="no"'+(exp.receipt==="no"?" selected":"")+'>无票据</option></select><div id="editReceiptCountWrap" style="display:flex;align-items:center;gap:6px;margin-top:6px;'+(exp.receipt==='no'?'display:none;':'')+'"><span style="font-size:13px;white-space:nowrap;">张数</span><input type="number" id="editExpReceiptCount" value="'+(exp.receiptCount||1)+'" min="1" max="99" inputmode="decimal" style="width:50px;padding:4px 6px;font-size:14px;border:1.5px solid #e0e0e0;border-radius:8px;"></div></div>';
+  // 票据附件上传（有发票时显示）
+  html += '<div class="form-group" id="editInvoiceUpload"' + (exp.receipt === 'no' ? ' style="display:none;"' : '') + '><label>上传发票/行程单</label><div class="receipt-upload" onclick="document.getElementById(\'editReceiptInput\').click()"><div class="icon">🧾</div><div class="text">点击拍照或上传发票/行程单</div><input type="file" id="editReceiptInput" accept="image/*,.pdf" multiple onchange="handleEditReceiptUpload(event)"></div><div class="receipt-preview" id="editReceiptPreview"></div></div>';
+  // 无发票照片上传
+  html += '<div class="form-group" id="editPhotoUpload"' + (exp.receipt !== 'no' ? ' style="display:none;"' : '') + '><label>上传照片留档</label><div class="receipt-upload" onclick="document.getElementById(\'editPhotoInput\').click()"><div class="icon">📷</div><div class="text">点击拍照或上传照片作为凭证</div><input type="file" id="editPhotoInput" accept="image/*" multiple onchange="handleEditReceiptUpload(event)"></div><div class="receipt-preview" id="editPhotoPreview"></div></div>';
+  // 已有附件列表
+  if (exp.receipts && exp.receipts.length > 0) {
+    html += '<div style="margin-bottom:10px;"><label style="font-size:13px;color:#666;">已上传票据</label>';
+    exp.receipts.forEach(function(r, idx) {
+      html += '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f0f0f0;">';
+      if (r.data && r.data.indexOf('data:image') === 0) {
+        html += '<img src="'+r.data+'" style="width:40px;height:40px;object-fit:cover;border-radius:6px;border:1px solid #eee;">';
+      } else {
+        html += '<span style="font-size:20px;">📄</span>';
+      }
+      html += '<span style="flex:1;font-size:13px;color:#333;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+(r.name||'票据'+(idx+1))+'</span>';
+      html += '<span onclick="removeEditReceipt('+idx+')" style="color:#e74c3c;font-size:13px;cursor:pointer;">删除</span>';
+      html += '</div>';
+    });
+    html += '</div>';
+  }
+  html += '</div>'; // editReceiptArea
+  html += '<div class="form-group"><label>备注</label><input type="text" id="editExpDetail" value="'+(exp.detail||'')+'" style="width:100%;padding:10px 12px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:15px;"></div>';
+  html += '<div style="display:flex;gap:10px;margin-top:16px;">';
+  html += '<button onclick="cancelEditExpense()" style="flex:1;padding:12px;border:none;border-radius:10px;font-size:14px;font-weight:600;background:#f5f5f5;color:#666;cursor:pointer;">取消</button>';
+  html += '<button onclick="saveEditExpense(\''+eid+'\')" style="flex:1;padding:12px;border:none;border-radius:10px;font-size:14px;font-weight:600;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;cursor:pointer;">保存</button>';
+  html += '</div></div>';
+
+  document.getElementById('viewExpenseList').innerHTML = html;
+  // 初始化子类型选项
+  selectEditCategory(currentCat, exp.type);
+}
+
+function selectEditCategory(cat, selectedType) {
+  // 更新tab样式
+  ['intercity','local','other'].forEach(function(c) {
+    var el = document.getElementById('editCatTab_' + c);
+    if (el) {
+      el.style.background = c === cat ? '#667eea' : '#fff';
+      el.style.color = c === cat ? '#fff' : '#666';
+    }
+  });
+  // 更新子类型选项
+  var sel = document.getElementById('editExpType');
+  if (!sel) return;
+  sel.innerHTML = '';
+  if (cat === 'intercity') {
+    sel.innerHTML = '<option value="train">高铁/火车</option><option value="plane">飞机</option><option value="bus">长途汽车</option><option value="ship">轮船</option>';
+    document.getElementById('editTripFields').style.display = 'block';
+    document.getElementById('editCityFields').style.display = 'none';
+  } else if (cat === 'local') {
+    sel.innerHTML = '<option value="taxi">打的</option><option value="didi">网约车/滴滴</option><option value="bus_local">公交</option><option value="subway">地铁</option>';
+    document.getElementById('editTripFields').style.display = 'none';
+    document.getElementById('editCityFields').style.display = 'block';
+  } else {
+    sel.innerHTML = '<option value="hotel">住宿</option><option value="meal">餐补</option><option value="subsidy">途中补贴</option><option value="other">其他</option>';
+    document.getElementById('editTripFields').style.display = 'none';
+    document.getElementById('editCityFields').style.display = 'none';
+  }
+  // 选中当前类型
+  if (selectedType) {
+    var opts = sel.querySelectorAll('option');
+    for (var i = 0; i < opts.length; i++) {
+      if (opts[i].value === selectedType) { sel.selectedIndex = i; break; }
+    }
+  }
+}
+
+function toggleEditReceiptCount() {
+  var wrap = document.getElementById('editReceiptCountWrap');
+  if (!wrap) return;
+  var hasReceipt = document.getElementById('editExpReceipt').value === 'yes';
+  wrap.style.display = hasReceipt ? 'flex' : 'none';
+  // 切换发票/照片上传区
+  var invoiceUpload = document.getElementById('editInvoiceUpload');
+  var photoUpload = document.getElementById('editPhotoUpload');
+  if (invoiceUpload) invoiceUpload.style.display = hasReceipt ? '' : 'none';
+  if (photoUpload) photoUpload.style.display = hasReceipt ? 'none' : '';
+  // 清空新上传
+  editTempReceipts = [];
+  var invPreview = document.getElementById('editReceiptPreview');
+  if (invPreview) invPreview.innerHTML = '';
+  var phPreview = document.getElementById('editPhotoPreview');
+  if (phPreview) phPreview.innerHTML = '';
+}
+
+// 修改费用：携程/自付联动
+function toggleEditPayerReceipt() {
+  var payer = document.getElementById('editExpPayer').value;
+  var receiptArea = document.getElementById('editReceiptArea');
+  if (!receiptArea) return;
+  if (payer === 'ctrip') {
+    receiptArea.style.display = 'none';
+    document.getElementById('editExpReceipt').value = 'no';
+    editTempReceipts = [];
+  } else {
+    receiptArea.style.display = '';
+    toggleEditReceiptCount();
+  }
+}
+
+function cancelEditExpense() {
+  renderViewExpenses();
+}
+
+function saveEditExpense(eid) {
+  var exp = expenses.find(e => e.id === eid);
+  if (!exp) return;
+  var date = document.getElementById('editExpDate').value;
+  var type = document.getElementById('editExpType').value;
+  var payer = document.getElementById('editExpPayer').value;
+  var amount = parseFloat(document.getElementById('editExpAmount').value) || 0;
+  var detail = document.getElementById('editExpDetail').value.trim();
+  if (!date || amount <= 0) { showToast('请填写日期和金额'); return; }
+  exp.date = date;
+  exp.type = type;
+  exp.payer = payer;
+  exp.amount = amount;
+  exp.detail = detail;
+  var receipt = document.getElementById('editExpReceipt') ? document.getElementById('editExpReceipt').value : (exp.receipt || 'yes');
+  var receiptCount = receipt === 'yes' ? (parseInt(document.getElementById('editExpReceiptCount') ? document.getElementById('editExpReceiptCount').value : 1) || 1) : 0;
+  exp.receipt = receipt;
+  exp.receiptCount = receiptCount;
+  var editFrom = document.getElementById('editExpFrom') ? document.getElementById('editExpFrom').value.trim() : '';
+  var editTo = document.getElementById('editExpTo') ? document.getElementById('editExpTo').value.trim() : '';
+  if (editFrom) exp.from = editFrom; else delete exp.from;
+  if (editTo) exp.to = editTo; else delete exp.to;
+  var editCity = document.getElementById('editExpCity') ? document.getElementById('editExpCity').value.trim() : '';
+  if (editCity) exp.city = editCity; else delete exp.city;
+  // 保存编辑时新上传的票据
+  if (editTempReceipts.length > 0) {
+    if (!exp.receipts) exp.receipts = [];
+    editTempReceipts.forEach(function(r) { exp.receipts.push(r); });
+  }
+  editTempReceipts = [];
+  localStorage.setItem('travelExpenses', JSON.stringify(expenses));
+  renderViewExpenses();
+  updateHomeStats();
+  showToast('已保存');
+}
+
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.style.display = 'block';
+  setTimeout(() => toast.style.display = 'none', 2000);
+}
+
+// 编辑费用时的票据附件
+var editTempReceipts = [];
+var editExpId = null;
+
+function handleEditReceiptUpload(event) {
+  const files = Array.from(event.target.files);
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      editTempReceipts.push({ id: 'r_' + Date.now() + '_' + Math.random().toString(36).slice(2,6), name: file.name, type: file.type, data: e.target.result });
+      renderEditReceiptPreview();
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function renderEditReceiptPreview() {
+  // 根据当前显示的上传区决定预览位置
+  var invoiceUpload = document.getElementById('editInvoiceUpload');
+  var previewId = (invoiceUpload && invoiceUpload.style.display !== 'none') ? 'editReceiptPreview' : 'editPhotoPreview';
+  var preview = document.getElementById(previewId);
+  if (!preview) return;
+  preview.innerHTML = editTempReceipts.map(r => r.type === 'application/pdf' ? '<div class="thumb pdf">📄</div>' : '<img class="thumb" src="' + r.data + '">').join('');
+}
+
+function removeEditReceipt(idx) {
+  var exp = expenses.find(e => e.id === editExpId);
+  if (!exp || !exp.receipts) return;
+  exp.receipts.splice(idx, 1);
+  localStorage.setItem('travelExpenses', JSON.stringify(expenses));
+  // 重新渲染编辑界面
+  editViewExpense(editExpId);
+  showToast('已删除票据');
+}
+
+init();
+</script>
+</body>
+</html>
