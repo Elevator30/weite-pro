@@ -3459,7 +3459,7 @@ function assembleCheckPDF(canvases, filename, JsPDF) {
       var imgW = isLand ? 297 : 210;
       var imgH = isLand ? 210 : 297;
       var imgData = canvas.toDataURL('image/jpeg', 0.92);
-      if (i > 0) pdf.addPage(isLand ? 'l' : 'p');
+      if (i > 0) pdf.addPage('a4', isLand ? 'l' : 'p');
       pdf.addImage(imgData, 'JPEG', 0, 0, imgW, imgH);
       pageCount++;
     });
