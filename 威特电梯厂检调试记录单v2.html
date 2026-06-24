@@ -23,18 +23,12 @@ if(window.jspdf && window.jspdf.jsPDF){var jsPDF=window.jspdf.jsPDF;}else{consol
 </head>
 <body>
 <script>
-// PWA manifest & service worker
+// PWA: 清除旧service worker，不注册新的（避免缓存旧版本）
 (function(){
-  var manifest={name:'威特电梯厂检调试记录单V2',short_name:'威特厂检',start_url:location.href,display:'standalone',background_color:'#f5f7fa',theme_color:'#667eea',icons:[{src:"data:image/webp;base64,UklGRlwFAABXRUJQVlA4WAxAAAAgBACdASqYAEAAPm0ulUYkIqIhLTN7oIANiWIA0XiYk6fAcypylKVfR8u8/Dbw+YDzgP9B6n95359z2hL9E7d/719M3U1HvX4z8e/yx1EW+/ZA9GXqr6AdtRxosfn/A9PH/M/wfnl+ov+x7h/8p/r/WV/ab2E/07SHbXhZHt4C8qbGczRQ+YhCP904TtF2T0CCKyarJnypB/hAK6gQjXC9iwsKwwC+OU9rHGVQYHoJ6rQgTA7XrCkoSqGEyqPx+s/JTspyE0a/wsHHmamelpQCinlWWUKPRRn2jng/2F6cIdPGnOlsdbXFcJsLUCwUtt4xh8NxuwH9RK03w+j532Ir+l0sI72fbPxXS3J23eO7gAD+/KharSACg7d/D3l4HJGQhCdQ227rBH9fuFBIE9S7KXkbv7srGfvvq8TrxYIaGqIqQ/b0R4LwFqs4veGNAtr2N/9XffjClI9y+Ns078yTGj+KSGmGoaW2Fg/yvd4F7TzYht4cvAZutRHBgxFjmYPyk/Z1thQLvhA7bIQJk3t7yUcjDBEsNXXBg1DpLtTLyUkG1b9F3vtmuHLAPrBInM7M7U/c1FeNzDPVV+6BRvH2iEWC6nY3/1H7aw0kAHQYdp42tv5GgpRGgiYmYUVL5Qd/4ijq3Rfbapv3bWVmxZKsplOi5YLgdbLkTcDBjYXWKam/rObme42a6zh11FrQw4NEOL27WA25k2pume6U/xMh4P/PDiwbukzK7WSnmwOFe0ciPINJrwLzrkAeD6BD0SWAq0Q1wWwnlYW3LUY/y8m3f+f/X/n/79m0bBWtpP5xqSkXsKoWDOqRiwoP0BAnzpBgbm894mRq0lIcL4xJBCo9bdnhraMV0K/QTKujLzuUPojKhYvfv/p70tbIdD3NBjM+qJFCBD9zPo9D482iTfk6qobTD32BQWLSMxicFoe6FYzy/oPmoP638ZRjj32Uz6ALnezqdAe7rPmGGNdjTIcgSEb5jx6vZjH9PD/lXhCFVeLX4LauAmPeFQ6h2f+s8cklG4i5Cq0lzmoy063xvLZoCPrQxnTlVru5RClIu5c9JB+MEPv59l/Ael7/Yx1PxGUL7lXtPJR4nJaLQfl2losnfjlp9kdVwsxXlk6+iLf0jXwxuWblGMMs8ud9+H1rRDUFRM6kdd7WGgH/nGnS9whJCrYMo6AiYO+SteHvU7UDlX1bDoZi+EzPtFErY2YzDss5BLJESpOcLeheC72VKac5Bz192vBsPf1uOnFNig0EZTR9OjSmAhxfknwgxOT47IGBghTTIbjZO6jUIanJs/JhPwzLLc2ZqbmiNX4+30SicCTM90VJVN+6i5YU4V5Puf3Asu802W45DRPchPNC9NQxrs/y3VvUDf2cqxaXmk5AP6bgaO9Ofuv5AMvDOmfSY7oDs1NLtdFkqoWjzOOax+M/uI4MHe9puGHMgqTVcP25iaQcuBHlgSqCp+iQmBoivAqM6YtWQoqlZ+fSyfSnYKbRd7DsI5CmBFvlwzdlHP1+nQybKj8mvr3IyDZpBJ10OtAnq10T2GQOXEkw1HHsm60s9vId47czppsEl+VZyrnQ5Z6i8+c1Y7m7QILvbdD+GIatZWMRNtiR+YCpX+OXp26fZTgoIjkaD3ZcEjnT4/iENcoz/7Hfq09z/newBZMpuD+1ko1UoWKpIB/jGpf/qNMYFfTe5rvRVFq+1Xdk5EsJvsgYwENrNB68IrkFpHu+2KzzABc7FqwVfAhJdqRCxeasS4dDiF0b5Lqfasg8AVMtt3biVFXL9wLKy5X69mHZaD0UtE5OafUdUcdB9xvfmW/Siv+xCmWpjo5qPnSkcOt09PGXwAYpphRp9NLPaSXlQ0XCSNh9OoC74DABb0pbu5taHZj4uzOfu9rRKUvW+fWkRUxDr2zbvFTxLY/XvUy26/eAhK9wRTlytnMF2ZwTwAA",sizes:'192x192',type:'image/webp'}]};
-  var mBlob=new Blob([JSON.stringify(manifest)],{type:'application/json'});
-  var mUrl=URL.createObjectURL(mBlob);
-  var link=document.createElement('link');link.rel='manifest';link.href=mUrl;
-  document.head.appendChild(link);
   if('serviceWorker' in navigator){
-    var swCode="self.addEventListener('install',function(e){self.skipWaiting();});self.addEventListener('activate',function(e){e.waitUntil(clients.claim());});self.addEventListener('fetch',function(e){if(e.request.url.endsWith('.html')||e.request.url===self.registration.scope){e.respondWith(fetch(e.request,{cache:"no-store"}));}else{e.respondWith(fetch(e.request).catch(function(){return caches.match(e.request);}));}});";
-    var swBlob=new Blob([swCode],{type:'application/javascript'});
-    var swUrl=URL.createObjectURL(swBlob);
-    navigator.serviceWorker.register(swUrl).catch(function(){});
+    navigator.serviceWorker.getRegistrations().then(function(regs){
+      regs.forEach(function(reg){ reg.unregister(); });
+    });
   }
 })();
 </script>
@@ -3515,73 +3509,72 @@ function exportPDF() {
 function buildNoticeFullHTML(task, dateStr, ngItems) {
   var dutyMap = {A:'A-安装/维保',B:'B-工厂',C:'C-客户',D:'D-调试',E:'E-监督'};
   var logoBase64 = WEITE_LOGO;
+  var f = "font-family:'Songti SC',SimSun,STSong,serif;";
   var h = '';
-  // 外层div：所有子元素继承font-family（由容器div设置）
-  h += '<style>div,table,tr,td,span,p,img{font-family:\'Songti SC\',SimSun,STSong,serif!important;}</style>';
-  h += '<div style="line-height:1.2;">';
+  h += '<div style="line-height:1.2;'+f+'">';
   // 页眉：左logo，中标题，右文件编号
-  h += '<div style="position:relative;text-align:center;margin-bottom:2px;">';
-  h += '<div style="position:absolute;left:0;top:50%;transform:translateY(-50%);"><img src="' + logoBase64 + '" style="height:28px;width:auto;"></div>';
-  h += '<span style="font-size:18px;font-weight:bold;">电梯厂检意见通知书</span>';
+  h += '<div style="position:relative;text-align:center;margin-bottom:2px;'+f+'">';
+  h += '<div style="position:absolute;left:0;top:50%;transform:translateY(-50%);'+f+'"><img src="' + logoBase64 + '" style="height:28px;width:auto;'+f+'"></div>';
+  h += '<span style="font-size:18px;font-weight:bold;'+f+'">电梯厂检意见通知书</span>';
   h += '</div>';
-  h += '<div style="text-align:right;margin-bottom:4px;">文件编号 WT/S-G-2024-001(A)</div>';
+  h += '<div style="text-align:right;margin-bottom:4px;'+f+'">文件编号 WT/S-G-2024-001(A)</div>';
 
-  // 一整张大表格 - font-family在table级设，所有td继承
-  h += '<table style="width:100%;border-collapse:collapse;font-size:10px;">';
+  // 大表格
+  h += '<table style="width:100%;border-collapse:collapse;font-size:10px;'+f+'">';
 
-  // 信息行1: 项目名称 | 地址 | 型号 | 型号值 | 产品编号 | 编号值
-  h += '<tr>';
-  h += '<td style="border:1px solid #000;padding:1px 2px;width:14%;text-align:center;">项目名称</td>';
-  h += '<td style="border:1px solid #000;padding:1px 2px;width:25%;">' + escHtml(task.addr||'') + '</td>';
-  h += '<td style="border:1px solid #000;padding:1px 2px;width:10%;text-align:center;">型号</td>';
-  h += '<td style="border:1px solid #000;padding:1px 2px;width:18%;">' + escHtml(task.model||'') + '</td>';
-  h += '<td style="border:1px solid #000;padding:1px 2px;width:12%;text-align:center;">产品编号</td>';
-  h += '<td style="border:1px solid #000;padding:1px 2px;width:21%;">' + escHtml(task.prodNo||'') + '</td>';
+  // 信息行1
+  h += '<tr style="'+f+'">';
+  h += '<td style="border:1px solid #000;padding:1px 2px;width:14%;text-align:center;'+f+'">项目名称</td>';
+  h += '<td style="border:1px solid #000;padding:1px 2px;width:25%;'+f+'">' + escHtml(task.addr||'') + '</td>';
+  h += '<td style="border:1px solid #000;padding:1px 2px;width:10%;text-align:center;'+f+'">型号</td>';
+  h += '<td style="border:1px solid #000;padding:1px 2px;width:18%;'+f+'">' + escHtml(task.model||'') + '</td>';
+  h += '<td style="border:1px solid #000;padding:1px 2px;width:12%;text-align:center;'+f+'">产品编号</td>';
+  h += '<td style="border:1px solid #000;padding:1px 2px;width:21%;'+f+'">' + escHtml(task.prodNo||'') + '</td>';
   h += '</tr>';
-  // 信息行2: 安装地点 | 地点值 | 安装单位/人员 | 人员值 | 项目管理 | 管理值
-  h += '<tr>';
-  h += '<td style="border:1px solid #000;padding:1px 2px;text-align:center;">安装地点</td>';
-  h += '<td style="border:1px solid #000;padding:1px 2px;">' + escHtml(task.installAddr||task.addr||'') + '</td>';
-  h += '<td style="border:1px solid #000;padding:1px 2px;text-align:center;">安装单位/人员</td>';
-  h += '<td style="border:1px solid #000;padding:1px 2px;">' + escHtml(task.installer||'') + '</td>';
-  h += '<td style="border:1px solid #000;padding:1px 2px;text-align:center;">项目管理</td>';
-  h += '<td style="border:1px solid #000;padding:1px 2px;">' + escHtml(task.manager||'') + '</td>';
+  // 信息行2
+  h += '<tr style="'+f+'">';
+  h += '<td style="border:1px solid #000;padding:1px 2px;text-align:center;'+f+'">安装地点</td>';
+  h += '<td style="border:1px solid #000;padding:1px 2px;'+f+'">' + escHtml(task.installAddr||task.addr||'') + '</td>';
+  h += '<td style="border:1px solid #000;padding:1px 2px;text-align:center;'+f+'">安装单位/人员</td>';
+  h += '<td style="border:1px solid #000;padding:1px 2px;'+f+'">' + escHtml(task.installer||'') + '</td>';
+  h += '<td style="border:1px solid #000;padding:1px 2px;text-align:center;'+f+'">项目管理</td>';
+  h += '<td style="border:1px solid #000;padding:1px 2px;'+f+'">' + escHtml(task.manager||'') + '</td>';
   h += '</tr>';
   // 检验依据
-  h += '<tr>';
-  h += '<td style="border:1px solid #000;padding:1px 2px;text-align:center;">检验依据</td>';
-  h += '<td style="border:1px solid #000;padding:1px 2px;" colspan="5">《电梯监督检验和定期检验规则》(TSG T7001—2023)</td>';
+  h += '<tr style="'+f+'">';
+  h += '<td style="border:1px solid #000;padding:1px 2px;text-align:center;'+f+'">检验依据</td>';
+  h += '<td style="border:1px solid #000;padding:1px 2px;'+f+'" colspan="5">《电梯监督检验和定期检验规则》(TSG T7001—2023)</td>';
   h += '</tr>';
 
-  // 不合格项区域：标题行 + 每个NG项一行 + 空白行填满
-  h += '<tr>';
-  h += '<td style="border:1px solid #000;border-bottom:none;padding:2px 2px;" colspan="6">经检验上述设备，存在以下问题：</td>';
+  // 不合格项区域
+  h += '<tr style="'+f+'">';
+  h += '<td style="border:1px solid #000;border-bottom:none;padding:2px 2px;'+f+'" colspan="6">经检验上述设备，存在以下问题：</td>';
   h += '</tr>';
   if (ngItems.length > 0) {
     for (var i = 0; i < ngItems.length; i++) {
       var item = ngItems[i];
-      h += '<tr>';
-      h += '<td style="border:1px solid #000;border-top:none;border-bottom:none;padding:2px 2px 2px 16px;" colspan="6">' + (i+1) + '. ' + item.id + '. ' + escHtml(item.name) + ' \u2014 ' + (dutyMap[item.duty]||item.duty||'') + '</td>';
+      h += '<tr style="'+f+'">';
+      h += '<td style="border:1px solid #000;border-top:none;border-bottom:none;padding:2px 2px 2px 16px;'+f+'" colspan="6">' + (i+1) + '. ' + item.id + '. ' + escHtml(item.name) + ' — ' + (dutyMap[item.duty]||item.duty||'') + '</td>';
       h += '</tr>';
     }
   }
-  // 空白行填满（每行14px）
+  // 空白行填满
   var ngRowsH = 18 + ngItems.length * 14;
   var usedH = 140 + ngRowsH;
   var a4ContentH = 680;
   var remainH = a4ContentH - usedH;
   var blankRows = Math.max(0, Math.floor(remainH / 14));
   for (var b = 0; b < blankRows; b++) {
-    h += '<tr>';
-    h += '<td style="border:1px solid #000;border-top:none;border-bottom:none;height:14px;" colspan="6">&nbsp;</td>';
+    h += '<tr style="'+f+'">';
+    h += '<td style="border:1px solid #000;border-top:none;border-bottom:none;height:14px;'+f+'" colspan="6">&nbsp;</td>';
     h += '</tr>';
   }
 
   // 厂检意见行
   var conclusion = task.conclusion || '';
   var rectifyDeadline = task.rectifyDeadline || '';
-  h += '<tr>';
-  h += '<td style="border:1px solid #000;padding:2px 2px;" colspan="6">厂检意见：';
+  h += '<tr style="'+f+'">';
+  h += '<td style="border:1px solid #000;padding:2px 2px;'+f+'" colspan="6">厂检意见：';
   if (conclusion === 'pass') {
     h += '☑厂检合格';
   } else if (conclusion === 'pass-rectify') {
@@ -3596,23 +3589,23 @@ function buildNoticeFullHTML(task, dateStr, ngItems) {
   h += '</td></tr>';
 
   // 签名行
-  h += '<tr>';
-  h += '<td style="border:1px solid #000;border-right:none;padding:4px 2px;height:30px;" colspan="3">检验人员：' + escHtml(task.signatures && task.signatures.inspectorName || task.manager || '________') + '&nbsp;&nbsp;日期：' + escHtml(task.checkDate||dateStr) + '</td>';
-  h += '<td style="border:1px solid #000;border-left:none;padding:4px 2px;height:30px;" colspan="3">安装单位签字：' + escHtml(task.installerName||task.installerSign||'________') + '&nbsp;&nbsp;日期：________</td>';
+  h += '<tr style="'+f+'">';
+  h += '<td style="border:1px solid #000;border-right:none;padding:4px 2px;height:30px;'+f+'" colspan="3">检验人员：' + escHtml(task.signatures && task.signatures.inspectorName || task.manager || '________') + '&nbsp;&nbsp;日期：' + escHtml(task.checkDate||dateStr) + '</td>';
+  h += '<td style="border:1px solid #000;border-left:none;padding:4px 2px;height:30px;'+f+'" colspan="3">安装单位签字：' + escHtml(task.installerName||task.installerSign||'________') + '&nbsp;&nbsp;日期：________</td>';
   h += '</tr>';
 
   // 整改情况反馈
-  h += '<tr>';
-  h += '<td style="border:1px solid #000;padding:3px 2px;height:22px;" colspan="6">整改情况反馈：以上问题整改完成，整改结果确认：确认人：________&nbsp;&nbsp;确认日期：________</td>';
+  h += '<tr style="'+f+'">';
+  h += '<td style="border:1px solid #000;padding:3px 2px;height:22px;'+f+'" colspan="6">整改情况反馈：以上问题整改完成，整改结果确认：确认人：________&nbsp;&nbsp;确认日期：________</td>';
   h += '</tr>';
 
-  // 备注行
-  h += '<tr>';
-  h += '<td style="border:1px solid #000;padding:2px 2px;color:#666;" colspan="6">备注：①本通知书一式三联，检验机构、安装单位、项目管理各执一联。②整改完成后，请将本通知书返还检验人员确认。③如有异议，请在收到本通知书之日起5个工作日内提出。</td>';
+  // 备注
+  h += '<tr style="'+f+'">';
+  h += '<td style="border:1px solid #000;padding:2px 2px;color:#666;'+f+'" colspan="6">备注：①本通知书一式三联，检验机构、安装单位、项目管理各执一联。②整改完成后，请将本通知书返还检验人员确认。③如有异议，请在收到本通知书之日起5个工作日内提出。</td>';
   h += '</tr>';
 
   h += '</table>';
-  h += '<div id="noticeSpacer" style="height:0px;"></div>';
+  h += '<div id="noticeSpacer" style="height:0px;'+f+'"></div>';
   h += '</div>';
   return h;
 }
