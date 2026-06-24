@@ -7,6 +7,7 @@
 <script defer src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js" onerror="window._xlsxLoadFail=true"></script>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" onerror="window._jspdfLoadFail=true"></script>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" onerror="window._h2cLoadFail=true"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" onerror="window._pdfjsLoadFail=true"></script>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: #f5f6fa; color: #333; line-height: 1.6; -webkit-tap-highlight-color: transparent; }
@@ -100,12 +101,12 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helv
         <div class="month" id="currentMonth">加载中...</div>
       </div>
       <div style="position:relative;">
-        <button onclick="toggleHeaderMenu()" id="headerMenuBtn" style="background:rgba(255,255,255,0.25);color:#fff;border:1.5px solid rgba(255,255,255,0.5);border-radius:10px;padding:8px 12px;font-size:18px;font-weight:700;cursor:pointer;line-height:1;">⋮</button>
-        <div id="headerMenu" style="display:none;position:absolute;right:0;top:40px;background:#fff;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.15);min-width:160px;z-index:100;overflow:hidden;">
-          <div onclick="openPrintModal();closeHeaderMenu()" style="padding:14px 18px;font-size:14px;color:#333;border-bottom:1px solid #f0f0f0;cursor:pointer;">📄 打印报销单</div>
-          <div onclick="showExcelDateRange();closeHeaderMenu()" style="padding:14px 18px;font-size:14px;color:#333;border-bottom:1px solid #f0f0f0;cursor:pointer;">📊 导出Excel</div>
-          <div onclick="openExportModal();closeHeaderMenu()" style="padding:14px 18px;font-size:14px;color:#333;border-bottom:1px solid #f0f0f0;cursor:pointer;">📁 更多操作</div>
-          <div onclick="openSettingsModal();closeHeaderMenu()" style="padding:14px 18px;font-size:14px;color:#333;cursor:pointer;">⚙️ 设置</div>
+        <button onclick="toggleHeaderMenu()" id="headerMenuBtn" style="background:rgba(255,255,255,0.3);color:#fff;border:1.5px solid rgba(255,255,255,0.6);border-radius:50%;width:36px;height:36px;font-size:20px;font-weight:700;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;">☰</button>
+        <div id="headerMenu" style="display:none;position:absolute;right:0;top:44px;background:#fff;border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,0.18);min-width:170px;z-index:100;overflow:hidden;">
+          <div onclick="openPrintModal();closeHeaderMenu()" style="padding:14px 16px;font-size:14px;color:#333;border-bottom:1px solid #f0f0f0;cursor:pointer;display:flex;align-items:center;gap:10px;"><span style="font-size:18px;">📄</span>打印报销单</div>
+          <div onclick="showExcelDateRange();closeHeaderMenu()" style="padding:14px 16px;font-size:14px;color:#333;border-bottom:1px solid #f0f0f0;cursor:pointer;display:flex;align-items:center;gap:10px;"><span style="font-size:18px;">📊</span>导出Excel</div>
+          <div onclick="openExportModal();closeHeaderMenu()" style="padding:14px 16px;font-size:14px;color:#333;border-bottom:1px solid #f0f0f0;cursor:pointer;display:flex;align-items:center;gap:10px;"><span style="font-size:18px;">📁</span>更多操作</div>
+          <div onclick="openSettingsModal();closeHeaderMenu()" style="padding:14px 16px;font-size:14px;color:#333;cursor:pointer;display:flex;align-items:center;gap:10px;"><span style="font-size:18px;">⚙️</span>设置</div>
         </div>
       </div>
     </div>
@@ -127,8 +128,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helv
   </div>
 
   <div class="btn-row" style="margin-top:4px;">
-    <button class="btn-primary" onclick="openExpenseModal()" style="margin-bottom:0;font-size:15px;padding:14px;">+ 新增项目</button>
-    <button class="btn-secondary" onclick="openViewModal()" style="font-size:15px;padding:14px;">📋 查看费用</button>
+    <button class="btn-secondary" onclick="openExpenseModal()" style="font-size:14px;padding:12px;">+ 新增</button>
+    <button class="btn-secondary" onclick="openViewModal()" style="font-size:14px;padding:12px;">📋 查看费用</button>
   </div>
 </div>
 
@@ -704,23 +705,28 @@ function getTypeLabel(type) {
 
 function handleReceiptUpload(event) {
   const files = Array.from(event.target.files);
-  files.forEach(file => {
+  var pending = files.length;
+  files.forEach(function(file) {
     const reader = new FileReader();
     reader.onload = function(e) {
-      tempReceipts.push({ id: 'r_' + Date.now() + '_' + Math.random().toString(36).slice(2,6), name: file.name, type: file.type, data: e.target.result });
-      renderCurrentReceiptPreview();
+      processUploadedReceipt(file, e.target.result).then(function(items) {
+        items.forEach(function(it) { tempReceipts.push(it); });
+        pending--;
+        if (pending === 0) renderCurrentReceiptPreview();
+      });
     };
     reader.readAsDataURL(file);
   });
 }
 
 function renderCurrentReceiptPreview() {
-  // 判断当前是发票区还是照片区
   var invoiceSection = document.getElementById('invoiceUploadSection');
   var previewId = (invoiceSection && invoiceSection.style.display !== 'none') ? 'expReceiptPreview' : 'expPhotoPreview';
   var preview = document.getElementById(previewId);
   if (!preview) return;
-  preview.innerHTML = tempReceipts.map(r => r.type === 'application/pdf' ? '<div class="thumb pdf">📄</div>' : '<img class="thumb" src="' + r.data + '">').join('');
+  preview.innerHTML = tempReceipts.map(function(r) {
+    return r.type === 'application/pdf' ? '<div class="thumb pdf">📄</div>' : '<img class="thumb" src="' + r.data + '">';
+  }).join('');
 }
 
 function renderReceiptPreview() {
@@ -856,9 +862,9 @@ function resetForm() {
   document.getElementById('expReceiptPreview').innerHTML = '';
   document.getElementById('expPhotoPreview').innerHTML = '';
   document.getElementById('receiptSection').style.display = '';
-  document.getElementById('invoiceUploadSection').style.display = 'none';
-  document.getElementById('photoUploadSection').style.display = 'none';
   document.getElementById('expReceipt').value = 'yes';
+  document.getElementById('invoiceUploadSection').style.display = '';
+  document.getElementById('photoUploadSection').style.display = 'none';
   tempReceipts = [];
   mealDaySettings = [];
   isNewProject = false;
@@ -1649,6 +1655,188 @@ async function exportPDF(projectId) {
   var fileProjectName = printProjects.length === 1 ? printProjects[0].name : '';
   var fileWorkDesc = printProjects.length === 1 ? getWorkItems(printProjects[0]).map(function(w){ return w.type + w.qty + '台'; }).join('') : '';
   var fileName = '报销单_' + currentMonth.replace('-','') + (fileProjectName ? '_' + fileProjectName : '') + (fileWorkDesc ? '_' + fileWorkDesc : '') + '.pdf';
+  // === 追加票据附件页 ===
+  // 排版逻辑：每个费用独立占半列宽，行程单上发票下竖排
+  // 顺序：网约车(行程单上发票下配对) → 其他发票(2张一行) → 照片/收据(2张一行)
+  // 竖图(付款截图)自动旋转90度横排，字更大
+  // 两个费用并排一页A4，裁半即可粘贴
+  var isRideType = {didi:1,taxi:1};
+  var rideGroups = [];   // 网约车：[{items:[{data,name,isPDF}]}]
+  var otherInvoices = []; // 其他发票：[{data,name,isPDF}]
+  var photoItems = [];    // 照片/收据：[{data,name,isPDF}]
+  var typeOrd = {train:0,plane:0,bus:0,ship:0,subway:0,bus_local:0,coach:0,flight:0,hotel:1,meal:2,subsidy:3,other:3};
+
+  printProjects.forEach(function(p) {
+    var exps = getProjectExpenses(p.id);
+    exps.forEach(function(e) {
+      if (!e.receipts || e.receipts.length === 0) return;
+      var items = [];
+      e.receipts.forEach(function(r) {
+        if (r.data && r.data.indexOf('data:image') === 0) items.push({ data: r.data, name: r.name || '票据' });
+        else if (r.data && r.data.indexOf('data:application/pdf') === 0) items.push({ data: r.data, name: r.name || '票据', isPDF: true });
+      });
+      if (items.length === 0) return;
+      if (isRideType[e.type]) {
+        rideGroups.push({ items: items });
+      } else {
+        // 按票据本身性质分类：PDF发票→otherInvoices，图片/照片→photoItems
+        items.forEach(function(it) {
+          if (it.isPDF) {
+            otherInvoices.push(it);
+          } else {
+            photoItems.push(it);
+          }
+        });
+      }
+    });
+  });
+
+  var totalReceiptCount = rideGroups.reduce(function(s,g){return s+g.items.length;},0) + otherInvoices.length + photoItems.length;
+  if (totalReceiptCount > 0) {
+    await new Promise(function(resolveReceipt) {
+      // 工具：裁剪+竖图旋转+获取尺寸
+      function processImg(imgDataUrl) {
+        return autoCropImage(imgDataUrl).then(function(cropped) {
+          return new Promise(function(res) {
+            var img = new Image();
+            img.onload = function() {
+              var w = img.width, h = img.height;
+              // 竖图自动旋转90度（高宽比>1.33，排除近方形）
+              if (h > w && h / w > 1.33) {
+                var c = document.createElement('canvas');
+                c.width = h; c.height = w;
+                var ctx = c.getContext('2d');
+                ctx.translate(h / 2, w / 2);
+                ctx.rotate(Math.PI / 2);
+                ctx.drawImage(img, -w / 2, -h / 2);
+                var rotated = c.toDataURL('image/jpeg', 0.92);
+                res({ data: rotated, w: h, h: w });
+              } else {
+                res({ data: cropped, w: w, h: h });
+              }
+            };
+            img.onerror = function() { res({ data: cropped, w: 0, h: 0 }); };
+            img.src = cropped;
+          });
+        });
+      }
+
+      // 处理一组票据（PDF展开+裁剪+旋转）
+      function processGroupItems(items) {
+        var itemPromises = items.map(function(r) {
+          if (r.isPDF) {
+            return convertPDFToImages(r.data).then(function(imgs) {
+              return imgs.map(function(img) { return { data: img.data, name: img.name || r.name }; });
+            });
+          }
+          return Promise.resolve([{ data: r.data, name: r.name }]);
+        });
+        return Promise.all(itemPromises).then(function(arrays) {
+          var flat = [].concat.apply([], arrays);
+          // 保留name字段用于排序
+          return Promise.all(flat.map(function(it) {
+            return processImg(it.data).then(function(info) {
+              info.name = it.name;
+              return info;
+            });
+          }));
+        });
+      }
+
+      // 并行处理三段
+      var rideP = Promise.all(rideGroups.map(function(g) { return processGroupItems(g.items); }));
+      var invoiceP = processGroupItems(otherInvoices);
+      var photoP = processGroupItems(photoItems);
+
+      Promise.all([rideP, invoiceP, photoP]).then(function(results) {
+        var rideGroupsProcessed = results[0]; // [[imgInfo,...], ...]
+        var invoiceImgs = results[1];         // [imgInfo, ...]
+        var photoImgs = results[2];           // [imgInfo, ...]
+
+        // 排版参数 - A4横版2×2网格，每个区域居中放一张图片，中间留裁剪间距
+        var rPageW = 297, rPageH = 210; // A4横版
+        var rMargin = 8;  // 页边距
+        var rGap = 8;     // 裁剪线间距（区域之间的空白）
+        var rCellW = (rPageW - rMargin * 2 - rGap) / 2; // 每个区域宽度
+        var rCellH = (rPageH - rMargin * 2 - rGap) / 2; // 每个区域高度
+
+        // 按顺序排列所有图片，每张图独占一个区域
+        // 网约车行程单+发票配对在左列（上行程单下发票），其他依次填充
+        var cellItems = [];
+
+        // 网约车：每组内行程单排前面、发票排后面，配对在同一列（左上行程单+左下发票）
+        rideGroupsProcessed.forEach(function(imgInfos) {
+          // 按宽高比+名称排序：行程单通常是窄长型(h/w>1.2)或名称含"行程"
+          imgInfos.sort(function(a, b) {
+            var aName = (a.name || '').toLowerCase();
+            var bName = (b.name || '').toLowerCase();
+            var aIsItinerary = aName.indexOf('行程') >= 0 || aName.indexOf('itinerary') >= 0;
+            var bIsItinerary = bName.indexOf('行程') >= 0 || bName.indexOf('itinerary') >= 0;
+            // 名称明确区分
+            if (aIsItinerary && !bIsItinerary) return -1;
+            if (!aIsItinerary && bIsItinerary) return 1;
+            // 名称无法区分时，窄长图（行程单）排前面
+            var aRatio = a.w > 0 ? a.h / a.w : 1;
+            var bRatio = b.w > 0 ? b.h / b.w : 1;
+            return bRatio - aRatio; // 高宽比大的（窄长=行程单）排前面
+          });
+          imgInfos.forEach(function(info) { cellItems.push(info); });
+        });
+
+        // 其他发票：各占1个区域
+        invoiceImgs.forEach(function(info) { cellItems.push(info); });
+
+        // 照片/收据：各占1个区域
+        photoImgs.forEach(function(info) { cellItems.push(info); });
+
+        // 每4个区域一页，区域顺序：左上0→左下1→右上2→右下3
+        for (var ci = 0; ci < cellItems.length; ci += 4) {
+          doc.addPage('a4', 'l');
+
+          // 画裁剪参考线（浅灰虚线）
+          doc.setDrawColor(200, 200, 200);
+          doc.setLineWidth(0.3);
+          try {
+            doc.setLineDashPattern([3, 3], 0);
+          } catch(e) {}
+          // 水平中线
+          var midY = rMargin + rCellH + rGap / 2;
+          doc.line(rMargin, midY, rPageW - rMargin, midY);
+          // 垂直中线
+          var midX = rMargin + rCellW + rGap / 2;
+          doc.line(midX, rMargin, midX, rPageH - rMargin);
+          try { doc.setLineDashPattern([], 0); } catch(e) {}
+
+          for (var j = 0; j < 4 && (ci + j) < cellItems.length; j++) {
+            var info = cellItems[ci + j];
+            if (info.w <= 0 || info.h <= 0) continue;
+
+            // 区域位置：左上0, 左下1, 右上2, 右下3（按列填充，配对在同一列）
+            var col = Math.floor(j / 2);
+            var row = j % 2;
+            var cellX = rMargin + col * (rCellW + rGap);
+            var cellY = rMargin + row * (rCellH + rGap);
+
+            // 图片在区域内等比缩放居中
+            var ratio = Math.min(rCellW / info.w, rCellH / info.h);
+            var fW = info.w * ratio;
+            var fH = info.h * ratio;
+            var oX = cellX + (rCellW - fW) / 2;
+            var oY = cellY + (rCellH - fH) / 2;
+
+            var fmt = info.data.indexOf('data:image/png') === 0 ? 'PNG' : 'JPEG';
+            try { doc.addImage(info.data, fmt, oX, oY, fW, fH, undefined, 'FAST'); } catch(e) { console.warn('票据图片添加失败:', e); }
+          }
+        }
+
+        resolveReceipt();
+      }).catch(function(err) {
+        console.warn('票据处理失败:', err);
+        resolveReceipt();
+      });
+    });
+  }
+
   doc.save(fileName);
   closeModal('exportModal');
 
@@ -1659,85 +1847,7 @@ async function exportPDF(projectId) {
   });
   localStorage.setItem('travelProjects', JSON.stringify(projects));
 
-  // === 票据附件A4横版2×2排版 ===
-  var allReceiptImages = [];
-  printProjects.forEach(function(p) {
-    var exps = getProjectExpenses(p.id);
-    exps.forEach(function(e) {
-      if (e.receipts && e.receipts.length > 0) {
-        e.receipts.forEach(function(r) {
-          if (r.data && r.data.indexOf('data:image') === 0) {
-            allReceiptImages.push(r.data);
-          }
-        });
-      }
-    });
-  });
-
-  if (allReceiptImages.length > 0) {
-    var receiptDoc = new jsPDF('l', 'mm', 'a4');  // 横版A4
-    var pageW = 297, pageH = 210;
-    var rMargin = 10;
-    var rCols = 2, rRows = 2;
-    var rCellW = (pageW - rMargin * 2 - (rCols - 1) * 5) / rCols;
-    var rCellH = (pageH - rMargin * 2 - 15 - (rRows - 1) * 5) / rRows;
-    var perPage = rCols * rRows;
-
-    // 异步加载图片尺寸后依次绘制
-    var receiptPromises = allReceiptImages.map(function(imgData) {
-      return new Promise(function(resolve) {
-        var img = new Image();
-        img.onload = function() { resolve({ data: imgData, w: img.width, h: img.height }); };
-        img.onerror = function() { resolve({ data: imgData, w: 0, h: 0 }); };
-        img.src = imgData;
-      });
-    });
-
-    Promise.all(receiptPromises).then(function(imgInfos) {
-      for (var ri = 0; ri < imgInfos.length; ri++) {
-        if (ri % perPage === 0) {
-          if (ri > 0) receiptDoc.addPage();
-          receiptDoc.setFontSize(10);
-          receiptDoc.setTextColor(100, 100, 100);
-          receiptDoc.text('票据附件', rMargin, rMargin + 8);
-          receiptDoc.setTextColor(0);
-        }
-        var posInPage = ri % perPage;
-        var rCol = posInPage % rCols;
-        var rRow = Math.floor(posInPage / rCols);
-        var rx = rMargin + rCol * (rCellW + 5);
-        var ry = rMargin + 15 + rRow * (rCellH + 5);
-
-        // 画边框
-        receiptDoc.setDrawColor(200, 200, 200);
-        receiptDoc.setLineWidth(0.3);
-        receiptDoc.rect(rx, ry, rCellW, rCellH);
-
-        // 按宽高比适配图片，不拉伸变形
-        try {
-          var info = imgInfos[ri];
-          var drawW = rCellW - 4, drawH = rCellH - 4;
-          if (info.w > 0 && info.h > 0) {
-            var ratio = Math.min(drawW / info.w, drawH / info.h);
-            drawW = info.w * ratio;
-            drawH = info.h * ratio;
-          }
-          var offsetX = rx + 2 + (rCellW - 4 - drawW) / 2;
-          var offsetY = ry + 2 + (rCellH - 4 - drawH) / 2;
-          var fmt = info.data.indexOf('data:image/png') === 0 ? 'PNG' : 'JPEG';
-          receiptDoc.addImage(info.data, fmt, offsetX, offsetY, drawW, drawH, undefined, 'FAST');
-        } catch(imgErr) {
-          console.warn('票据图片添加失败:', imgErr);
-        }
-      }
-
-      var receiptFileName = '票据附件_' + currentMonth.replace('-','') + (fileProjectName ? '_' + fileProjectName : '') + '.pdf';
-      receiptDoc.save(receiptFileName);
-      showToast('报销单生成成功（含' + imgInfos.length + '张票据附件）');
-    });
-  } else {
-    showToast('报销单生成成功');
-  }
+  showToast('报销单生成成功');
 }
 
 function exportBackup() {
@@ -2257,23 +2367,28 @@ var editExpId = null;
 
 function handleEditReceiptUpload(event) {
   const files = Array.from(event.target.files);
-  files.forEach(file => {
+  var pending = files.length;
+  files.forEach(function(file) {
     const reader = new FileReader();
     reader.onload = function(e) {
-      editTempReceipts.push({ id: 'r_' + Date.now() + '_' + Math.random().toString(36).slice(2,6), name: file.name, type: file.type, data: e.target.result });
-      renderEditReceiptPreview();
+      processUploadedReceipt(file, e.target.result).then(function(items) {
+        items.forEach(function(it) { editTempReceipts.push(it); });
+        pending--;
+        if (pending === 0) renderEditReceiptPreview();
+      });
     };
     reader.readAsDataURL(file);
   });
 }
 
 function renderEditReceiptPreview() {
-  // 根据当前显示的上传区决定预览位置
   var invoiceUpload = document.getElementById('editInvoiceUpload');
   var previewId = (invoiceUpload && invoiceUpload.style.display !== 'none') ? 'editReceiptPreview' : 'editPhotoPreview';
   var preview = document.getElementById(previewId);
   if (!preview) return;
-  preview.innerHTML = editTempReceipts.map(r => r.type === 'application/pdf' ? '<div class="thumb pdf">📄</div>' : '<img class="thumb" src="' + r.data + '">').join('');
+  preview.innerHTML = editTempReceipts.map(function(r) {
+    return r.type === 'application/pdf' ? '<div class="thumb pdf">📄</div>' : '<img class="thumb" src="' + r.data + '">';
+  }).join('');
 }
 
 function removeEditReceipt(idx) {
@@ -2284,6 +2399,136 @@ function removeEditReceipt(idx) {
   // 重新渲染编辑界面
   editViewExpense(editExpId);
   showToast('已删除票据');
+}
+
+// === PDF转图片 + 自动裁剪票据空白边距 ===
+// 将PDF的每一页渲染为图片
+function convertPDFToImages(pdfData) {
+  return new Promise(function(resolve) {
+    if (typeof pdfjsLib === 'undefined') { resolve([]); return; }
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    var task = pdfjsLib.getDocument({data: atob(pdfData.split(',')[1])});
+    task.promise.then(function(pdf) {
+      var pages = [];
+      var loadPage = function(pageNum) {
+        if (pageNum > pdf.numPages) { resolve(pages); return; }
+        pdf.getPage(pageNum).then(function(page) {
+          var scale = 2; // 2x渲染保证清晰
+          var viewport = page.getViewport({scale: scale});
+          var c = document.createElement('canvas');
+          c.width = viewport.width;
+          c.height = viewport.height;
+          var ctx = c.getContext('2d');
+          page.render({canvasContext: ctx, viewport: viewport}).promise.then(function() {
+            pages.push({data: c.toDataURL('image/jpeg', 0.92), type: 'image/jpeg', name: 'PDF第' + pageNum + '页'});
+            loadPage(pageNum + 1);
+          });
+        }).catch(function() { loadPage(pageNum + 1); });
+      };
+      loadPage(1);
+    }).catch(function() { resolve([]); });
+  });
+}
+
+// 处理上传的票据：PDF转图片，图片直接保留
+function processUploadedReceipt(file, dataUrl) {
+  return new Promise(function(resolve) {
+    if (file.type === 'application/pdf' && dataUrl.indexOf('data:application/pdf') === 0) {
+      // PDF转图片
+      convertPDFToImages(dataUrl).then(function(images) {
+        if (images.length > 0) {
+          resolve(images.map(function(img) {
+            return {id: 'r_' + Date.now() + '_' + Math.random().toString(36).slice(2,6), name: img.name || file.name, type: img.type, data: img.data};
+          }));
+        } else {
+          // pdf.js加载失败，保留原始PDF
+          resolve([{id: 'r_' + Date.now() + '_' + Math.random().toString(36).slice(2,6), name: file.name, type: file.type, data: dataUrl}]);
+        }
+      });
+    } else {
+      resolve([{id: 'r_' + Date.now() + '_' + Math.random().toString(36).slice(2,6), name: file.name, type: file.type, data: dataUrl}]);
+    }
+  });
+}
+
+function autoCropImage(imgData) {
+  return new Promise(function(resolve) {
+    var img = new Image();
+    img.onload = function() {
+      var c = document.createElement('canvas');
+      c.width = img.width;
+      c.height = img.height;
+      var ctx = c.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      var imgData2 = ctx.getImageData(0, 0, c.width, c.height);
+      var data = imgData2.data;
+      var w = c.width, h = c.height;
+
+      // 判断像素是否为白色（阈值252，更积极裁剪）
+      function isWhite(idx) {
+        return data[idx] >= 252 && data[idx+1] >= 252 && data[idx+2] >= 252 && data[idx+3] >= 128;
+      }
+
+      // 第一遍：像素级扫描，找内容边界
+      var top = h, left = w, bottom = 0, right = 0;
+      for (var y = 0; y < h; y++) {
+        for (var x = 0; x < w; x++) {
+          if (!isWhite((y * w + x) * 4)) {
+            if (y < top) top = y;
+            if (x < left) left = x;
+            if (y > bottom) bottom = y;
+            if (x > right) right = x;
+          }
+        }
+      }
+      if (top > bottom || left > right) { resolve(imgData); return; }
+
+      // 第二遍：行列级裁剪，移除90%以上像素为白的行/列
+      var whiteRowRatio = 0.90;
+      var whiteColRatio = 0.90;
+      // 从上往下裁
+      while (top < bottom) {
+        var wc = 0;
+        for (var x = left; x <= right; x++) { if (isWhite((top * w + x) * 4)) wc++; }
+        if (wc / (right - left + 1) >= whiteRowRatio) top++; else break;
+      }
+      // 从下往上裁
+      while (bottom > top) {
+        var wc = 0;
+        for (var x = left; x <= right; x++) { if (isWhite((bottom * w + x) * 4)) wc++; }
+        if (wc / (right - left + 1) >= whiteRowRatio) bottom--; else break;
+      }
+      // 从左往右裁
+      while (left < right) {
+        var wc = 0;
+        for (var y = top; y <= bottom; y++) { if (isWhite((y * w + left) * 4)) wc++; }
+        if (wc / (bottom - top + 1) >= whiteColRatio) left++; else break;
+      }
+      // 从右往左裁
+      while (right > left) {
+        var wc = 0;
+        for (var y = top; y <= bottom; y++) { if (isWhite((y * w + right) * 4)) wc++; }
+        if (wc / (bottom - top + 1) >= whiteColRatio) right--; else break;
+      }
+
+      if (top > bottom || left > right) { resolve(imgData); return; }
+      // 加3px边距
+      top = Math.max(0, top - 3);
+      left = Math.max(0, left - 3);
+      bottom = Math.min(h - 1, bottom + 3);
+      right = Math.min(w - 1, right + 3);
+      var cropW = right - left + 1;
+      var cropH = bottom - top + 1;
+      var cc = document.createElement('canvas');
+      cc.width = cropW;
+      cc.height = cropH;
+      var cctx = cc.getContext('2d');
+      cctx.drawImage(img, left, top, cropW, cropH, 0, 0, cropW, cropH);
+      resolve(cc.toDataURL('image/jpeg', 0.92));
+    };
+    img.onerror = function() { resolve(imgData); };
+    img.src = imgData;
+  });
 }
 
 init();
