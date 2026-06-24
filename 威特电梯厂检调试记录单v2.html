@@ -3354,7 +3354,7 @@ function exportNoticePDF() {
   container.style.cssText = 'position:absolute;left:-9999px;top:0;z-index:-1;';
   document.body.appendChild(container);
   var div = document.createElement('div');
-  div.style.cssText = 'width:595px;padding:57px;font-family:\'Songti SC\',SimSun,STSong,serif;background:#fff;color:#000;font-size:10px;line-height:1.4;';
+  div.style.cssText = 'width:595px;padding:30px 40px;font-family:\'Songti SC\',SimSun,STSong,serif;background:#fff;color:#000;font-size:10px;line-height:1.2;';
   div.innerHTML = htmlContent;
   container.appendChild(div);
 
@@ -3511,67 +3511,65 @@ function exportPDF() {
 // 完整意见通知书HTML（自然流式，自动分页）
 function buildNoticeFullHTML(task, dateStr, ngItems) {
   var dutyMap = {A:'A-安装/维保',B:'B-工厂',C:'C-客户',D:'D-调试',E:'E-监督'};
-  var fs = 10; // 基础字号，统一
-  var logoBase64 = WEITE_LOGO;;
+  var logoBase64 = WEITE_LOGO;
   var h = '';
-  h += '<div style="font-size:'+fs+'px;line-height:1.3;">';
+  // 外层div：所有子元素继承font-family（由容器div设置）
+  h += '<div style="line-height:1.2;">';
   // 页眉：左logo，中标题，右文件编号
   h += '<div style="position:relative;text-align:center;margin-bottom:2px;">';
-  h += '<div style="position:absolute;left:0;top:50%;transform:translateY(-50%);"><img src="' + logoBase64 + '" style="height:36px;width:auto;"></div>';
+  h += '<div style="position:absolute;left:0;top:50%;transform:translateY(-50%);"><img src="' + logoBase64 + '" style="height:28px;width:auto;"></div>';
   h += '<span style="font-size:18px;font-weight:bold;">电梯厂检意见通知书</span>';
   h += '</div>';
-  h += '<div style="text-align:right;font-size:'+fs+'px;margin-bottom:4px;">文件编号 WT/S-G-2024-001(A)</div>';
+  h += '<div style="text-align:right;margin-bottom:4px;">文件编号 WT/S-G-2024-001(A)</div>';
 
-  // === 一整张大表格 ===
-  h += '<table style="width:100%;border-collapse:collapse;font-size:'+fs+'px;">';
+  // 一整张大表格 - font-family在table级设，所有td继承
+  h += '<table style="width:100%;border-collapse:collapse;font-size:10px;font-family:Songti SC,SimSun,STSong,serif;">';
 
-  // 信息表头行1
+  // 信息行1: 项目名称 | 地址 | 型号 | 型号值 | 产品编号 | 编号值
   h += '<tr>';
-  h += '<td style="font-size:10px;border:1px solid #000;padding:1px 3px;width:14%;text-align:center;">项目名称</td>';
-  h += '<td style="font-size:10px;border:1px solid #000;padding:1px 3px;width:25%;">' + escHtml(task.addr||'') + '</td>';
-  h += '<td style="font-size:10px;border:1px solid #000;padding:1px 3px;width:10%;text-align:center;">型号</td>';
-  h += '<td style="font-size:10px;border:1px solid #000;padding:1px 3px;width:18%;">' + escHtml(task.model||'') + '</td>';
-  h += '<td style="font-size:10px;border:1px solid #000;padding:1px 3px;width:12%;text-align:center;">产品编号</td>';
-  h += '<td style="font-size:10px;border:1px solid #000;padding:1px 3px;width:21%;">' + escHtml(task.prodNo||'') + '</td>';
+  h += '<td style="border:1px solid #000;padding:1px 2px;width:14%;text-align:center;">项目名称</td>';
+  h += '<td style="border:1px solid #000;padding:1px 2px;width:25%;">' + escHtml(task.addr||'') + '</td>';
+  h += '<td style="border:1px solid #000;padding:1px 2px;width:10%;text-align:center;">型号</td>';
+  h += '<td style="border:1px solid #000;padding:1px 2px;width:18%;">' + escHtml(task.model||'') + '</td>';
+  h += '<td style="border:1px solid #000;padding:1px 2px;width:12%;text-align:center;">产品编号</td>';
+  h += '<td style="border:1px solid #000;padding:1px 2px;width:21%;">' + escHtml(task.prodNo||'') + '</td>';
   h += '</tr>';
-  // 信息表头行2
+  // 信息行2: 安装地点 | 地点值 | 安装单位/人员 | 人员值 | 项目管理 | 管理值
   h += '<tr>';
-  h += '<td style="font-size:10px;border:1px solid #000;padding:1px 3px;text-align:center;">安装地点</td>';
-  h += '<td style="font-size:10px;border:1px solid #000;padding:1px 3px;">' + escHtml(task.installAddr||task.addr||'') + '</td>';
-  h += '<td style="font-size:10px;border:1px solid #000;padding:1px 3px;text-align:center;">安装单位/人员</td>';
-  h += '<td style="font-size:10px;border:1px solid #000;padding:1px 3px;">' + escHtml(task.installer||'') + '</td>';
-  h += '<td style="font-size:10px;border:1px solid #000;padding:1px 3px;text-align:center;">项目管理</td>';
-  h += '<td style="font-size:10px;border:1px solid #000;padding:1px 3px;">' + escHtml(task.manager||'') + '</td>';
+  h += '<td style="border:1px solid #000;padding:1px 2px;text-align:center;">安装地点</td>';
+  h += '<td style="border:1px solid #000;padding:1px 2px;">' + escHtml(task.installAddr||task.addr||'') + '</td>';
+  h += '<td style="border:1px solid #000;padding:1px 2px;text-align:center;">安装单位/人员</td>';
+  h += '<td style="border:1px solid #000;padding:1px 2px;">' + escHtml(task.installer||'') + '</td>';
+  h += '<td style="border:1px solid #000;padding:1px 2px;text-align:center;">项目管理</td>';
+  h += '<td style="border:1px solid #000;padding:1px 2px;">' + escHtml(task.manager||'') + '</td>';
   h += '</tr>';
-  // 检验依据（单独一行）
+  // 检验依据
   h += '<tr>';
-  h += '<td style="font-size:10px;border:1px solid #000;padding:1px 3px;text-align:center;">检验依据</td>';
-  h += '<td style="font-size:10px;border:1px solid #000;padding:1px 3px;" colspan="5">《电梯监督检验和定期检验规则》(TSG T7001—2023)</td>';
+  h += '<td style="border:1px solid #000;padding:1px 2px;text-align:center;">检验依据</td>';
+  h += '<td style="border:1px solid #000;padding:1px 2px;" colspan="5">《电梯监督检验和定期检验规则》(TSG T7001—2023)</td>';
   h += '</tr>';
 
-    // 不合格项区域：标题行 + 每个NG项一行 + 空白行填满
-  // 标题行（只保留上下边框，左右外框）
+  // 不合格项区域：标题行 + 每个NG项一行 + 空白行填满
   h += '<tr>';
-  h += '<td style="font-size:10px;border:1px solid #000;border-bottom:none;padding:2px 3px;" colspan="6">经检验上述设备，存在以下问题：</td>';
+  h += '<td style="border:1px solid #000;border-bottom:none;padding:2px 2px;" colspan="6">经检验上述设备，存在以下问题：</td>';
   h += '</tr>';
-  // 每个NG项一行（无横线，只有左右外框）
   if (ngItems.length > 0) {
     for (var i = 0; i < ngItems.length; i++) {
       var item = ngItems[i];
       h += '<tr>';
-      h += '<td style="font-size:10px;border:1px solid #000;border-top:none;border-bottom:none;padding:2px 3px 2px 16px;" colspan="6">' + (i+1) + '. ' + item.id + '. ' + escHtml(item.name) + ' \u2014 ' + (dutyMap[item.duty]||item.duty||'') + '</td>';
+      h += '<td style="border:1px solid #000;border-top:none;border-bottom:none;padding:2px 2px 2px 16px;" colspan="6">' + (i+1) + '. ' + item.id + '. ' + escHtml(item.name) + ' \u2014 ' + (dutyMap[item.duty]||item.duty||'') + '</td>';
       h += '</tr>';
     }
   }
-  // 空白行填满剩余空间（无横线，只有左右外框），每行固定18px
-  var ngRowsH = 20 + ngItems.length * 18;
-  var usedH = 200 + ngRowsH;
-  var a4ContentH = 720;
+  // 空白行填满（每行14px）
+  var ngRowsH = 18 + ngItems.length * 14;
+  var usedH = 140 + ngRowsH;
+  var a4ContentH = 680;
   var remainH = a4ContentH - usedH;
-  var blankRows = Math.max(0, Math.floor(remainH / 18));
+  var blankRows = Math.max(0, Math.floor(remainH / 14));
   for (var b = 0; b < blankRows; b++) {
     h += '<tr>';
-    h += '<td style="font-size:10px;border:1px solid #000;border-top:none;border-bottom:none;height:18px;" colspan="6">&nbsp;</td>';
+    h += '<td style="border:1px solid #000;border-top:none;border-bottom:none;height:14px;" colspan="6">&nbsp;</td>';
     h += '</tr>';
   }
 
@@ -3579,7 +3577,7 @@ function buildNoticeFullHTML(task, dateStr, ngItems) {
   var conclusion = task.conclusion || '';
   var rectifyDeadline = task.rectifyDeadline || '';
   h += '<tr>';
-  h += '<td style="font-size:10px;border:1px solid #000;padding:2px 3px;" colspan="6">厂检意见：';
+  h += '<td style="border:1px solid #000;padding:2px 2px;" colspan="6">厂检意见：';
   if (conclusion === 'pass') {
     h += '☑厂检合格';
   } else if (conclusion === 'pass-rectify') {
@@ -3593,20 +3591,20 @@ function buildNoticeFullHTML(task, dateStr, ngItems) {
   }
   h += '</td></tr>';
 
-  // 签名行：一行两列，中间无竖线，行高加大留签字空间
+  // 签名行
   h += '<tr>';
-  h += '<td style="font-size:10px;border:1px solid #000;border-right:none;padding:4px 3px;height:40px;" colspan="3">检验人员：' + escHtml(task.signatures && task.signatures.inspectorName || task.manager || '________') + '&nbsp;&nbsp;日期：' + escHtml(task.checkDate||dateStr) + '</td>';
-  h += '<td style="font-size:10px;border:1px solid #000;border-left:none;padding:4px 3px;height:40px;" colspan="3">安装单位签字：' + escHtml(task.installerName||task.installerSign||'________') + '&nbsp;&nbsp;日期：________</td>';
+  h += '<td style="border:1px solid #000;border-right:none;padding:4px 2px;height:30px;" colspan="3">检验人员：' + escHtml(task.signatures && task.signatures.inspectorName || task.manager || '________') + '&nbsp;&nbsp;日期：' + escHtml(task.checkDate||dateStr) + '</td>';
+  h += '<td style="border:1px solid #000;border-left:none;padding:4px 2px;height:30px;" colspan="3">安装单位签字：' + escHtml(task.installerName||task.installerSign||'________') + '&nbsp;&nbsp;日期：________</td>';
   h += '</tr>';
 
-  // 整改情况反馈：一行，行高加大，日期放后面
+  // 整改情况反馈
   h += '<tr>';
-  h += '<td style="font-size:10px;border:1px solid #000;padding:4px 3px;height:30px;" colspan="6">整改情况反馈：以上问题整改完成，整改结果确认：确认人：________&nbsp;&nbsp;确认日期：________</td>';
+  h += '<td style="border:1px solid #000;padding:3px 2px;height:22px;" colspan="6">整改情况反馈：以上问题整改完成，整改结果确认：确认人：________&nbsp;&nbsp;确认日期：________</td>';
   h += '</tr>';
 
   // 备注行
   h += '<tr>';
-  h += '<td style="font-size:10px;border:1px solid #000;padding:2px 3px;color:#666;" colspan="6">备注：①本通知书一式三联，检验机构、安装单位、项目管理各执一联。②整改完成后，请将本通知书返还检验人员确认。③如有异议，请在收到本通知书之日起5个工作日内提出。</td>';
+  h += '<td style="border:1px solid #000;padding:2px 2px;color:#666;" colspan="6">备注：①本通知书一式三联，检验机构、安装单位、项目管理各执一联。②整改完成后，请将本通知书返还检验人员确认。③如有异议，请在收到本通知书之日起5个工作日内提出。</td>';
   h += '</tr>';
 
   h += '</table>';
@@ -3614,6 +3612,7 @@ function buildNoticeFullHTML(task, dateStr, ngItems) {
   h += '</div>';
   return h;
 }
+
 
 // 意见通知书HTML生成（pageNum=1或2）
 function buildNoticeHTML(task, dateStr, pageNum, ngItems, totalPages) {
