@@ -759,6 +759,7 @@ function showNewCheck() {
   document.getElementById('newModel').value = '';
   document.getElementById('newLiftNo').value = '';
   document.getElementById('newInstaller').value = '';
+  document.getElementById('newInstallAddr').value = '';
   document.getElementById('newManager').value = '';
   document.getElementById('newCheckDate').value = new Date().toISOString().split('T')[0];
   document.getElementById('configFileName').textContent = '未上传配置单';
@@ -780,6 +781,7 @@ function createTask() {
     speed: document.getElementById('newSpeed').value.trim(),
     liftNo: document.getElementById('newLiftNo').value.trim(),
     installer: document.getElementById('newInstaller').value.trim(),
+    installAddr: document.getElementById('newInstallAddr').value.trim(),
     manager: document.getElementById('newManager').value.trim(),
     checkDate: document.getElementById('newCheckDate').value,
     checks: {},
@@ -798,7 +800,9 @@ function createTask() {
     conclusion: '', // 厂检结论: 'pass' / 'fail'
     rectifyDeadline: '', // 整改期限
     projectManagerSign: '', // 项目管理人员签字名
-    installerSign: '' // 安装人员签字名
+    installerSign: '', // 安装人员签字名
+    installerName: '', // 安装人员姓名（文本输入）
+    projectManagerName: '' // 项目管理人员姓名（文本输入）
   };
   
   // 如果配置单有载重，自动填入附表5
@@ -1330,10 +1334,21 @@ function renderSignZoneContent(container) {
   // 签字区域 - 合并为一个签字确认面板
   html += '<div style="font-size:15px;font-weight:700;margin-bottom:10px;color:#667eea;">签字确认</div>';
   
-  // 项目管理人员/安装人员 - 点击弹窗签名，无姓名输入框
+  // 项目管理人员/安装人员 - 姓名输入 + 点击弹窗签名
   var pmSigData = task.signatures.pmSig || '';
+  var installerSigData = task.signatures.installerSig || '';
   html += '<div style="background:#f8fff8;border-radius:12px;padding:14px;margin-bottom:12px;border:1px solid #e2e8f0;">';
   html += '<div style="font-size:13px;font-weight:600;margin-bottom:8px;">签字确认（项目管理人员/安装人员）</div>';
+  // 安装人员姓名输入
+  html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">';
+  html += '<span style="font-size:12px;white-space:nowrap;">安装人员姓名</span>';
+  html += '<input type="text" id="signInstallerName" value="' + escHtml(task.installerName||'') + '" placeholder="填写安装人员姓名" style="flex:1;padding:8px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;">';
+  html += '</div>';
+  // 项目管理人员姓名输入
+  html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">';
+  html += '<span style="font-size:12px;white-space:nowrap;">项目管理人员姓名</span>';
+  html += '<input type="text" id="signPMName" value="' + escHtml(task.projectManagerName||'') + '" placeholder="填写项目管理人员姓名" style="flex:1;padding:8px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;">';
+  html += '</div>';
   if (pmSigData) {
     html += '<div style="border:1px solid #e2e8f0;border-radius:8px;background:#fff;padding:6px;margin-bottom:8px;">';
     html += '<img src="' + pmSigData + '" style="max-height:60px;max-width:100%;">';
@@ -1389,6 +1404,11 @@ function openSignZoneModal(target) {
 function saveSignZone() {
   var task = tasks[currentTaskIndex];
   if (!task.signatures) task.signatures = {};
+  // 保存安装人员/项目管理人员姓名
+  var inel = document.getElementById('signInstallerName');
+  var pmel = document.getElementById('signPMName');
+  if (inel) task.installerName = inel.value.trim();
+  if (pmel) task.projectManagerName = pmel.value.trim();
   // 签名数据已在openSignZoneModal确认时保存，这里只保存结论和期限
   saveTasks();
   showToast('签字与结论已保存');
@@ -3339,7 +3359,7 @@ function exportNoticePDF() {
   showToast('正在渲染...');
   setTimeout(function() {
     html2canvas(div, {
-      scale: 2, useCORS: true, allowTaint: true,
+      scale: 3, useCORS: true, allowTaint: true,
       backgroundColor: '#ffffff', logging: false, removeContainer: false,
       width: div.scrollWidth, height: div.scrollHeight
     }).then(function(canvas) {
@@ -3428,7 +3448,7 @@ function exportCheckPDF() {
 
     setTimeout(function() {
       html2canvas(div, {
-        scale: 2, useCORS: true, allowTaint: true,
+        scale: 3, useCORS: true, allowTaint: true,
         backgroundColor: '#ffffff', logging: false, removeContainer: false,
         width: div.scrollWidth, height: div.scrollHeight
       }).then(function(canvas) {
@@ -3479,13 +3499,16 @@ function exportPDF() {
 // 完整意见通知书HTML（自然流式，自动分页）
 function buildNoticeFullHTML(task, dateStr, ngItems) {
   var dutyMap = {A:'A-安装/维保',B:'B-工厂',C:'C-客户',D:'D-调试',E:'E-监督'};
-  var fs = 8; // 基础字号
+  var fs = 8; // 基础字号，统一
+  var logoBase64 = 'data:image/png;base64,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';
   var h = '';
   h += '<div style="font-family:SimSun;font-size:'+fs+'px;line-height:1.3;">';
-  // 标题（独立于表格之外）
-  h += '<div style="text-align:center;font-size:13px;font-weight:bold;margin-bottom:4px;">电梯厂检意见通知书</div>';
-  // 文件编号：表格外面右上角
-  h += '<div style="text-align:right;font-size:7px;margin-bottom:2px;">文件编号 WT/S-G-2024-001(A)</div>';
+  // 页眉：左logo，中标题，右文件编号
+  h += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">';
+  h += '<img src="' + logoBase64 + '" style="height:18px;width:auto;">';
+  h += '<span style="font-weight:bold;">电梯厂检意见通知书</span>';
+  h += '<span>文件编号 WT/S-G-2024-001(A)</span>';
+  h += '</div>';
 
   // === 一整张大表格 ===
   h += '<table style="width:100%;border-collapse:collapse;font-size:'+fs+'px;">';
@@ -3502,16 +3525,11 @@ function buildNoticeFullHTML(task, dateStr, ngItems) {
   // 信息表头行2
   h += '<tr>';
   h += '<td style="border:1px solid #000;padding:1px 3px;text-align:center;background:#f0f0f0;"><b>安装地点</b></td>';
-  h += '<td style="border:1px solid #000;padding:1px 3px;">' + escHtml(task.addr||'') + '</td>';
+  h += '<td style="border:1px solid #000;padding:1px 3px;">' + escHtml(task.installAddr||task.addr||'') + '</td>';
   h += '<td style="border:1px solid #000;padding:1px 3px;text-align:center;background:#f0f0f0;"><b>安装单位/人员</b></td>';
   h += '<td style="border:1px solid #000;padding:1px 3px;">' + escHtml(task.installer||'') + '</td>';
   h += '<td style="border:1px solid #000;padding:1px 3px;text-align:center;background:#f0f0f0;"><b>项目管理</b></td>';
   h += '<td style="border:1px solid #000;padding:1px 3px;">' + escHtml(task.manager||'') + '</td>';
-  h += '</tr>';
-  // 检验日期（单独一行）
-  h += '<tr>';
-  h += '<td style="border:1px solid #000;padding:1px 3px;text-align:center;background:#f0f0f0;"><b>检验日期</b></td>';
-  h += '<td style="border:1px solid #000;padding:1px 3px;" colspan="5">' + escHtml(task.checkDate||dateStr) + '</td>';
   h += '</tr>';
   // 检验依据（单独一行）
   h += '<tr>';
@@ -3519,17 +3537,19 @@ function buildNoticeFullHTML(task, dateStr, ngItems) {
   h += '<td style="border:1px solid #000;padding:1px 3px;" colspan="5">《电梯监督检验和定期检验规则》(TSG T7001—2023)</td>';
   h += '</tr>';
 
-  // 不合格项区域：一个大空白单元格，无内部线条，行高撑满版面
+  // 不合格项区域：标题和大空白单元格合并为一行，中间无边框
+  // 计算内容高度：如果内容不多，撑满到一页A4；内容多则自然扩展
+  var contentItemsH = ngItems.length * 14; // 估算NG项高度
+  var minBlankH = 340; // 最小空白高度
+  // A4内容区约720px，表头+信息+意见+签名+反馈+备注约280px，剩余440px给空白区
+  var blankH = contentItemsH < 30 ? Math.max(minBlankH, 440 - contentItemsH) : Math.max(minBlankH, 200);
   h += '<tr>';
-  h += '<td style="border:1px solid #000;padding:2px 3px;font-weight:bold;" colspan="6">经检验上述设备，存在以下问题：</td>';
-  h += '</tr>';
-  h += '<tr>';
-  h += '<td style="border:1px solid #000;height:340px;padding:2px 3px;vertical-align:top;" colspan="6">';
-  // 将NG项信息以紧凑文字形式写在空白区顶部
+  h += '<td style="border:1px solid #000;border-bottom:none;padding:2px 3px;font-weight:bold;vertical-align:top;" colspan="6">经检验上述设备，存在以下问题：';
+  // NG项紧跟标题文字后面，不单独分单元格
   if (ngItems.length > 0) {
     for (var i = 0; i < ngItems.length; i++) {
       var item = ngItems[i];
-      h += '<div style="font-size:7px;">' + (i+1) + '. <b>' + item.id + '.</b> ' + escHtml(item.name);
+      h += '<div style="margin-top:2px;">' + (i+1) + '. <b>' + item.id + '.</b> ' + escHtml(item.name);
       if (item.std) h += ' [标准:' + escHtml(item.std) + (item.value ? ' 实测:' + escHtml(item.value) : '') + ']';
       if (item.note) h += ' [问题:' + escHtml(item.note) + ']';
       h += ' — ' + (dutyMap[item.duty]||item.duty||'');
@@ -3537,6 +3557,10 @@ function buildNoticeFullHTML(task, dateStr, ngItems) {
     }
   }
   h += '</td>';
+  h += '</tr>';
+  // 空白行撑高度（无边框，只有左右外框）
+  h += '<tr>';
+  h += '<td style="border:1px solid #000;border-top:none;border-bottom:none;height:'+blankH+'px;" colspan="6">&nbsp;</td>';
   h += '</tr>';
 
   // 厂检意见行
@@ -3557,26 +3581,20 @@ function buildNoticeFullHTML(task, dateStr, ngItems) {
   }
   h += '</td></tr>';
 
-  // 签名行
+  // 签名行：一行两列，中间无竖线，行高加大留签字空间
   h += '<tr>';
-  h += '<td style="border:1px solid #000;padding:2px 3px;" colspan="3">检验人员：' + escHtml(task.signatures && task.signatures.inspectorName || task.manager || '________') + '&nbsp;&nbsp;日期：' + escHtml(task.checkDate||dateStr) + '</td>';
-  h += '<td style="border:1px solid #000;padding:2px 3px;" colspan="3">项目管理人员：' + escHtml(task.projectManagerSign || '________') + '&nbsp;&nbsp;日期：________</td>';
-  h += '</tr>';
-  h += '<tr>';
-  h += '<td style="border:1px solid #000;padding:2px 3px;" colspan="6">安装人员：' + escHtml(task.installerSign || '________') + '&nbsp;&nbsp;日期：________</td>';
+  h += '<td style="border:1px solid #000;border-right:none;padding:4px 3px;height:40px;" colspan="3">检验人员：' + escHtml(task.signatures && task.signatures.inspectorName || task.manager || '________') + '&nbsp;&nbsp;日期：' + escHtml(task.checkDate||dateStr) + '</td>';
+  h += '<td style="border:1px solid #000;border-left:none;padding:4px 3px;height:40px;" colspan="3">安装人员：' + escHtml(task.installerName||task.installerSign||'________') + '&nbsp;&nbsp;日期：________&nbsp;&nbsp;项目管理人员：' + escHtml(task.projectManagerName||task.projectManagerSign||'________') + '&nbsp;&nbsp;日期：________</td>';
   h += '</tr>';
 
-  // 整改情况反馈行
+  // 整改情况反馈：一行，行高加大，日期放后面
   h += '<tr>';
-  h += '<td style="border:1px solid #000;padding:2px 3px;font-weight:bold;" colspan="6">整改情况反馈：<span style="font-weight:normal;">以上问题整改完成，整改结果确认：</span></td>';
-  h += '</tr>';
-  h += '<tr>';
-  h += '<td style="border:1px solid #000;padding:2px 3px;font-size:7px;" colspan="6">确认人：________&nbsp;&nbsp;确认日期：________</td>';
+  h += '<td style="border:1px solid #000;padding:4px 3px;height:30px;" colspan="6"><b>整改情况反馈：</b>以上问题整改完成，整改结果确认：确认人：________&nbsp;&nbsp;确认日期：________</td>';
   h += '</tr>';
 
   // 备注行
   h += '<tr>';
-  h += '<td style="border:1px solid #000;padding:2px 3px;font-size:7px;color:#666;" colspan="6">备注：①本通知书一式三联，检验机构、安装单位、项目管理各执一联。②整改完成后，请将本通知书返还检验人员确认。③如有异议，请在收到本通知书之日起5个工作日内提出。</td>';
+  h += '<td style="border:1px solid #000;padding:2px 3px;color:#666;" colspan="6">备注：①本通知书一式三联，检验机构、安装单位、项目管理各执一联。②整改完成后，请将本通知书返还检验人员确认。③如有异议，请在收到本通知书之日起5个工作日内提出。</td>';
   h += '</tr>';
 
   h += '</table>';
@@ -3615,7 +3633,7 @@ function buildNoticeHTML(task, dateStr, pageNum, ngItems, totalPages) {
     // 第2行: 安装地点 | 安装单位/人员 | 项目管理
     h += '<tr>';
     h += '<td style="border:1px solid #000;padding:3px 4px;background:#f0f0f0;"><b>安装地点</b></td>';
-    h += '<td style="border:1px solid #000;padding:3px 4px;">' + escHtml(task.addr||'') + '</td>';
+    h += '<td style="border:1px solid #000;padding:3px 4px;">' + escHtml(task.installAddr||task.addr||'') + '</td>';
     h += '<td style="border:1px solid #000;padding:3px 4px;background:#f0f0f0;"><b>安装单位/人员</b></td>';
     h += '<td style="border:1px solid #000;padding:3px 4px;">' + escHtml(task.installer||'') + '</td>';
     h += '<td style="border:1px solid #000;padding:3px 4px;background:#f0f0f0;"><b>项目管理</b></td>';
@@ -4316,7 +4334,7 @@ function buildInfoTable(task, dateStr) {
   h += '<tr><td style="border:1px solid #000;padding:2px 4px;width:10%;"><b>项目名称</b></td><td style="border:1px solid #000;padding:2px 4px;width:23%;">' + (task.addr||'') + '</td>';
   h += '<td style="border:1px solid #000;padding:2px 4px;width:8%;"><b>型号</b></td><td style="border:1px solid #000;padding:2px 4px;width:23%;">' + (task.model||'') + '</td>';
   h += '<td style="border:1px solid #000;padding:2px 4px;width:8%;"><b>产品编号</b></td><td style="border:1px solid #000;padding:2px 4px;width:28%;">' + (task.prodNo||'') + '</td></tr>';
-  h += '<tr><td style="border:1px solid #000;padding:2px 4px;"><b>安装地点</b></td><td style="border:1px solid #000;padding:2px 4px;">' + (task.addr||'') + '</td>';
+  h += '<tr><td style="border:1px solid #000;padding:2px 4px;"><b>安装地点</b></td><td style="border:1px solid #000;padding:2px 4px;">' + (task.installAddr||task.addr||'') + '</td>';
   h += '<td style="border:1px solid #000;padding:2px 4px;"><b>安装单位/人员</b></td><td style="border:1px solid #000;padding:2px 4px;">' + (task.installer||'') + '</td>';
   h += '<td style="border:1px solid #000;padding:2px 4px;"><b>项目管理</b></td><td style="border:1px solid #000;padding:2px 4px;">' + (task.manager||'') + '</td></tr>';
   h += '<tr><td style="border:1px solid #000;padding:2px 4px;"><b>检验日期</b></td><td style="border:1px solid #000;padding:2px 4px;">' + (task.checkDate||dateStr) + '</td>';
@@ -4548,6 +4566,7 @@ window.onload = init;
       <div class="fr"><label>额定速度</label><input type="text" id="newSpeed" placeholder="m/s"></div>
       <div class="fr"><label>电梯编号</label><input type="text" id="newLiftNo" placeholder="选填"></div>
       <div class="fr"><label>安装单位</label><input type="text" id="newInstaller" placeholder="选填"></div>
+      <div class="fr"><label>安装地点</label><input type="text" id="newInstallAddr" placeholder="选填"></div>
       <div class="fr"><label>项目管理员</label><input type="text" id="newManager" placeholder="选填"></div>
       <div class="fr"><label>检验日期</label><input type="date" id="newCheckDate"></div>
     </div>
