@@ -36,17 +36,17 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',sans-serif;background:#f5f7fa;padding-bottom:20px;-webkit-overflow-scrolling:touch;}
-.page{display:none;overflow:visible;}
+.page{display:none;overflow:visible;padding-top:140px;}
 .page.active{display:block;}
 /* Header */
-.header{padding:10px 16px 8px;background:#fff;position:sticky;top:0;z-index:50;border-bottom:1px solid #edf2f7;-webkit-backface-visibility:hidden;will-change:transform;}
+.header{padding:10px 16px 8px;background:#fff;position:fixed;top:0;left:0;right:0;z-index:50;border-bottom:1px solid #edf2f7;-webkit-backface-visibility:hidden;will-change:transform;}
 .logo-area{display:flex;align-items:flex-end;gap:0;}
 .logo-img{height:32px;width:auto;}
 .logo-elev{font-size:18px;font-weight:900;color:#0d2137;letter-spacing:0px;font-family:'PingFang SC','Heiti SC',sans-serif;line-height:1;}
 .header-sub{font-size:12px;color:#555;letter-spacing:3px;margin-top:3px;font-family:'Songti SC','SimSun',serif;}
 .logo-weite{font-size:24px;font-weight:900;color:#1a3a6b;letter-spacing:2px;}
 /* Progress */
-.progress-container{padding:10px 16px 8px;background:#fff;position:sticky;top:50px;z-index:49;-webkit-backface-visibility:hidden;will-change:transform;}
+.progress-container{padding:10px 16px 8px;background:#fff;position:fixed;top:50px;left:0;right:0;z-index:49;-webkit-backface-visibility:hidden;will-change:transform;}
 .progress-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
 .progress-title{font-size:12px;font-weight:600;color:#718096;}
 .progress-percent{font-size:14px;font-weight:800;background:linear-gradient(135deg,#667eea,#764ba2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
@@ -191,7 +191,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
 .auto-result.pass{background:#f6ffed;border-color:#b7eb8f;}
 
 /* Zone tabs - horizontal scrolling */
-.zone-tabs{display:flex;gap:0;padding:0 12px;background:#fff;overflow-x:auto;flex-shrink:0;-webkit-overflow-scrolling:touch;border-bottom:2px solid #edf2f7;position:sticky;top:90px;z-index:48;}
+.zone-tabs{display:flex;gap:0;padding:0 12px;background:#fff;overflow-x:auto;flex-shrink:0;-webkit-overflow-scrolling:touch;border-bottom:2px solid #edf2f7;position:fixed;top:90px;left:0;right:0;z-index:48;}
 .zone-tab{padding:10px 16px;white-space:nowrap;font-size:13px;font-weight:600;color:#718096;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s;flex-shrink:0;}
 .zone-tab.active{color:#667eea;border-bottom-color:#667eea;}
 .zone-tab.done{color:#38a169;}
