@@ -3357,6 +3357,16 @@ function exportNoticePDF() {
   container.appendChild(div);
 
   showToast('正在渲染...');
+      // 动态设置spacer高度，使div总高度等于A4整数倍
+      var a4FullH = 841; // A4总高度(595px宽→841px高)
+      var actualH = div.scrollHeight;
+      var pages = Math.ceil(actualH / a4FullH);
+      if (pages < 1) pages = 1;
+      var targetH = pages * a4FullH;
+      var spacerEl = div.querySelector("#noticeSpacer");
+      if (spacerEl && targetH > actualH) {
+        spacerEl.style.height = (targetH - actualH) + "px";
+      }
   setTimeout(function() {
     html2canvas(div, {
       scale: 3, useCORS: true, allowTaint: true,
@@ -3506,7 +3516,7 @@ function buildNoticeFullHTML(task, dateStr, ngItems) {
   // 页眉：左logo，中标题，右文件编号
   h += '<div style="position:relative;text-align:center;margin-bottom:2px;">';
   h += '<div style="position:absolute;left:0;top:50%;transform:translateY(-50%);"><img src="' + logoBase64 + '" style="height:36px;width:auto;"></div>';
-  h += '<span style="font-size:16px;font-weight:bold;">电梯厂检意见通知书</span>';
+  h += '<span style="font-size:12px;border-bottom:2px solid #000;padding-bottom:3px;">电梯厂检意见通知书</span>';
   h += '</div>';
   h += '<div style="text-align:right;font-size:'+fs+'px;margin-bottom:4px;">文件编号 WT/S-G-2024-001(A)</div>';
 
@@ -3539,14 +3549,6 @@ function buildNoticeFullHTML(task, dateStr, ngItems) {
 
   // 不合格项区域：标题和大空白单元格合并为一行，中间无边框
   // 计算内容高度：如果内容不多，撑满到一页A4；内容多则自然扩展
-  // 精算A4一页：div宽595px, 内容区高≈727px(841-padding114)
-  // 固定内容(表头+信息+意见+签名+反馈+备注)≈295px, NG项每条≈18px
-  var contentItemsH = ngItems.length * 18;
-  var fixedH = 295;
-  var a4ContentH = 727;
-  var remainForBlank = a4ContentH - fixedH - contentItemsH;
-  // 如果剩余空间>100px，撑满一页；否则不撑空白行，让内容自然分页
-  var blankH = remainForBlank > 100 ? Math.max(remainForBlank, 50) : 20;
   h += '<tr>';
   h += '<td style="font-size:12px;border:1px solid #000;border-bottom:none;padding:2px 3px;vertical-align:top;" colspan="6">经检验上述设备，存在以下问题：';
   // NG项紧跟标题文字后面，不单独分单元格
@@ -3564,7 +3566,7 @@ function buildNoticeFullHTML(task, dateStr, ngItems) {
   h += '</tr>';
   // 空白行撑高度（无边框，只有左右外框）
   h += '<tr>';
-  h += '<td style="font-size:12px;border:1px solid #000;border-top:none;border-bottom:none;height:'+blankH+'px;" colspan="6">&nbsp;</td>';
+  h += '<td id="noticeBlankTd" style="font-size:12px;border:1px solid #000;border-top:none;border-bottom:none;height:10px;" colspan="6">&nbsp;</td>';
   h += '</tr>';
 
   // 厂检意见行
@@ -3602,6 +3604,7 @@ function buildNoticeFullHTML(task, dateStr, ngItems) {
   h += '</tr>';
 
   h += '</table>';
+  h += '<div id="noticeSpacer" style="height:0px;"></div>';
   h += '</div>';
   return h;
 }
