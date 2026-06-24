@@ -36,7 +36,7 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',sans-serif;background:#f5f7fa;padding-bottom:20px;-webkit-overflow-scrolling:touch;}
-.page{display:none;overflow:visible;padding-top:140px;}
+.page{display:none;overflow:visible;padding-top:158px;}
 .page.active{display:block;}
 /* Header */
 .header{padding:10px 16px 8px;background:#fff;position:fixed;top:0;left:0;right:0;z-index:50;border-bottom:1px solid #edf2f7;-webkit-backface-visibility:hidden;will-change:transform;}
@@ -46,7 +46,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
 .header-sub{font-size:12px;color:#555;letter-spacing:3px;margin-top:3px;font-family:'Songti SC','SimSun',serif;}
 .logo-weite{font-size:24px;font-weight:900;color:#1a3a6b;letter-spacing:2px;}
 /* Progress */
-.progress-container{padding:10px 16px 8px;background:#fff;position:fixed;top:50px;left:0;right:0;z-index:49;-webkit-backface-visibility:hidden;will-change:transform;}
+.progress-container{padding:10px 16px 8px;background:#fff;position:fixed;top:66px;left:0;right:0;z-index:49;-webkit-backface-visibility:hidden;will-change:transform;}
 .progress-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
 .progress-title{font-size:12px;font-weight:600;color:#718096;}
 .progress-percent{font-size:14px;font-weight:800;background:linear-gradient(135deg,#667eea,#764ba2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
@@ -191,7 +191,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
 .auto-result.pass{background:#f6ffed;border-color:#b7eb8f;}
 
 /* Zone tabs - horizontal scrolling */
-.zone-tabs{display:flex;gap:0;padding:0 12px;background:#fff;overflow-x:auto;flex-shrink:0;-webkit-overflow-scrolling:touch;border-bottom:2px solid #edf2f7;position:fixed;top:90px;left:0;right:0;z-index:48;}
+.zone-tabs{display:flex;gap:0;padding:0 12px;background:#fff;overflow-x:auto;flex-shrink:0;-webkit-overflow-scrolling:touch;border-bottom:2px solid #edf2f7;position:fixed;top:108px;left:0;right:0;z-index:48;}
 .zone-tab{padding:10px 16px;white-space:nowrap;font-size:13px;font-weight:600;color:#718096;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s;flex-shrink:0;}
 .zone-tab.active{color:#667eea;border-bottom-color:#667eea;}
 .zone-tab.done{color:#38a169;}
@@ -235,7 +235,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
 .ng-photo-del{position:absolute;top:0;right:0;background:rgba(220,53,69,.8);color:#fff;border:none;border-radius:0 6px 0 6px;font-size:12px;cursor:pointer;padding:2px 6px;line-height:1;}
 .ng-photo-add{width:60px;height:60px;border:1.5px dashed #ccc;border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:22px;color:#aaa;background:#fafafa;}
 /* Bottom navigation */
-.btm-nav{position:fixed;bottom:0;left:0;right:0;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;padding:10px 12px;background:#fff;box-shadow:0 -2px 10px rgba(0,0,0,.08);z-index:100;}
+.btm-nav{position:fixed;bottom:0;left:0;right:0;display:grid;grid-template-columns:1fr 1.5fr 1fr;gap:6px;padding:10px 12px;background:#fff;box-shadow:0 -2px 10px rgba(0,0,0,.08);z-index:100;}
 .btm-nav button{padding:12px 0;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;}
 
 .btm-sign{background:#f7fafc;color:#718096;border:1.5px solid #e2e8f0!important;}
@@ -3481,106 +3481,110 @@ function buildNoticeFullHTML(task, dateStr, ngItems) {
   var dutyMap = {A:'A-安装/维保',B:'B-工厂',C:'C-客户',D:'D-调试',E:'E-监督'};
   var h = '';
   h += '<div style="font-family:SimSun;font-size:12px;">';
-  // 标题区域：文件编号移到标题下方表格右上角
-  h += '<div style="text-align:center;font-size:18px;font-weight:bold;margin-bottom:6px;position:relative;">电梯厂检意见通知书<span style="position:absolute;right:0;top:0;font-size:10px;font-weight:normal;">文件编号 WT/S-G-2024-001(A)</span></div>';
+  // 标题（独立于表格之外）
+  h += '<div style="text-align:center;font-size:18px;font-weight:bold;margin-bottom:8px;">电梯厂检意见通知书</div>';
 
-  h += '<table style="width:100%;border-collapse:collapse;margin-bottom:10px;font-size:10px;">';
-  h += '<tr>';
-  h += '<td style="border:1px solid #000;padding:3px 4px;width:12%;text-align:center;background:#f0f0f0;"><b>项目名称</b></td>';
-  h += '<td style="border:1px solid #000;padding:3px 4px;width:21%;">' + escHtml(task.addr||'') + '</td>';
-  h += '<td style="border:1px solid #000;padding:3px 4px;width:8%;text-align:center;background:#f0f0f0;"><b>型号</b></td>';
-  h += '<td style="border:1px solid #000;padding:3px 4px;width:22%;">' + escHtml(task.model||'') + '</td>';
-  h += '<td style="border:1px solid #000;padding:3px 4px;width:10%;text-align:center;background:#f0f0f0;"><b>产品编号</b></td>';
-  h += '<td style="border:1px solid #000;padding:3px 4px;width:27%;">' + escHtml(task.prodNo||'') + '</td>';
-  h += '</tr>';
-  h += '<tr>';
-  h += '<td style="border:1px solid #000;padding:3px 4px;background:#f0f0f0;"><b>安装地点</b></td>';
-  h += '<td style="border:1px solid #000;padding:3px 4px;">' + escHtml(task.addr||'') + '</td>';
-  h += '<td style="border:1px solid #000;padding:3px 4px;background:#f0f0f0;"><b>安装单位/人员</b></td>';
-  h += '<td style="border:1px solid #000;padding:3px 4px;">' + escHtml(task.installer||'') + '</td>';
-  h += '<td style="border:1px solid #000;padding:3px 4px;background:#f0f0f0;"><b>项目管理</b></td>';
-  h += '<td style="border:1px solid #000;padding:3px 4px;">' + escHtml(task.manager||'') + '</td>';
-  h += '</tr>';
-  h += '<tr>';
-  h += '<td style="border:1px solid #000;padding:3px 4px;background:#f0f0f0;"><b>检验日期</b></td>';
-  h += '<td style="border:1px solid #000;padding:3px 4px;">' + escHtml(task.checkDate||dateStr) + '</td>';
-  h += '<td style="border:1px solid #000;padding:3px 4px;background:#f0f0f0;"><b>检验依据</b></td>';
-  h += '<td style="border:1px solid #000;padding:3px 4px;" colspan="3">《电梯监督检验和定期检验规则》(TSG T7001—2023)</td>';
-  h += '</tr>';
-  h += '</table>';
+  // === 一整张大表格 ===
+  h += '<table style="width:100%;border-collapse:collapse;font-size:10px;">';
 
-  // 不合格项表格 - 大表格形式，不嵌套小表格
-  h += '<div style="margin-bottom:6px;font-weight:bold;">经检验上述设备，存在以下问题：</div>';
-  
-  h += '<table style="width:100%;border-collapse:collapse;margin-bottom:6px;font-size:10px;">';
-  h += '<tr style="background:#f0f0f0;">';
-  h += '<th style="border:1px solid #000;padding:2px;text-align:center;"><b>序号</b></th>';
-  h += '<th style="border:1px solid #000;padding:2px;text-align:center;"><b>不合格项目描述</b></th>';
-  h += '<th style="border:1px solid #000;padding:2px;text-align:center;"><b>整改责任方</b></th>';
-  h += '<th style="border:1px solid #000;padding:2px;text-align:center;"><b>整改完成确认签署</b></th>';
-  h += '<th style="border:1px solid #000;padding:2px;text-align:center;"><b>确认日期</b></th>';
+  // 文件编号行：左空，右放编号
+  h += '<tr>';
+  h += '<td style="border:1px solid #000;border-bottom:none;padding:2px 4px;text-align:right;font-size:9px;color:#666;" colspan="6">文件编号 WT/S-G-2024-001(A)</td>';
+  h += '</tr>';
+
+  // 信息表头行
+  h += '<tr>';
+  h += '<td style="border:1px solid #000;padding:4px 6px;width:12%;text-align:center;background:#f0f0f0;"><b>项目名称</b></td>';
+  h += '<td style="border:1px solid #000;padding:4px 6px;width:21%;">' + escHtml(task.addr||'') + '</td>';
+  h += '<td style="border:1px solid #000;padding:4px 6px;width:8%;text-align:center;background:#f0f0f0;"><b>型号</b></td>';
+  h += '<td style="border:1px solid #000;padding:4px 6px;width:22%;">' + escHtml(task.model||'') + '</td>';
+  h += '<td style="border:1px solid #000;padding:4px 6px;width:10%;text-align:center;background:#f0f0f0;"><b>产品编号</b></td>';
+  h += '<td style="border:1px solid #000;padding:4px 6px;width:27%;">' + escHtml(task.prodNo||'') + '</td>';
+  h += '</tr>';
+  h += '<tr>';
+  h += '<td style="border:1px solid #000;padding:4px 6px;text-align:center;background:#f0f0f0;"><b>安装地点</b></td>';
+  h += '<td style="border:1px solid #000;padding:4px 6px;">' + escHtml(task.addr||'') + '</td>';
+  h += '<td style="border:1px solid #000;padding:4px 6px;text-align:center;background:#f0f0f0;"><b>安装单位/人员</b></td>';
+  h += '<td style="border:1px solid #000;padding:4px 6px;">' + escHtml(task.installer||'') + '</td>';
+  h += '<td style="border:1px solid #000;padding:4px 6px;text-align:center;background:#f0f0f0;"><b>项目管理</b></td>';
+  h += '<td style="border:1px solid #000;padding:4px 6px;">' + escHtml(task.manager||'') + '</td>';
+  h += '</tr>';
+  h += '<tr>';
+  h += '<td style="border:1px solid #000;padding:4px 6px;text-align:center;background:#f0f0f0;"><b>检验日期</b></td>';
+  h += '<td style="border:1px solid #000;padding:4px 6px;">' + escHtml(task.checkDate||dateStr) + '</td>';
+  h += '<td style="border:1px solid #000;padding:4px 6px;text-align:center;background:#f0f0f0;"><b>检验依据</b></td>';
+  h += '<td style="border:1px solid #000;padding:4px 6px;" colspan="3">《电梯监督检验和定期检验规则》(TSG T7001—2023)</td>';
+  h += '</tr>';
+
+  // 不合格项区域 - 作为大表格的行，不分小表格
+  h += '<tr>';
+  h += '<td style="border:1px solid #000;padding:6px 8px;font-weight:bold;" colspan="6">经检验上述设备，存在以下问题：' +
+    '<span style="float:right;font-weight:normal;font-size:9px;">整改责任方&nbsp;&nbsp;整改完成确认签署&nbsp;&nbsp;确认日期</span></td>';
   h += '</tr>';
 
   for (var i = 0; i < ngItems.length; i++) {
     var item = ngItems[i];
     h += '<tr>';
-    h += '<td style="border:1px solid #000;padding:2px;text-align:center;">' + (i+1) + '</td>';
-    h += '<td style="border:1px solid #000;padding:2px;">';
+    h += '<td style="border:1px solid #000;border-top:none;padding:3px 6px;text-align:center;width:4%;">' + (i+1) + '</td>';
+    h += '<td style="border:1px solid #000;border-top:none;padding:3px 6px;" colspan="5">';
     h += '<b>' + item.id + '.</b> ' + escHtml(item.name);
-    if (item.std) h += '<br><span style="color:#666;font-size:9px;">标准:' + escHtml(item.std) + (item.value ? ' 实测:' + escHtml(item.value) : '') + '</span>';
-    if (item.note) h += '<br><span style="color:#dc3545;font-size:9px;">问题:' + escHtml(item.note) + '</span>';
+    if (item.std) h += ' <span style="color:#666;font-size:9px;">[标准:' + escHtml(item.std) + (item.value ? ' 实测:' + escHtml(item.value) : '') + ']</span>';
+    if (item.note) h += ' <span style="color:#dc3545;font-size:9px;">[问题:' + escHtml(item.note) + ']</span>';
+    h += '<span style="float:right;font-size:9px;">' + (dutyMap[item.duty]||item.duty||'') + '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>';
     h += '</td>';
-    h += '<td style="border:1px solid #000;padding:2px;text-align:center;">' + (dutyMap[item.duty]||item.duty||'') + '</td>';
-    h += '<td style="border:1px solid #000;padding:2px;"></td>';
-    h += '<td style="border:1px solid #000;padding:2px;"></td>';
     h += '</tr>';
   }
 
-  var emptyRows = Math.max(3, 10 - ngItems.length);
+  // 空行留给手写
+  var emptyRows = Math.max(3, 8 - ngItems.length);
   for (var j = 0; j < emptyRows; j++) {
-    h += '<tr><td style="border:1px solid #000;padding:4px 2px;"></td>';
-    h += '<td style="border:1px solid #000;padding:2px;"></td>';
-    h += '<td style="border:1px solid #000;padding:2px;"></td>';
-    h += '<td style="border:1px solid #000;padding:2px;"></td>';
-    h += '<td style="border:1px solid #000;padding:2px;"></td></tr>';
+    h += '<tr>';
+    h += '<td style="border:1px solid #000;border-top:none;padding:6px 2px;">&nbsp;</td>';
+    h += '<td style="border:1px solid #000;border-top:none;" colspan="5"></td>';
+    h += '</tr>';
   }
-  h += '</table>';
 
-  // 厂检意见 - 从签字页读取，支持三种结论
+  // 厂检意见行
   var conclusion = task.conclusion || '';
   var rectifyDeadline = task.rectifyDeadline || '';
+  h += '<tr>';
+  h += '<td style="border:1px solid #000;padding:6px 8px;font-weight:bold;" colspan="6">厂检意见：';
   if (conclusion === 'pass') {
-    h += '<div style="margin-bottom:6px;font-size:10px;">☑厂检合格</div>';
+    h += '☑厂检合格';
   } else if (conclusion === 'pass-rectify') {
     var dlStr = rectifyDeadline || '____年____月____日';
-    h += '<div style="margin-bottom:6px;font-size:10px;">☑厂检合格需整改，以上问题请于' + dlStr + '前整改完毕</div>';
+    h += '☑厂检合格需整改，以上问题请于' + dlStr + '前整改完毕，并将整改情况及时报检验人员。';
   } else if (conclusion === 'fail') {
     var dlStr = rectifyDeadline || '____年____月____日';
-    h += '<div style="margin-bottom:6px;font-size:10px;">☑厂检不合格，以上问题请于' + dlStr + '前整改完毕</div>';
+    h += '☑厂检不合格，以上问题请于' + dlStr + '前整改完毕，并将整改情况及时报检验人员。';
   } else {
-    h += '<div style="margin-bottom:6px;font-size:10px;">□厂检不合格，以上问题请于____年____月____日前整改完毕<br>☑厂检合格（请根据实际勾选）</div>';
+    h += '□厂检不合格，以上问题请于____年____月____日前整改完毕，并将整改情况及时报检验人员。<br>☑厂检合格（请根据实际勾选）';
   }
+  h += '</td></tr>';
 
-  // 签名行 - 从签字页读取
-  h += '<table style="width:100%;border-collapse:collapse;margin-bottom:8px;font-size:10px;">';
+  // 签名行
   h += '<tr>';
-  h += '<td style="padding:3px 4px;width:30%;">检验人员：' + escHtml(task.signatures && task.signatures.inspectorName || task.manager || '________') + '</td>';
-  h += '<td style="padding:3px 4px;width:20%;">日期：' + escHtml(task.checkDate||dateStr) + '</td>';
-  h += '<td style="padding:3px 4px;width:30%;">项目管理人员：' + escHtml(task.projectManagerSign || '________') + '</td>';
-  h += '<td style="padding:3px 4px;width:20%;">日期：________</td>';
+  h += '<td style="border:1px solid #000;padding:4px 6px;font-size:10px;" colspan="3">检验人员：' + escHtml(task.signatures && task.signatures.inspectorName || task.manager || '________') + '&nbsp;&nbsp;日期：' + escHtml(task.checkDate||dateStr) + '</td>';
+  h += '<td style="border:1px solid #000;padding:4px 6px;font-size:10px;" colspan="3">项目管理人员：' + escHtml(task.projectManagerSign || '________') + '&nbsp;&nbsp;日期：________</td>';
   h += '</tr>';
   h += '<tr>';
-  h += '<td style="padding:3px 4px;" colspan="4">安装人员：' + escHtml(task.installerSign || '________') + '    日期：________</td>';
+  h += '<td style="border:1px solid #000;padding:4px 6px;font-size:10px;" colspan="6">安装人员：' + escHtml(task.installerSign || '________') + '&nbsp;&nbsp;日期：________</td>';
   h += '</tr>';
+
+  // 整改情况反馈行
+  h += '<tr>';
+  h += '<td style="border:1px solid #000;padding:4px 6px;font-weight:bold;" colspan="6">整改情况反馈：<br><span style="font-weight:normal;">以上问题整改完成，整改结果确认：</span></td>';
+  h += '</tr>';
+  h += '<tr>';
+  h += '<td style="border:1px solid #000;padding:4px 6px;font-size:9px;" colspan="6">确认人：________&nbsp;&nbsp;确认日期：________</td>';
+  h += '</tr>';
+
+  // 备注行
+  h += '<tr>';
+  h += '<td style="border:1px solid #000;padding:4px 6px;font-size:9px;color:#666;" colspan="6">备注：①本通知书一式三联，检验机构、安装单位、项目管理各执一联。②整改完成后，请将本通知书返还检验人员确认。③如有异议，请在收到本通知书之日起5个工作日内提出。</td>';
+  h += '</tr>';
+
   h += '</table>';
-
-  h += '<div style="font-size:10px;margin-bottom:4px;"><b>整改情况反馈：</b></div>';
-  h += '<div style="border:1px solid #000;height:40px;margin-bottom:8px;"></div>';
-
-  h += '<div style="font-size:9px;color:#666;">备注：①本通知书一式三联，检验机构、安装单位、项目管理各执一联。<br>';
-  h += '②整改完成后，请将本通知书返还检验人员确认。<br>';
-  h += '③如有异议，请在收到本通知书之日起5个工作日内提出。</div>';
-
   h += '</div>';
   return h;
 }
@@ -4327,32 +4331,145 @@ function buildInfoTable(task, dateStr) {
 }
 
 function build3ColTable(items, task) {
+  // 收集所有大类及其边界
+  var categories = [];
+  var lastCat = '';
+  for (var i = 0; i < items.length; i++) {
+    if (items[i].category !== lastCat) {
+      categories.push({name: items[i].category, startIdx: i, count: 1});
+      lastCat = items[i].category;
+    } else {
+      categories[categories.length - 1].count++;
+    }
+  }
+
+  // 大类名称映射（打印用全称）
+  var catNameMap = {
+    '技术资料': '技术资料与铭牌',
+    '机房空间': '机器空间及通道',
+    '机房电气': '机器空间电气设备与标识',
+    '功能检查': '功能检查',
+    '安全开关': '安全开关',
+    '试验': '试验',
+    '驱动主机': '驱动主机',
+    '轿顶设备': '轿顶设备',
+    '层门轿门': '层门轿门',
+    '导轨支架': '导轨支架',
+    '悬挂补偿': '悬挂补偿',
+    '轿顶护栏': '轿顶护栏',
+    '轿厢对重': '轿厢对重',
+    '轿底部件': '轿底部件',
+    '限速器': '限速器',
+    '井道部件': '井道部件',
+    '底坑设备': '底坑设备',
+    '感官检查': '感官检查'
+  };
+
+  // 判断是否是"技术资料"类别（需要三小列：标题|项目名称|编号）
+  function isTechData(catName) { return catName === '技术资料'; }
+
+  var h = '<table style="width:100%;border-collapse:collapse;font-size:8px;">';
+  // 表头
+  h += '<tr style="background:#f0f0f0;font-weight:bold;">';
+  h += '<td style="border:1px solid #000;padding:1px 2px;width:3%;text-align:center;">大类</td>';
+  h += '<td style="border:1px solid #000;padding:1px 2px;width:3%;text-align:center;">序</td>';
+  h += '<td style="border:1px solid #000;padding:1px 2px;width:22%;">检查内容</td>';
+  h += '<td style="border:1px solid #000;padding:1px 2px;width:5%;text-align:center;">结论</td>';
+  h += '<td style="border:1px solid #000;padding:1px 2px;width:3%;text-align:center;">大类</td>';
+  h += '<td style="border:1px solid #000;padding:1px 2px;width:3%;text-align:center;">序</td>';
+  h += '<td style="border:1px solid #000;padding:1px 2px;width:22%;">检查内容</td>';
+  h += '<td style="border:1px solid #000;padding:1px 2px;width:5%;text-align:center;">结论</td>';
+  h += '<td style="border:1px solid #000;padding:1px 2px;width:3%;text-align:center;">大类</td>';
+  h += '<td style="border:1px solid #000;padding:1px 2px;width:3%;text-align:center;">序</td>';
+  h += '<td style="border:1px solid #000;padding:1px 2px;width:22%;">检查内容</td>';
+  h += '<td style="border:1px solid #000;padding:1px 2px;width:5%;text-align:center;">结论</td>';
+  h += '</tr>';
+
   var colSize = Math.ceil(items.length / 3);
   var col1 = items.slice(0, colSize);
   var col2 = items.slice(colSize, colSize * 2);
   var col3 = items.slice(colSize * 2);
   var maxRows = Math.max(col1.length, col2.length, col3.length);
-  
-  var h = '<table style="width:100%;border-collapse:collapse;font-size:8px;">';
-  h += '<tr style="background:#f0f0f0;font-weight:bold;">';
-  h += '<td style="border:1px solid #000;padding:1px 2px;width:4%;text-align:center;">序</td><td style="border:1px solid #000;padding:1px 2px;width:26%;">检查内容</td><td style="border:1px solid #000;padding:1px 2px;width:7%;text-align:center;">结论</td>';
-  h += '<td style="border:1px solid #000;padding:1px 2px;width:4%;text-align:center;">序</td><td style="border:1px solid #000;padding:1px 2px;width:26%;">检查内容</td><td style="border:1px solid #000;padding:1px 2px;width:7%;text-align:center;">结论</td>';
-  h += '<td style="border:1px solid #000;padding:1px 2px;width:4%;text-align:center;">序</td><td style="border:1px solid #000;padding:1px 2px;width:26%;">检查内容</td><td style="border:1px solid #000;padding:1px 2px;width:7%;text-align:center;">结论</td>';
-  h += '</tr>';
-  
+
+  // 构建每列的大类rowspan映射
+  function buildCatSpans(col) {
+    var spans = [];
+    var lastCat = '';
+    for (var r = 0; r < col.length; r++) {
+      if (col[r].category !== lastCat) {
+        var cat = col[r].category;
+        var cnt = 1;
+        for (var k = r + 1; k < col.length && col[k].category === cat; k++) cnt++;
+        spans.push({start: r, count: cnt, cat: cat});
+        lastCat = cat;
+      }
+    }
+    return spans;
+  }
+  var span1 = buildCatSpans(col1);
+  var span2 = buildCatSpans(col2);
+  var span3 = buildCatSpans(col3);
+
+  // 查找某行对应的大类span
+  function findSpan(spans, r) {
+    for (var s = 0; s < spans.length; s++) {
+      if (spans[s].start === r) return spans[s];
+    }
+    return null;
+  }
+
   for (var r = 0; r < maxRows; r++) {
     h += '<tr>';
-    [col1, col2, col3].forEach(function(col) {
+    var cols = [col1, col2, col3];
+    var spans = [span1, span2, span3];
+    for (var ci = 0; ci < 3; ci++) {
+      var col = cols[ci];
+      var sp = findSpan(spans[ci], r);
+      // 大类列
+      if (sp && sp.start === r) {
+        var catLabel = catNameMap[sp.cat] || sp.cat;
+        h += '<td style="border:1px solid #000;padding:1px 2px;text-align:center;font-weight:bold;writing-mode:vertical-lr;letter-spacing:2px;" rowspan="' + sp.count + '">' + escHtml(catLabel) + '</td>';
+      }
+      // 如果不是span起始行，不输出大类td（已被rowspan覆盖）
+
       if (r < col.length) {
-        var item = col[r]; var c = task.checks[item.id] || {};
+        var item = col[r];
+        var c = task.checks[item.id] || {};
         var res = c.s === 'ok' ? '√' : (c.s === 'ng' ? '×' : (c.s === 'na' ? '/' : (c.v || '')));
+
+        // 序号列
         h += '<td style="border:1px solid #000;padding:1px 2px;text-align:center;">' + item.id + '</td>';
-        h += '<td style="border:1px solid #000;padding:1px 2px;">' + escHtml(item.name) + (c.n ? '<br><span style="color:red;font-size:7px;">备注:'+escHtml(c.n)+'</span>' : '') + '</td>';
+
+        // 检查内容列 - 技术资料类分三小列
+        if (isTechData(item.category)) {
+          h += '<td style="border:1px solid #000;padding:1px 2px;">';
+          h += '<table style="width:100%;border-collapse:collapse;font-size:7px;"><tr>';
+          h += '<td style="border-right:1px solid #999;padding:1px 2px;width:30%;">' + escHtml(item.name) + '</td>';
+          h += '<td style="border-right:1px solid #999;padding:1px 2px;width:40%;"></td>';
+          h += '<td style="padding:1px 2px;width:30%;"></td>';
+          h += '</tr></table>';
+          h += '</td>';
+        } else {
+          h += '<td style="border:1px solid #000;padding:1px 2px;">' + escHtml(item.name) + (c.n ? '<br><span style="color:red;font-size:7px;">备注:'+escHtml(c.n)+'</span>' : '') + '</td>';
+        }
+
+        // 结论列
         h += '<td style="border:1px solid #000;padding:1px 2px;text-align:center;">' + res + '</td>';
       } else {
-        h += '<td style="border:1px solid #000;padding:1px;"></td><td style="border:1px solid #000;padding:1px;"></td><td style="border:1px solid #000;padding:1px;"></td>';
+        // 空行 - 不在rowspan范围内时也需要大类占位td
+        var inSpan = false;
+        for (var si = 0; si < spans[ci].length; si++) {
+          var s = spans[ci][si];
+          if (r >= s.start && r < s.start + s.count) { inSpan = true; break; }
+        }
+        if (!inSpan) {
+          h += '<td style="border:1px solid #000;padding:1px;"></td>';
+        }
+        h += '<td style="border:1px solid #000;padding:1px;"></td>';
+        h += '<td style="border:1px solid #000;padding:1px;"></td>';
+        h += '<td style="border:1px solid #000;padding:1px;"></td>';
       }
-    });
+    }
     h += '</tr>';
   }
   h += '</table>';
