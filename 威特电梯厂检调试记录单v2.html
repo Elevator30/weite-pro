@@ -3515,25 +3515,25 @@ function buildNoticeFullHTML(task, dateStr, ngItems) {
 
   // 信息表头行1
   h += '<tr>';
-  h += '<td style="border:1px solid #000;padding:1px 3px;width:12%;text-align:center;background:#f0f0f0;"><b>项目名称</b></td>';
+  h += '<td style="border:1px solid #000;padding:1px 3px;width:12%;text-align:center;background:#f0f0f0;">项目名称</td>';
   h += '<td style="border:1px solid #000;padding:1px 3px;width:21%;">' + escHtml(task.addr||'') + '</td>';
-  h += '<td style="border:1px solid #000;padding:1px 3px;width:8%;text-align:center;background:#f0f0f0;"><b>型号</b></td>';
+  h += '<td style="border:1px solid #000;padding:1px 3px;width:8%;text-align:center;background:#f0f0f0;">型号</td>';
   h += '<td style="border:1px solid #000;padding:1px 3px;width:22%;">' + escHtml(task.model||'') + '</td>';
-  h += '<td style="border:1px solid #000;padding:1px 3px;width:10%;text-align:center;background:#f0f0f0;"><b>产品编号</b></td>';
+  h += '<td style="border:1px solid #000;padding:1px 3px;width:10%;text-align:center;background:#f0f0f0;">产品编号</td>';
   h += '<td style="border:1px solid #000;padding:1px 3px;width:27%;">' + escHtml(task.prodNo||'') + '</td>';
   h += '</tr>';
   // 信息表头行2
   h += '<tr>';
-  h += '<td style="border:1px solid #000;padding:1px 3px;text-align:center;background:#f0f0f0;"><b>安装地点</b></td>';
+  h += '<td style="border:1px solid #000;padding:1px 3px;text-align:center;background:#f0f0f0;">安装地点</td>';
   h += '<td style="border:1px solid #000;padding:1px 3px;">' + escHtml(task.installAddr||task.addr||'') + '</td>';
-  h += '<td style="border:1px solid #000;padding:1px 3px;text-align:center;background:#f0f0f0;"><b>安装单位/人员</b></td>';
+  h += '<td style="border:1px solid #000;padding:1px 3px;text-align:center;background:#f0f0f0;">安装单位/人员</td>';
   h += '<td style="border:1px solid #000;padding:1px 3px;">' + escHtml(task.installer||'') + '</td>';
-  h += '<td style="border:1px solid #000;padding:1px 3px;text-align:center;background:#f0f0f0;"><b>项目管理</b></td>';
+  h += '<td style="border:1px solid #000;padding:1px 3px;text-align:center;background:#f0f0f0;">项目管理</td>';
   h += '<td style="border:1px solid #000;padding:1px 3px;">' + escHtml(task.manager||'') + '</td>';
   h += '</tr>';
   // 检验依据（单独一行）
   h += '<tr>';
-  h += '<td style="border:1px solid #000;padding:1px 3px;text-align:center;background:#f0f0f0;"><b>检验依据</b></td>';
+  h += '<td style="border:1px solid #000;padding:1px 3px;text-align:center;background:#f0f0f0;">检验依据</td>';
   h += '<td style="border:1px solid #000;padding:1px 3px;" colspan="5">《电梯监督检验和定期检验规则》(TSG T7001—2023)</td>';
   h += '</tr>';
 
@@ -3544,12 +3544,12 @@ function buildNoticeFullHTML(task, dateStr, ngItems) {
   // A4内容区约720px，表头+信息+意见+签名+反馈+备注约280px，剩余440px给空白区
   var blankH = contentItemsH < 30 ? Math.max(minBlankH, 440 - contentItemsH) : Math.max(minBlankH, 200);
   h += '<tr>';
-  h += '<td style="border:1px solid #000;border-bottom:none;padding:2px 3px;font-weight:bold;vertical-align:top;" colspan="6">经检验上述设备，存在以下问题：';
+  h += '<td style="border:1px solid #000;border-bottom:none;padding:2px 3px;vertical-align:top;" colspan="6">经检验上述设备，存在以下问题：';
   // NG项紧跟标题文字后面，不单独分单元格
   if (ngItems.length > 0) {
     for (var i = 0; i < ngItems.length; i++) {
       var item = ngItems[i];
-      h += '<div style="margin-top:2px;">' + (i+1) + '. <b>' + item.id + '.</b> ' + escHtml(item.name);
+      h += '<div style="margin-top:2px;">' + (i+1) + '. ' + item.id + '. ' + escHtml(item.name);
       if (item.std) h += ' [标准:' + escHtml(item.std) + (item.value ? ' 实测:' + escHtml(item.value) : '') + ']';
       if (item.note) h += ' [问题:' + escHtml(item.note) + ']';
       h += ' — ' + (dutyMap[item.duty]||item.duty||'');
@@ -3567,7 +3567,7 @@ function buildNoticeFullHTML(task, dateStr, ngItems) {
   var conclusion = task.conclusion || '';
   var rectifyDeadline = task.rectifyDeadline || '';
   h += '<tr>';
-  h += '<td style="border:1px solid #000;padding:2px 3px;font-weight:bold;" colspan="6">厂检意见：';
+  h += '<td style="border:1px solid #000;padding:2px 3px;" colspan="6">厂检意见：';
   if (conclusion === 'pass') {
     h += '☑厂检合格';
   } else if (conclusion === 'pass-rectify') {
@@ -3589,7 +3589,7 @@ function buildNoticeFullHTML(task, dateStr, ngItems) {
 
   // 整改情况反馈：一行，行高加大，日期放后面
   h += '<tr>';
-  h += '<td style="border:1px solid #000;padding:4px 3px;height:30px;" colspan="6"><b>整改情况反馈：</b>以上问题整改完成，整改结果确认：确认人：________&nbsp;&nbsp;确认日期：________</td>';
+  h += '<td style="border:1px solid #000;padding:4px 3px;height:30px;" colspan="6">整改情况反馈：以上问题整改完成，整改结果确认：确认人：________&nbsp;&nbsp;确认日期：________</td>';
   h += '</tr>';
 
   // 备注行
@@ -3613,37 +3613,37 @@ function buildNoticeHTML(task, dateStr, pageNum, ngItems, totalPages) {
 
   if (isP1) {
     // === 第1页: 标题+信息表+NG项表格 ===
-    h += '<div style="font-family:SimSun;font-size:12px;">';
+    h += '<div style="font-family:SimSun;font-size:8px;">';
     // 文件编号
-    h += '<div style="text-align:right;font-size:10px;margin-bottom:8px;">文件编号 WT/S-G-2024-001(A）</div>';
+    h += '<div style="text-align:right;font-size:8px;margin-bottom:8px;">文件编号 WT/S-G-2024-001(A）</div>';
     // 标题
-    h += '<div style="text-align:center;font-size:18px;font-weight:bold;margin-bottom:14px;">电梯厂检意见通知书</div>';
+    h += '<div style="text-align:center;font-size:14px;font-weight:bold;margin-bottom:14px;">电梯厂检意见通知书</div>';
 
     // 信息表（6列表格）
-    h += '<table style="width:100%;border-collapse:collapse;margin-bottom:10px;font-size:10px;">';
+    h += '<table style="width:100%;border-collapse:collapse;margin-bottom:10px;font-size:8px;">';
     // 第1行: 项目名称 | 型号 | 产品编号
     h += '<tr>';
-    h += '<td style="border:1px solid #000;padding:3px 4px;width:12%;text-align:center;background:#f0f0f0;"><b>项目名称</b></td>';
+    h += '<td style="border:1px solid #000;padding:3px 4px;width:12%;text-align:center;background:#f0f0f0;">项目名称</td>';
     h += '<td style="border:1px solid #000;padding:3px 4px;width:21%;">' + escHtml(task.addr||'') + '</td>';
-    h += '<td style="border:1px solid #000;padding:3px 4px;width:8%;text-align:center;background:#f0f0f0;"><b>型号</b></td>';
+    h += '<td style="border:1px solid #000;padding:3px 4px;width:8%;text-align:center;background:#f0f0f0;">型号</td>';
     h += '<td style="border:1px solid #000;padding:3px 4px;width:22%;">' + escHtml(task.model||'') + '</td>';
-    h += '<td style="border:1px solid #000;padding:3px 4px;width:10%;text-align:center;background:#f0f0f0;"><b>产品编号</b></td>';
+    h += '<td style="border:1px solid #000;padding:3px 4px;width:10%;text-align:center;background:#f0f0f0;">产品编号</td>';
     h += '<td style="border:1px solid #000;padding:3px 4px;width:27%;">' + escHtml(task.prodNo||'') + '</td>';
     h += '</tr>';
     // 第2行: 安装地点 | 安装单位/人员 | 项目管理
     h += '<tr>';
-    h += '<td style="border:1px solid #000;padding:3px 4px;background:#f0f0f0;"><b>安装地点</b></td>';
+    h += '<td style="border:1px solid #000;padding:3px 4px;background:#f0f0f0;">安装地点</td>';
     h += '<td style="border:1px solid #000;padding:3px 4px;">' + escHtml(task.installAddr||task.addr||'') + '</td>';
-    h += '<td style="border:1px solid #000;padding:3px 4px;background:#f0f0f0;"><b>安装单位/人员</b></td>';
+    h += '<td style="border:1px solid #000;padding:3px 4px;background:#f0f0f0;">安装单位/人员</td>';
     h += '<td style="border:1px solid #000;padding:3px 4px;">' + escHtml(task.installer||'') + '</td>';
-    h += '<td style="border:1px solid #000;padding:3px 4px;background:#f0f0f0;"><b>项目管理</b></td>';
+    h += '<td style="border:1px solid #000;padding:3px 4px;background:#f0f0f0;">项目管理</td>';
     h += '<td style="border:1px solid #000;padding:3px 4px;">' + escHtml(task.manager||'') + '</td>';
     h += '</tr>';
     // 第3行: 检验日期 | 检验依据（跨3列）
     h += '<tr>';
-    h += '<td style="border:1px solid #000;padding:3px 4px;background:#f0f0f0;"><b>检验日期</b></td>';
+    h += '<td style="border:1px solid #000;padding:3px 4px;background:#f0f0f0;">检验日期</td>';
     h += '<td style="border:1px solid #000;padding:3px 4px;">' + escHtml(task.checkDate||dateStr) + '</td>';
-    h += '<td style="border:1px solid #000;padding:3px 4px;background:#f0f0f0;"><b>检验依据</b></td>';
+    h += '<td style="border:1px solid #000;padding:3px 4px;background:#f0f0f0;">检验依据</td>';
     h += '<td style="border:1px solid #000;padding:3px 4px;" colspan="3">《电梯监督检验和定期检验规则》(TSG T7001—2023)</td>';
     h += '</tr>';
     h += '</table>';
@@ -3652,13 +3652,13 @@ function buildNoticeHTML(task, dateStr, pageNum, ngItems, totalPages) {
     h += '<div style="margin-bottom:6px;">经检验上述设备，存在以下问题：</div>';
 
     // NG项表格
-    h += '<table style="width:100%;border-collapse:collapse;margin-bottom:8px;font-size:10px;">';
+    h += '<table style="width:100%;border-collapse:collapse;margin-bottom:8px;font-size:8px;">';
     h += '<tr style="background:#f0f0f0;">';
-    h += '<th style="border:1px solid #000;padding:3px 2px;width:5%;text-align:center;"><b>序号</b></th>';
-    h += '<th style="border:1px solid #000;padding:3px 2px;width:38%;text-align:center;"><b>不合格项目描述</b></th>';
-    h += '<th style="border:1px solid #000;padding:3px 2px;width:15%;text-align:center;"><b>整改责任方</b></th>';
-    h += '<th style="border:1px solid #000;padding:3px 2px;width:28%;text-align:center;"><b>整改完成确认签署</b></th>';
-    h += '<th style="border:1px solid #000;padding:3px 2px;width:14%;text-align:center;"><b>确认日期</b></th>';
+    h += '<th style="border:1px solid #000;padding:3px 2px;width:5%;text-align:center;">序号</th>';
+    h += '<th style="border:1px solid #000;padding:3px 2px;width:38%;text-align:center;">不合格项目描述</th>';
+    h += '<th style="border:1px solid #000;padding:3px 2px;width:15%;text-align:center;">整改责任方</th>';
+    h += '<th style="border:1px solid #000;padding:3px 2px;width:28%;text-align:center;">整改完成确认签署</th>';
+    h += '<th style="border:1px solid #000;padding:3px 2px;width:14%;text-align:center;">确认日期</th>';
     h += '</tr>';
 
     // 本页NG项（最多13条）
@@ -3671,7 +3671,7 @@ function buildNoticeHTML(task, dateStr, pageNum, ngItems, totalPages) {
       h += '<tr>';
       h += '<td style="border:1px solid #000;padding:3px 2px;text-align:center;">' + (i+1) + '</td>';
       h += '<td style="border:1px solid #000;padding:3px 2px;">';
-      h += '<b>' + item.id + '.</b> ' + escHtml(item.name);
+      h += '' + item.id + '. ' + escHtml(item.name);
       if (item.std) h += '<br><span style="color:#666;">标准:' + escHtml(item.std) + (item.value ? ' 实测:' + escHtml(item.value) : '') + '</span>';
       if (item.note) h += '<br><span style="color:#dc3545;">问题:' + escHtml(item.note) + '</span>';
       h += '</td>';
@@ -3692,10 +3692,10 @@ function buildNoticeHTML(task, dateStr, pageNum, ngItems, totalPages) {
     h += '</table>';
 
     // 厂检意见
-    h += '<div style="margin-bottom:8px;font-size:10px;">□厂检不合格，以上问题请于____年____月____日前整改完毕<br>☑厂检合格（请根据实际勾选）</div>';
+    h += '<div style="margin-bottom:8px;font-size:8px;">□厂检不合格，以上问题请于____年____月____日前整改完毕<br>☑厂检合格（请根据实际勾选）</div>';
 
     // 签名行
-    h += '<table style="width:100%;border-collapse:collapse;margin-bottom:8px;font-size:10px;">';
+    h += '<table style="width:100%;border-collapse:collapse;margin-bottom:8px;font-size:8px;">';
     h += '<tr>';
     h += '<td style="padding:3px 4px;width:30%;">检验人员：' + escHtml(task.manager||'________') + '</td>';
     h += '<td style="padding:3px 4px;width:20%;">日期：' + escHtml(task.checkDate||dateStr) + '</td>';
@@ -3708,31 +3708,31 @@ function buildNoticeHTML(task, dateStr, pageNum, ngItems, totalPages) {
     h += '</table>';
 
     // 整改情况反馈
-    h += '<div style="font-size:10px;margin-bottom:4px;"><b>整改情况反馈：</b></div>';
+    h += '<div style="font-size:8px;margin-bottom:4px;">整改情况反馈：</div>';
     h += '<div style="border:1px solid #000;height:40px;margin-bottom:8px;"></div>';
 
     // 备注
-    h += '<div style="font-size:9px;color:#666;">备注：①本通知书一式三联，检验机构、安装单位、项目管理各执一联。<br>';
+    h += '<div style="font-size:8px;color:#666;">备注：①本通知书一式三联，检验机构、安装单位、项目管理各执一联。<br>';
     h += '②整改完成后，请将本通知书返还检验人员确认。<br>';
     h += '③如有异议，请在收到本通知书之日起5个工作日内提出。</div>';
 
     // 页码
-    h += '<div style="text-align:center;margin-top:12px;font-size:10px;">第1页，共' + totalNotPages + '页</div>';
+    h += '<div style="text-align:center;margin-top:12px;font-size:8px;">第1页，共' + totalNotPages + '页</div>';
     h += '</div>';
 
   } else {
     // === 第2页: 附页（续表） ===
-    h += '<div style="font-family:SimSun;font-size:12px;">';
-    h += '<div style="text-align:center;font-size:16px;font-weight:bold;margin-bottom:12px;">电梯厂检意见通知书 附页（第2页，共' + totalNotPages + '页）</div>';
+    h += '<div style="font-family:SimSun;font-size:8px;">';
+    h += '<div style="text-align:center;font-size:14px;font-weight:bold;margin-bottom:12px;">电梯厂检意见通知书 附页（第2页，共' + totalNotPages + '页）</div>';
 
     // NG项表格（续）
-    h += '<table style="width:100%;border-collapse:collapse;margin-bottom:10px;font-size:10px;">';
+    h += '<table style="width:100%;border-collapse:collapse;margin-bottom:10px;font-size:8px;">';
     h += '<tr style="background:#f0f0f0;">';
-    h += '<th style="border:1px solid #000;padding:3px 2px;width:5%;text-align:center;"><b>序号</b></th>';
-    h += '<th style="border:1px solid #000;padding:3px 2px;width:38%;text-align:center;"><b>不合格项目描述</b></th>';
-    h += '<th style="border:1px solid #000;padding:3px 2px;width:15%;text-align:center;"><b>整改责任方</b></th>';
-    h += '<th style="border:1px solid #000;padding:3px 2px;width:28%;text-align:center;"><b>整改完成确认签署</b></th>';
-    h += '<th style="border:1px solid #000;padding:3px 2px;width:14%;text-align:center;"><b>确认日期</b></th>';
+    h += '<th style="border:1px solid #000;padding:3px 2px;width:5%;text-align:center;">序号</th>';
+    h += '<th style="border:1px solid #000;padding:3px 2px;width:38%;text-align:center;">不合格项目描述</th>';
+    h += '<th style="border:1px solid #000;padding:3px 2px;width:15%;text-align:center;">整改责任方</th>';
+    h += '<th style="border:1px solid #000;padding:3px 2px;width:28%;text-align:center;">整改完成确认签署</th>';
+    h += '<th style="border:1px solid #000;padding:3px 2px;width:14%;text-align:center;">确认日期</th>';
     h += '</tr>';
 
     var startIdx2 = 13;
@@ -3744,7 +3744,7 @@ function buildNoticeHTML(task, dateStr, pageNum, ngItems, totalPages) {
       h += '<tr>';
       h += '<td style="border:1px solid #000;padding:3px 2px;text-align:center;">' + (k+1) + '</td>';
       h += '<td style="border:1px solid #000;padding:3px 2px;">';
-      h += '<b>' + item2.id + '.</b> ' + escHtml(item2.name);
+      h += '' + item2.id + '. ' + escHtml(item2.name);
       if (item2.std) h += '<br><span style="color:#666;">标准:' + escHtml(item2.std) + (item2.value ? ' 实测:' + escHtml(item2.value) : '') + '</span>';
       if (item2.note) h += '<br><span style="color:#dc3545;">问题:' + escHtml(item2.note) + '</span>';
       h += '</td>';
