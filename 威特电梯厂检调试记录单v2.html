@@ -3523,6 +3523,18 @@ function exportNoticeExcel() {
       var ws = wb.getWorksheet('通知书');
       if (!ws) { showToast('模板sheet"通知书"未找到'); return; }
 
+      // ===== 清除模板参考标注（第1行=列宽, A列=行高, H列=字体, B40=边距说明）=====
+      for (var ci = 1; ci <= 8; ci++) { ws.getCell(1, ci).value = ''; }
+      ws.getRow(1).hidden = true;
+      for (var ri = 1; ri <= 40; ri++) { ws.getCell(ri, 1).value = ''; }
+      ws.getColumn('A').hidden = true;
+      for (var ri2 = 1; ri2 <= 40; ri2++) { ws.getCell(ri2, 8).value = ''; }
+      ws.getColumn('H').hidden = true;
+      ws.getCell('B40').value = '';
+      for (var ri3 = 39; ri3 <= 40; ri3++) {
+        for (var ci2 = 1; ci2 <= 8; ci2++) { ws.getCell(ri3, ci2).value = ''; }
+      }
+
       // 收集不合格项
       var ngItems = [];
       checkItems.forEach(function(item) {
@@ -3596,6 +3608,18 @@ function exportNoticeExcel() {
       // 签收日期 (G35)
       ws.getCell('G35').value = '';
 
+      // ===== 设置打印参数（按模板标注的mm值换算为英寸）=====
+      ws.pageSetup = {
+        margins: { top: 0.752, bottom: 0.358, left: 0.252, right: 0.252, header: 0.299, footer: 0 },
+        paperSize: 9,
+        orientation: 'portrait',
+        fitToPage: true,
+        fitToWidth: 1,
+        fitToHeight: 1,
+        printArea: 'B2:G38',
+        horizontalCentered: true
+      };
+
       // 导出
       return wb.xlsx.writeBuffer().then(function(buffer) {
         var blob = new Blob([buffer], {type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
@@ -3605,7 +3629,7 @@ function exportNoticeExcel() {
         document.body.appendChild(a); a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        showToast('通知书Excel导出成功！');
+        showToast('通知书Excel导出成功！请用Excel/WPS打开后打印');
       });
     }).catch(function(err) {
       console.error('Excel导出失败:', err);
