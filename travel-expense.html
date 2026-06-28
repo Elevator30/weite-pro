@@ -2,6 +2,9 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>差旅费报销助手</title>
 <script defer src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js" onerror="window._xlsxLoadFail=true"></script>
@@ -450,6 +453,22 @@ function init() {
   document.getElementById('currentMonth').textContent = formatMonth(currentMonth);
   document.getElementById('expDate').value = new Date().toISOString().slice(0, 10);
   document.getElementById('newStartDate').value = new Date().toISOString().slice(0, 10);
+  // PWA回到前台时自动刷新数据
+  document.addEventListener('visibilitychange', function() {
+    if (!document.hidden) {
+      projects = JSON.parse(localStorage.getItem('travelProjects') || '[]');
+      expenses = JSON.parse(localStorage.getItem('travelExpenses') || '[]');
+      currentMonth = new Date().toISOString().slice(0, 7);
+      document.getElementById('currentMonth').textContent = formatMonth(currentMonth);
+      updateHomeStats();
+    }
+  });
+  // 页面获得焦点时也刷新（iOS兼容）
+  window.addEventListener('focus', function() {
+    projects = JSON.parse(localStorage.getItem('travelProjects') || '[]');
+    expenses = JSON.parse(localStorage.getItem('travelExpenses') || '[]');
+    updateHomeStats();
+  });
 }
 
 function formatMonth(ym) {
@@ -475,6 +494,9 @@ function getProjectExpenses(pid) {
 }
 
 function updateHomeStats() {
+  // 始终从 localStorage 重新加载数据，确保一致性
+  projects = JSON.parse(localStorage.getItem('travelProjects') || '[]');
+  expenses = JSON.parse(localStorage.getItem('travelExpenses') || '[]');
   const monthProjects = getMonthProjects();
   let totalDays = 0, totalQty = 0;
   let selfAmount = 0, ctripAmount = 0;
