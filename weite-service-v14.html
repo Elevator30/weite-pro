@@ -884,7 +884,13 @@ function renderList(){var list=JSON.parse(localStorage.getItem('wtList')||'[]');
           var w=img.width,h=img.height,maxW=600;
           if(w>maxW){var s=maxW/w;w=maxW;h=Math.round(h*s);}
           var c=document.createElement('canvas');c.width=w;c.height=h;
-          var cx=c.getContext('2d');cx.fillStyle='#fff';cx.fillRect(0,0,w,h);cx.drawImage(img,0,0,w,h);
+          var cx=c.getContext('2d');cx.drawImage(img,0,0,w,h);
+          var imgData=cx.getImageData(0,0,w,h);var px=imgData.data;
+          for(var i=0;i<px.length;i+=4){
+            var bri=(px[i]+px[i+1]+px[i+2])/3;
+            if(bri<20){px[i]=255;px[i+1]=255;px[i+2]=255;}
+          }
+          cx.putImageData(imgData,0,0);
           d[key]=c.toDataURL('image/jpeg',0.6);
           changed=true;pending--;trySave();
         };
