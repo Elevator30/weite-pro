@@ -877,7 +877,7 @@ function renderList(){var list=JSON.parse(localStorage.getItem('wtList')||'[]');
   function trySave(){if(pending===0&&done&&changed){var json=JSON.stringify(list);localStorage.removeItem('wtList');try{localStorage.setItem('wtList',json);}catch(e){}}renderList();}
   list.forEach(function(d){
     ['sig1','sig2'].forEach(function(key){
-      if(d[key]&&d[key].indexOf('data:image/png')===0&&d[key].length>20000){
+      if(d[key]&&(d[key].indexOf('data:image/png')===0||d[key].indexOf('data:image/jpeg')===0)&&d[key].length>5000){
         pending++;
         var img=new Image();
         img.onload=function(){
