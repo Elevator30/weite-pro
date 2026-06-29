@@ -1348,10 +1348,12 @@ function genPdf(d){
   if(sigTotalN>0){
     sigList.forEach(function(si){
       if(si.data){
-        var img=new Image();
-        img.onload=function(){sigImgs2.push({img:img,x:si.x,y:si.y,w:si.w,cx:si.cx});sigLoadN++;if(sigLoadN>=sigTotalN)buildPdf();};
-        img.onerror=function(){sigLoadN++;if(sigLoadN>=sigTotalN)buildPdf();};
-        img.src=si.data;
+        (function(si){
+          var img=new Image();
+          img.onload=function(){sigImgs2.push({img:img,x:si.x,y:si.y,w:si.w,cx:si.cx});sigLoadN++;if(sigLoadN>=sigTotalN)buildPdf();};
+          img.onerror=function(){sigLoadN++;if(sigLoadN>=sigTotalN)buildPdf();};
+          img.src=si.data;
+        })(si);
       }
     });
     // 兜底：3秒后强制生成
