@@ -373,6 +373,12 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helv
         </div>
         <div style="font-size:12px;color:#999;margin-top:4px;">在上方区域手写签名，打印时自动显示在报销人位置</div>
       </div>
+      <div style="border-top:1px solid #eee;margin:16px 0;padding-top:16px;">
+        <div style="font-size:15px;font-weight:600;color:#667eea;margin-bottom:12px;">📦 存储管理</div>
+        <div id="storageInfo" style="font-size:13px;color:#666;margin-bottom:12px;line-height:1.8;"></div>
+        <button onclick="clearReceiptImages()" style="width:100%;padding:10px;background:#fff3e0;color:#e65100;border:1.5px solid #ffcc80;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;">🗑️ 清理所有票据图片</button>
+        <div style="font-size:11px;color:#999;margin-top:6px;">清理后费用数据保留，但票据图片将被移除。导出PDF时不再包含图片附件。</div>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn-cancel" onclick="closeModal('settingsModal')">取消</button>
@@ -447,8 +453,55 @@ function ensureUniqueIds() {
   localStorage.setItem('travelExpenses', JSON.stringify(expenses));
 }
 
+// 迁移：压缩已存储的票据大图，释放localStorage空间
+function migrateReceiptImages() {
+  var exps = JSON.parse(localStorage.getItem('travelExpenses') || '[]');
+  var changed = false;
+  var pending = 0;
+  var done = false;
+  function trySave() {
+    if (pending === 0 && done && changed) {
+      var json = JSON.stringify(exps);
+      // 先删旧数据腾空间，再写入压缩后的数据
+      localStorage.removeItem('travelExpenses');
+      try { localStorage.setItem('travelExpenses', json); } catch(e) {
+        // 如果还是写不进去，说明还有其他数据占空间，尝试清理非必要数据
+        localStorage.removeItem('travelSettings');
+        try { localStorage.setItem('travelExpenses', json); } catch(e2) {}
+        try { localStorage.setItem('travelSettings', JSON.stringify({name:'',dept:'',signature:''})); } catch(e3) {}
+      }
+      // 更新内存中的expenses
+      expenses = exps;
+    }
+  }
+  exps.forEach(function(exp) {
+    if (!exp.receipts) return;
+    exp.receipts.forEach(function(r, ri) {
+      if (r.data && r.data.indexOf('data:image') === 0 && r.data.length > 50000) {
+        pending++;
+        var img = new Image();
+        img.onload = function() {
+          var w = img.width, h = img.height, maxW = 1200;
+          if (w > maxW) { var s = maxW/w; w = maxW; h = Math.round(h*s); }
+          var c = document.createElement('canvas'); c.width = w; c.height = h;
+          var ctx = c.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h);
+          ctx.drawImage(img, 0, 0, w, h);
+          exp.receipts[ri] = { id: r.id, name: r.name || 'receipt.jpg', type: 'image/jpeg', data: c.toDataURL('image/jpeg', 0.7) };
+          changed = true; pending--; trySave();
+        };
+        img.onerror = function() { pending--; trySave(); };
+        img.src = r.data;
+      }
+    });
+  });
+  done = true;
+  if (!changed && pending === 0) return;
+  setTimeout(trySave, 3000);
+}
+
 function init() {
   ensureUniqueIds();
+  migrateReceiptImages();
   updateHomeStats();
   document.getElementById('currentMonth').textContent = formatMonth(currentMonth);
   document.getElementById('expDate').value = new Date().toISOString().slice(0, 10);
@@ -698,17 +751,20 @@ function compressImage(dataUrl, maxDim, quality) {
     img.onload = function() {
       var w = img.width, h = img.height;
       if (w <= maxDim && h <= maxDim) {
-        // 尺寸已够，仍转JPEG压缩
         var c = document.createElement('canvas');
         c.width = w; c.height = h;
-        c.getContext('2d').drawImage(img, 0, 0);
+        var ctx = c.getContext('2d');
+        ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h);
+        ctx.drawImage(img, 0, 0);
         resolve(c.toDataURL('image/jpeg', quality));
       } else {
         var scale = Math.min(maxDim / w, maxDim / h);
         var nw = Math.round(w * scale), nh = Math.round(h * scale);
         var c = document.createElement('canvas');
         c.width = nw; c.height = nh;
-        c.getContext('2d').drawImage(img, 0, 0, nw, nh);
+        var ctx = c.getContext('2d');
+        ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, nw, nh);
+        ctx.drawImage(img, 0, 0, nw, nh);
         resolve(c.toDataURL('image/jpeg', quality));
       }
     };
@@ -1130,6 +1186,40 @@ function openSettingsModal() {
   document.getElementById('settingDept').value = s.dept || '';
   document.getElementById('settingsModal').classList.add('active');
   setTimeout(initSignaturePad, 100);
+  updateStorageInfo();
+}
+
+function updateStorageInfo() {
+  var total = 0;
+  for (var key in localStorage) {
+    if (localStorage.hasOwnProperty(key)) {
+      total += localStorage[key].length + key.length;
+    }
+  }
+  var usedKB = (total * 2 / 1024).toFixed(1); // UTF-16, 2 bytes per char
+  var maxKB = 5120; // ~5MB
+  var pct = Math.min(100, (total * 2 / 1024 / 1024 * 100)).toFixed(1);
+  var barColor = pct > 80 ? '#e74c3c' : pct > 50 ? '#f39c12' : '#27ae60';
+  var expCount = expenses.length;
+  var imgCount = 0;
+  expenses.forEach(function(e) { if (e.receipts && e.receipts.length) imgCount += e.receipts.length; });
+  document.getElementById('storageInfo').innerHTML =
+    '<div>已用存储：<b style="color:' + barColor + '">' + usedKB + ' KB</b> / ~5,120 KB（' + pct + '%）</div>' +
+    '<div style="background:#f0f0f0;border-radius:4px;height:8px;margin:6px 0;overflow:hidden;"><div style="background:' + barColor + ';height:100%;width:' + pct + '%;border-radius:4px;transition:width 0.3s;"></div></div>' +
+    '<div>费用记录：<b>' + expCount + '</b> 条 | 票据图片：<b>' + imgCount + '</b> 张</div>';
+}
+
+function clearReceiptImages() {
+  if (!confirm('确定清理所有票据图片吗？\n\n费用记录数据会保留，但票据图片将被永久移除。导出PDF时将不再包含图片。')) return;
+  expenses.forEach(function(e) { if (e.receipts) e.receipts = []; });
+  try {
+    localStorage.setItem('travelExpenses', JSON.stringify(expenses));
+    showToast('票据图片已清理，释放了存储空间');
+    updateStorageInfo();
+    updateHomeStats();
+  } catch(err) {
+    showToast('清理失败：' + err.message);
+  }
 }
 
 function saveSettings() {
@@ -2221,7 +2311,12 @@ function saveViewProject() {
   viewProject.startDate = document.getElementById('editProjStart').value;
   viewProject.endDate = document.getElementById('editProjEnd').value;
   viewProject.days = calcDateDiff(viewProject.startDate, viewProject.endDate);
-  localStorage.setItem('travelProjects', JSON.stringify(projects));
+  try {
+    localStorage.setItem('travelProjects', JSON.stringify(projects));
+  } catch(e) {
+    showToast('存储空间不足，请先清理旧数据或删除不必要的票据图片');
+    return;
+  }
   document.getElementById('viewProjectInput').value = name;
   renderViewExpenses();
   updateHomeStats();

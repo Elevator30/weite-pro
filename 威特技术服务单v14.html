@@ -828,7 +828,7 @@ function sMove(e){e.preventDefault();if(!sigDraw)return;var p=sGP(e);sigCtx.begi
 function sUp(e){if(e)e.preventDefault();sigDraw=false;}
 document.getElementById('sigClr').addEventListener('click',function(){initSigCvs();document.getElementById('sigPH').style.display='';});
 function closeSigMo(){document.getElementById('sigMo').style.display='none';sigMoVisible=false;var inner=document.getElementById('sigInner');inner.style.transform='';inner.style.position='';if(screen.orientation&&screen.orientation.unlock){screen.orientation.unlock();}}
-function compressSigData(dataUrl,maxW,quality){maxW=maxW||600;quality=quality||0.6;return new Promise(function(resolve){var img=new Image();img.onload=function(){var w=img.width,h=img.height;if(w>maxW){var s=maxW/w;w=maxW;h=Math.round(h*s);}var c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);resolve(c.toDataURL('image/jpeg',quality));};img.onerror=function(){resolve(dataUrl);};img.src=dataUrl;});}
+function compressSigData(dataUrl,maxW,quality){maxW=maxW||600;quality=quality||0.6;return new Promise(function(resolve){var img=new Image();img.onload=function(){var w=img.width,h=img.height;if(w>maxW){var s=maxW/w;w=maxW;h=Math.round(h*s);}var c=document.createElement('canvas');c.width=w;c.height=h;var ctx=c.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,w,h);ctx.drawImage(img,0,0,w,h);resolve(c.toDataURL('image/jpeg',quality));};img.onerror=function(){resolve(dataUrl);};img.src=dataUrl;});}
 document.getElementById('sigOk').addEventListener('click',function(){var c=document.getElementById('sigCvs');var b=document.createElement('canvas');b.width=c.width;b.height=c.height;if(c.toDataURL()===b.toDataURL()){showToast('请先签名');return;}var rawPng=c.toDataURL('image/png');compressSigData(rawPng).then(function(data){if(curSig===1){sig1Data=data;sig1Canvas=c;}else{sig2Data=data;sig2Canvas=c;}document.getElementById('sd'+curSig).innerHTML='<img src="'+data+'">';closeSigMo();updateBtnStatus();});});
 document.getElementById('sigCancel').addEventListener('click',closeSigMo);
 
@@ -873,7 +873,8 @@ function renderList(){var list=JSON.parse(localStorage.getItem('wtList')||'[]');
   var list=JSON.parse(localStorage.getItem('wtList')||'[]');
   var changed=false;
   var pending=0;
-  function trySave(){if(pending===0&&changed){try{localStorage.setItem('wtList',JSON.stringify(list));}catch(e){}}renderList();}
+  var done=false;
+  function trySave(){if(pending===0&&done&&changed){var json=JSON.stringify(list);localStorage.removeItem('wtList');try{localStorage.setItem('wtList',json);}catch(e){}}renderList();}
   list.forEach(function(d){
     ['sig1','sig2'].forEach(function(key){
       if(d[key]&&d[key].indexOf('data:image/png')===0&&d[key].length>20000){
@@ -883,7 +884,7 @@ function renderList(){var list=JSON.parse(localStorage.getItem('wtList')||'[]');
           var w=img.width,h=img.height,maxW=600;
           if(w>maxW){var s=maxW/w;w=maxW;h=Math.round(h*s);}
           var c=document.createElement('canvas');c.width=w;c.height=h;
-          c.getContext('2d').drawImage(img,0,0,w,h);
+          var cx=c.getContext('2d');cx.fillStyle='#fff';cx.fillRect(0,0,w,h);cx.drawImage(img,0,0,w,h);
           d[key]=c.toDataURL('image/jpeg',0.6);
           changed=true;pending--;trySave();
         };
