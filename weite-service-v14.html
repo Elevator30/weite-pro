@@ -828,7 +828,7 @@ function sMove(e){e.preventDefault();if(!sigDraw)return;var p=sGP(e);sigCtx.begi
 function sUp(e){if(e)e.preventDefault();sigDraw=false;}
 document.getElementById('sigClr').addEventListener('click',function(){initSigCvs();document.getElementById('sigPH').style.display='';});
 function closeSigMo(){document.getElementById('sigMo').style.display='none';sigMoVisible=false;var inner=document.getElementById('sigInner');inner.style.transform='';inner.style.position='';if(screen.orientation&&screen.orientation.unlock){screen.orientation.unlock();}}
-function compressSigData(dataUrl,maxW,quality){maxW=maxW||600;quality=quality||0.6;return new Promise(function(resolve){var img=new Image();img.onload=function(){var w=img.width,h=img.height;if(w>maxW){var s=maxW/w;w=maxW;h=Math.round(h*s);}var c=document.createElement('canvas');c.width=w;c.height=h;var ctx=c.getContext('2d');ctx.drawImage(img,0,0,w,h);ctx.globalCompositeOperation='destination-over';ctx.fillStyle='#fff';ctx.fillRect(0,0,w,h);resolve(c.toDataURL('image/jpeg',quality));};img.onerror=function(){resolve(dataUrl);};img.src=dataUrl;});}
+function compressSigData(dataUrl,maxW,quality){maxW=maxW||600;return new Promise(function(resolve){var img=new Image();img.onload=function(){var w=img.width,h=img.height;if(w>maxW){var s=maxW/w;w=maxW;h=Math.round(h*s);}var c=document.createElement('canvas');c.width=w;c.height=h;var ctx=c.getContext('2d');ctx.drawImage(img,0,0,w,h);resolve(c.toDataURL('image/png'));};img.onerror=function(){resolve(dataUrl);};img.src=dataUrl;});}
 document.getElementById('sigOk').addEventListener('click',function(){var c=document.getElementById('sigCvs');var b=document.createElement('canvas');b.width=c.width;b.height=c.height;if(c.toDataURL()===b.toDataURL()){showToast('请先签名');return;}var rawPng=c.toDataURL('image/png');compressSigData(rawPng).then(function(data){if(curSig===1){sig1Data=data;sig1Canvas=c;}else{sig2Data=data;sig2Canvas=c;}document.getElementById('sd'+curSig).innerHTML='<img src="'+data+'">';closeSigMo();updateBtnStatus();});});
 document.getElementById('sigCancel').addEventListener('click',closeSigMo);
 
@@ -888,10 +888,10 @@ function renderList(){var list=JSON.parse(localStorage.getItem('wtList')||'[]');
           var imgData=cx.getImageData(0,0,w,h);var px=imgData.data;
           for(var i=0;i<px.length;i+=4){
             var bri=(px[i]+px[i+1]+px[i+2])/3;
-            if(bri<20){px[i]=255;px[i+1]=255;px[i+2]=255;}
+            if(bri<20){px[i]=255;px[i+1]=255;px[i+2]=255;px[i+3]=0;}
           }
           cx.putImageData(imgData,0,0);
-          d[key]=c.toDataURL('image/jpeg',0.6);
+          d[key]=c.toDataURL('image/png');
           changed=true;pending--;trySave();
         };
         img.onerror=function(){pending--;trySave();};
@@ -1268,7 +1268,6 @@ function genPdf(d){
         var ratio=srcW/srcH;
         var sigH=60;var sigW2=sigH*ratio;if(sigW2>si.w){sigW2=si.w;sigH=sigW2/ratio;}
         var drawX=si.cx?si.cx-sigW2/2:si.x;
-        c.fillStyle='#fff';c.fillRect(Math.round(drawX),Math.round(si.y),Math.round(sigW2),Math.round(sigH));
         c.drawImage(si.canvas,Math.round(drawX),Math.round(si.y),Math.round(sigW2),Math.round(sigH));
       }catch(e){console.warn('签名canvas绘制失败',e);}
     }else if(si.data){
