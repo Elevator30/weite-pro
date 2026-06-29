@@ -689,6 +689,34 @@ function updateMealPreview() {
   document.getElementById('newMealAmount').textContent = '¥' + total.toFixed(2);
 }
 
+// 图片压缩：限制最大边长，转为JPEG，减小localStorage占用
+function compressImage(dataUrl, maxDim, quality) {
+  maxDim = maxDim || 1200;
+  quality = quality || 0.7;
+  return new Promise(function(resolve) {
+    var img = new Image();
+    img.onload = function() {
+      var w = img.width, h = img.height;
+      if (w <= maxDim && h <= maxDim) {
+        // 尺寸已够，仍转JPEG压缩
+        var c = document.createElement('canvas');
+        c.width = w; c.height = h;
+        c.getContext('2d').drawImage(img, 0, 0);
+        resolve(c.toDataURL('image/jpeg', quality));
+      } else {
+        var scale = Math.min(maxDim / w, maxDim / h);
+        var nw = Math.round(w * scale), nh = Math.round(h * scale);
+        var c = document.createElement('canvas');
+        c.width = nw; c.height = nh;
+        c.getContext('2d').drawImage(img, 0, 0, nw, nh);
+        resolve(c.toDataURL('image/jpeg', quality));
+      }
+    };
+    img.onerror = function() { resolve(dataUrl); };
+    img.src = dataUrl;
+  });
+}
+
 // OCR识别功能
 function handleOCRUpload(event) {
   const file = event.target.files[0];
@@ -696,7 +724,9 @@ function handleOCRUpload(event) {
   const reader = new FileReader();
   reader.onload = function(e) {
     const imgData = e.target.result;
-    simulateOCR(imgData, file.name);
+    compressImage(imgData).then(function(compressed) {
+      simulateOCR(compressed, file.name);
+    });
   };
   reader.readAsDataURL(file);
 }
@@ -731,10 +761,17 @@ function handleReceiptUpload(event) {
   files.forEach(function(file) {
     const reader = new FileReader();
     reader.onload = function(e) {
-      processUploadedReceipt(file, e.target.result).then(function(items) {
-        items.forEach(function(it) { tempReceipts.push(it); });
-        pending--;
-        if (pending === 0) renderCurrentReceiptPreview();
+      var rawData = e.target.result;
+      // 图片类型先压缩再处理，PDF跳过压缩
+      var ready = (file.type && file.type.startsWith('image/'))
+        ? compressImage(rawData)
+        : Promise.resolve(rawData);
+      ready.then(function(finalData) {
+        processUploadedReceipt(file, finalData).then(function(items) {
+          items.forEach(function(it) { tempReceipts.push(it); });
+          pending--;
+          if (pending === 0) renderCurrentReceiptPreview();
+        });
       });
     };
     reader.readAsDataURL(file);
@@ -2393,10 +2430,16 @@ function handleEditReceiptUpload(event) {
   files.forEach(function(file) {
     const reader = new FileReader();
     reader.onload = function(e) {
-      processUploadedReceipt(file, e.target.result).then(function(items) {
-        items.forEach(function(it) { editTempReceipts.push(it); });
-        pending--;
-        if (pending === 0) renderEditReceiptPreview();
+      var rawData = e.target.result;
+      var ready = (file.type && file.type.startsWith('image/'))
+        ? compressImage(rawData)
+        : Promise.resolve(rawData);
+      ready.then(function(finalData) {
+        processUploadedReceipt(file, finalData).then(function(items) {
+          items.forEach(function(it) { editTempReceipts.push(it); });
+          pending--;
+          if (pending === 0) renderEditReceiptPreview();
+        });
       });
     };
     reader.readAsDataURL(file);
