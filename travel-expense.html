@@ -101,7 +101,20 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helv
     <div style="display:flex;justify-content:space-between;align-items:center;">
       <div>
         <h1>差旅费报销助手</h1>
-        <div class="month" id="currentMonth">加载中...</div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <button onclick="changeMonth(-1)" style="background:rgba(255,255,255,0.25);color:#fff;border:1px solid rgba(255,255,255,0.4);border-radius:50%;width:28px;height:28px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;line-height:1;">‹</button>
+          <span class="month" id="currentMonth" onclick="showMonthPicker()" style="cursor:pointer;min-width:80px;text-align:center;user-select:none;">加载中...</span>
+          <button onclick="changeMonth(1)" style="background:rgba(255,255,255,0.25);color:#fff;border:1px solid rgba(255,255,255,0.4);border-radius:50%;width:28px;height:28px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;line-height:1;">›</button>
+          <button onclick="goToCurrentMonth()" id="backToCurrentBtn" style="display:none;background:rgba(255,255,255,0.2);color:#fff;border:1px solid rgba(255,255,255,0.4);border-radius:12px;padding:2px 10px;font-size:11px;cursor:pointer;white-space:nowrap;">本月</button>
+        </div>
+        <div id="monthPicker" style="display:none;position:absolute;top:80px;left:16px;background:#fff;border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,0.18);padding:12px;z-index:100;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+            <button onclick="pickerYear(-1)" style="background:none;border:none;font-size:16px;cursor:pointer;padding:4px 8px;color:#667eea;">‹</button>
+            <span id="pickerYearLabel" style="font-size:14px;font-weight:600;color:#333;"></span>
+            <button onclick="pickerYear(1)" style="background:none;border:none;font-size:16px;cursor:pointer;padding:4px 8px;color:#667eea;">›</button>
+          </div>
+          <div id="monthGrid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;"></div>
+        </div>
       </div>
       <div style="position:relative;">
         <button onclick="toggleHeaderMenu()" id="headerMenuBtn" style="background:rgba(255,255,255,0.3);color:#fff;border:1.5px solid rgba(255,255,255,0.6);border-radius:50%;width:36px;height:36px;font-size:20px;font-weight:700;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;">☰</button>
@@ -405,6 +418,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helv
 let projects = JSON.parse(localStorage.getItem('travelProjects') || '[]');
 let expenses = JSON.parse(localStorage.getItem('travelExpenses') || '[]');
 let currentMonth = new Date().toISOString().slice(0, 7);
+let realCurrentMonth = currentMonth; // 实际当前月份，不可变
+let pickerYearVal = parseInt(currentMonth.split('-')[0]); // 月份选择器当前显示的年份
 let tempReceipts = [];
 let mealDaySettings = [];
 let isNewProject = false;
@@ -511,9 +526,9 @@ function init() {
     if (!document.hidden) {
       projects = JSON.parse(localStorage.getItem('travelProjects') || '[]');
       expenses = JSON.parse(localStorage.getItem('travelExpenses') || '[]');
-      currentMonth = new Date().toISOString().slice(0, 7);
-      document.getElementById('currentMonth').textContent = formatMonth(currentMonth);
-      updateHomeStats();
+      // 更新真实当前月份（但不改变用户选择的查看月份）
+      realCurrentMonth = new Date().toISOString().slice(0, 7);
+      refreshForMonth();
     }
   });
   // 页面获得焦点时也刷新（iOS兼容）
@@ -528,6 +543,91 @@ function formatMonth(ym) {
   const [y, m] = ym.split('-');
   return y + '年' + parseInt(m) + '月';
 }
+
+// === 月份切换 ===
+function changeMonth(delta) {
+  var [y, m] = currentMonth.split('-').map(Number);
+  m += delta;
+  if (m > 12) { m = 1; y++; }
+  if (m < 1) { m = 12; y--; }
+  currentMonth = y + '-' + String(m).padStart(2, '0');
+  refreshForMonth();
+}
+
+function goToCurrentMonth() {
+  currentMonth = realCurrentMonth;
+  refreshForMonth();
+}
+
+function refreshForMonth() {
+  document.getElementById('currentMonth').textContent = formatMonth(currentMonth);
+  // 显示/隐藏"本月"按钮
+  var btn = document.getElementById('backToCurrentBtn');
+  if (btn) btn.style.display = (currentMonth === realCurrentMonth) ? 'none' : 'inline-block';
+  // 更新标题中的月份标签
+  var label = document.querySelector('.stats-card .title');
+  if (label) label.textContent = (currentMonth === realCurrentMonth ? '📊 本月汇总' : '📊 ' + formatMonth(currentMonth) + '汇总');
+  // 刷新首页统计
+  updateHomeStats();
+}
+
+function showMonthPicker() {
+  var picker = document.getElementById('monthPicker');
+  if (picker.style.display === 'block') {
+    picker.style.display = 'none';
+    return;
+  }
+  pickerYearVal = parseInt(currentMonth.split('-')[0]);
+  renderMonthGrid();
+  picker.style.display = 'block';
+}
+
+function pickerYear(delta) {
+  pickerYearVal += delta;
+  renderMonthGrid();
+}
+
+function renderMonthGrid() {
+  document.getElementById('pickerYearLabel').textContent = pickerYearVal + '年';
+  var labels = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  var selectedMonth = parseInt(currentMonth.split('-')[1]);
+  var selectedYear = parseInt(currentMonth.split('-')[0]);
+  var html = '';
+  for (var i = 0; i < 12; i++) {
+    var mVal = (i + 1);
+    var ym = pickerYearVal + '-' + String(mVal).padStart(2, '0');
+    var isSelected = (pickerYearVal === selectedYear && mVal === selectedMonth);
+    var hasData = projects.some(function(p) {
+      return p.startDate.startsWith(ym) || (p.endDate && p.endDate.startsWith(ym)) || (function() {
+        var parts = ym.split('-').map(Number);
+        var ms = new Date(parts[0], parts[1] - 1, 1);
+        var me = new Date(parts[0], parts[1], 0);
+        var ps = new Date(p.startDate);
+        var pe = p.endDate ? new Date(p.endDate) : new Date();
+        return ps <= me && pe >= ms;
+      })();
+    });
+    html += '<button onclick="selectMonthFromPicker(' + pickerYearVal + ',' + mVal + ')" style="padding:8px 4px;border-radius:8px;font-size:13px;cursor:pointer;border:1.5px solid ' + (isSelected ? '#667eea' : '#e8e8e8') + ';background:' + (isSelected ? '#667eea' : '#fff') + ';color:' + (isSelected ? '#fff' : (hasData ? '#333' : '#aaa')) + ';font-weight:' + (isSelected ? '600' : '400') + ';">' + labels[i] + '</button>';
+  }
+  document.getElementById('monthGrid').innerHTML = html;
+}
+
+function selectMonthFromPicker(y, m) {
+  currentMonth = y + '-' + String(m).padStart(2, '0');
+  document.getElementById('monthPicker').style.display = 'none';
+  refreshForMonth();
+}
+
+// 点击月份选择器外部时关闭
+document.addEventListener('click', function(e) {
+  var picker = document.getElementById('monthPicker');
+  if (picker.style.display === 'block') {
+    var header = document.querySelector('.header');
+    if (!header.contains(e.target)) {
+      picker.style.display = 'none';
+    }
+  }
+});
 
 function getMonthProjects() {
   return projects.filter(p => p.startDate.startsWith(currentMonth) || (p.endDate && p.endDate.startsWith(currentMonth)) || isProjectActiveInMonth(p));
