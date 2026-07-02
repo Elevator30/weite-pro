@@ -3326,6 +3326,9 @@ function saveInspectorSignature(name, sigData) {
   localStorage.setItem(INSPECTOR_SIG_KEY, JSON.stringify({name: name, sig: sigData}));
 }
 
+// === PDF全局字号缩放（改这个值，所有PDF字号同步变） ===
+var PDF_FONT_SCALE = 1.0;
+
 function exportNoticePDF() {
   var task = tasks[currentTaskIndex];
   var now = new Date();
@@ -3356,6 +3359,10 @@ function exportNoticePDF() {
   var div = document.createElement('div');
   div.style.cssText = "width:595px;padding:57px;font-family:'PingFang SC','Heiti SC',sans-serif;background:#fff;color:#000;font-size:12px;line-height:1.4;";
   div.innerHTML = htmlContent;
+  // 全局字号缩放
+  if (typeof PDF_FONT_SCALE !== 'undefined' && PDF_FONT_SCALE !== 1) {
+    div.innerHTML = div.innerHTML.replace(/font-size:(\d+)px/g, function(m, n) { return 'font-size:' + Math.round(parseInt(n) * PDF_FONT_SCALE) + 'px'; });
+  }
   container.appendChild(div);
 
   showToast('正在渲染...');
@@ -3444,6 +3451,10 @@ function exportCheckPDF() {
     var div = document.createElement('div');
     div.style.cssText = "width:" + divW + "px;height:" + divH + "px;padding:15px 20px;font-family:'PingFang SC','Heiti SC',sans-serif;background:#fff;color:#000;font-size:8px;line-height:1.3;box-sizing:border-box;";
     div.innerHTML = sec.html;
+    // 全局字号缩放
+    if (typeof PDF_FONT_SCALE !== 'undefined' && PDF_FONT_SCALE !== 1) {
+      div.innerHTML = div.innerHTML.replace(/font-size:(\d+)px/g, function(m, n) { return 'font-size:' + Math.round(parseInt(n) * PDF_FONT_SCALE) + 'px'; });
+    }
     container.appendChild(div);
 
     showToast('正在渲染' + sec.label + '...');
