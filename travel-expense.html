@@ -1439,18 +1439,11 @@ function buildReimbursementForm(project, exps, settings) {
       totals['途中补贴'] += e.amount;
       var mealDays = e.mealDays || 0;
       if (!mealDays && e.detail) { var m = e.detail.match(/(\d+)天/); if (m) mealDays = parseInt(m[1]); }
-      // 按天拆分，每天一行
-      var dailyRate = mealDays > 0 ? e.amount / mealDays : e.amount;
-      for (var mi = 0; mi < mealDays; mi++) {
-        subsidyItems.push({
-          type: 'meal',
-          amountDisplay: dailyRate.toFixed(2),
-          mealDays: 1
-        });
-      }
-      if (mealDays <= 0) {
-        subsidyItems.push({ type: 'meal', amountDisplay: e.amount.toFixed(2), mealDays: 0 });
-      }
+      subsidyItems.push({
+        type: 'meal',
+        amountDisplay: e.amount.toFixed(2),
+        mealDays: mealDays
+      });
     } else if (e.type === 'hotel') {
       // 自费住宿才计入住勤费和住宿费栏，携程住宿只标记不显示金额
       if (!isCtrip) {
@@ -2333,7 +2326,7 @@ function renderViewExpenses() {
     if (mealSettings.length > 0) {
       mealSettings.forEach(v => { estAmount += v === 'yes' ? 30 : 20; });
     } else {
-      estAmount = (viewProject.days || 0) * 30;
+      estAmount = (viewProject.days || 0) * 20;
     }
     html += '<div style="background:#fff3e0;border:1.5px dashed #ff9800;border-radius:10px;padding:10px 14px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;">';
     html += '<span style="font-size:13px;color:#e65100;">⚠️ 未生成餐补（约¥' + estAmount.toFixed(0) + '）</span>';
@@ -2375,11 +2368,8 @@ function generateMealSubsidy() {
   if (mealSettings.length > 0) {
     mealSettings.forEach(v => { totalAmount += v === 'yes' ? 30 : 20; });
   } else {
-    var isCapital = confirm('餐补标准：\n\n确定 = 省会城市（30元/天）\n取消 = 非省会城市（20元/天）');
+    var isCapital = confirm('餐补标准：\n\n确定 = 省会城市（30元/天）\n取消 = 非省会城市（20元/天）\n\n默认按非省会生成，生成后可点击餐补修改金额。');
     totalAmount = days * (isCapital ? 30 : 20);
-    if (!mealSettings.length) {
-      viewProject.mealSettings = Array.from({length: days}, () => isCapital ? 'yes' : 'no');
-    }
   }
   if (totalAmount <= 0) { showToast('餐补金额为0'); return; }
   expenses.push({
