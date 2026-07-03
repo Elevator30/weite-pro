@@ -2362,6 +2362,12 @@ function generateMealSubsidy() {
   var hasMeal = expenses.some(e => e.projectId === viewProject.id && e.type === 'meal');
   if (hasMeal) { showToast('该项目已有餐补'); return; }
   var days = viewProject.days || 0;
+  // 保底：从日期自动算天数
+  if (days <= 0 && viewProject.startDate && viewProject.endDate) {
+    days = calcDateDiff(viewProject.startDate, viewProject.endDate);
+    viewProject.days = days;
+    localStorage.setItem('travelProjects', JSON.stringify(projects));
+  }
   if (days <= 0) { showToast('该项目没有天数信息'); return; }
   var mealSettings = viewProject.mealSettings || [];
   var totalAmount = 0;
