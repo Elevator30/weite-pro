@@ -1445,8 +1445,11 @@ function buildReimbursementForm(project, exps, settings) {
         mealDays: mealDays
       });
     } else if (e.type === 'hotel') {
-      totals['住勤费'] += e.amount;
-      hotelItems.push({ amountDisplay: e.amount.toFixed(2) });
+      // 自费住宿才计入住勤费和住宿费栏，携程住宿只标记不显示金额
+      if (!isCtrip) {
+        totals['住勤费'] += e.amount;
+        hotelItems.push({ amountDisplay: e.amount.toFixed(2) });
+      }
       var key = '住宿费';
       if (!otherExpMap[key]) otherExpMap[key] = {amount:0, receipts:0, isCtrip:false};
       if (isCtrip) { otherExpMap[key].isCtrip = true; }
