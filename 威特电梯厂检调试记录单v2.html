@@ -3685,9 +3685,25 @@ function buildNoticeFullHTML(task, dateStr, ngItems) {
 
   // === 一整张大表格 ===
   h += '<table style="width:100%;border-collapse:collapse;font-size:'+fs+'px;">';
+  h += '<colgroup>';
+  h += '<col style="width:13%">';
+  h += '<col style="width:30%">';
+  h += '<col style="width:13%">';
+  h += '<col style="width:16%">';
+  h += '<col style="width:13%">';
+  h += '<col style="width:15%">';
+  h += '</colgroup>';
 
   // 信息表头行1（行高参考Excel信息行22.65磅）
-  h += '<tr>';
+    h += '<colgroup>';
+  h += '<col style="width:13%">';
+  h += '<col style="width:30%">';
+  h += '<col style="width:13%">';
+  h += '<col style="width:16%">';
+  h += '<col style="width:13%">';
+  h += '<col style="width:15%">';
+  h += '</colgroup>';
+h += '<tr>';
   h += '<td style="font-size:'+fs+'px;border:1px solid #000;padding:1px 3px;width:13%;text-align:center;background:#f0f0f0;height:26px;">项目名称</td>';
   h += '<td style="font-size:'+fs+'px;border:1px solid #000;padding:1px 3px;width:30%;">' + escHtml(task.addr||'') + '</td>';
   h += '<td style="font-size:'+fs+'px;border:1px solid #000;padding:1px 3px;width:13%;text-align:center;background:#f0f0f0;">型号</td>';
@@ -3817,8 +3833,24 @@ function buildNoticeHTML(task, dateStr, pageNum, ngItems, totalPages) {
 
     // 信息表（6列表格）
     h += '<table style="width:100%;border-collapse:collapse;margin-bottom:10px;font-size:8px;">';
+    h += '<colgroup>';
+    h += '<col style="width:13%">';
+    h += '<col style="width:30%">';
+    h += '<col style="width:13%">';
+    h += '<col style="width:16%">';
+    h += '<col style="width:13%">';
+    h += '<col style="width:15%">';
+    h += '</colgroup>';
     // 第1行: 项目名称 | 型号 | 产品编号
-    h += '<tr>';
+      h += '<colgroup>';
+  h += '<col style="width:13%">';
+  h += '<col style="width:30%">';
+  h += '<col style="width:13%">';
+  h += '<col style="width:16%">';
+  h += '<col style="width:13%">';
+  h += '<col style="width:15%">';
+  h += '</colgroup>';
+h += '<tr>';
     h += '<td style="border:1px solid #000;padding:3px 4px;width:13%;text-align:center;background:#f0f0f0;">项目名称</td>';
     h += '<td style="border:1px solid #000;padding:3px 4px;width:30%;">' + escHtml(task.addr||'') + '</td>';
     h += '<td style="border:1px solid #000;padding:3px 4px;width:13%;text-align:center;background:#f0f0f0;">型号</td>';
