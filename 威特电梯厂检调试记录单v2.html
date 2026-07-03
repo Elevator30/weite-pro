@@ -3357,11 +3357,11 @@ function exportNoticePDF() {
   container.style.cssText = 'position:absolute;left:-9999px;top:0;z-index:-1;';
   document.body.appendChild(container);
   var div = document.createElement('div');
-  div.style.cssText = "width:595px;padding:57px;font-family:'PingFang SC','Heiti SC',sans-serif;background:#fff;color:#000;font-size:12px;line-height:1.4;";
+  div.style.cssText = "width:595px;padding:57px;font-family:'PingFang SC','Heiti SC',sans-serif;background:#fff;color:#000;font-size:12px;line-height:1.4;-webkit-text-size-adjust:none;text-size-adjust:none;-moz-osx-font-smoothing:grayscale;-webkit-font-smoothing:antialiased;";
   div.innerHTML = htmlContent;
   // 全局字号缩放
   if (typeof PDF_FONT_SCALE !== 'undefined' && PDF_FONT_SCALE !== 1) {
-    div.innerHTML = div.innerHTML.replace(/font-size:(\d+)px/g, function(m, n) { return 'font-size:' + Math.round(parseInt(n) * PDF_FONT_SCALE) + 'px'; });
+    div.innerHTML = div.innerHTML.replace(/font-size:\s*(\d+)px/g, function(m, n) { return 'font-size:' + Math.round(parseInt(n) * PDF_FONT_SCALE) + 'px'; });
   }
   container.appendChild(div);
 
@@ -3449,11 +3449,11 @@ function exportCheckPDF() {
     var divW = isLand ? 842 : 595;
     var divH = isLand ? 595 : 842;
     var div = document.createElement('div');
-    div.style.cssText = "width:" + divW + "px;height:" + divH + "px;padding:15px 20px;font-family:'PingFang SC','Heiti SC',sans-serif;background:#fff;color:#000;font-size:8px;line-height:1.3;box-sizing:border-box;";
+    div.style.cssText = "width:" + divW + "px;height:" + divH + "px;padding:15px 20px;font-family:'PingFang SC','Heiti SC',sans-serif;background:#fff;color:#000;font-size:8px;line-height:1.3;box-sizing:border-box;-webkit-text-size-adjust:none;text-size-adjust:none;-moz-osx-font-smoothing:grayscale;-webkit-font-smoothing:antialiased;";
     div.innerHTML = sec.html;
     // 全局字号缩放
     if (typeof PDF_FONT_SCALE !== 'undefined' && PDF_FONT_SCALE !== 1) {
-      div.innerHTML = div.innerHTML.replace(/font-size:(\d+)px/g, function(m, n) { return 'font-size:' + Math.round(parseInt(n) * PDF_FONT_SCALE) + 'px'; });
+      div.innerHTML = div.innerHTML.replace(/font-size:\s*(\d+)px/g, function(m, n) { return 'font-size:' + Math.round(parseInt(n) * PDF_FONT_SCALE) + 'px'; });
     }
     container.appendChild(div);
 
