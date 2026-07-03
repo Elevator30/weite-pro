@@ -1437,8 +1437,7 @@ function buildReimbursementForm(project, exps, settings) {
       });
     } else if (e.type === 'meal') {
       totals['途中补贴'] += e.amount;
-      var mealDays = e.mealDays || 0;
-      if (!mealDays && e.detail) { var m = e.detail.match(/(\d+)天/); if (m) mealDays = parseInt(m[1]); }
+      var mealDays = calcDateDiff(project.startDate, project.endDate);
       subsidyItems.push({
         type: 'meal',
         amountDisplay: e.amount.toFixed(2),
@@ -2387,7 +2386,6 @@ function generateMealSubsidy() {
     amount: totalAmount,
     receipt: 'no',
     detail: '出差餐补（' + days + '天）',
-    mealDays: days,
     receipts: [],
     createdAt: new Date().toISOString()
   });
