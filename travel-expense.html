@@ -1438,6 +1438,13 @@ function buildReimbursementForm(project, exps, settings) {
     } else if (e.type === 'meal') {
       totals['途中补贴'] += e.amount;
       var mealDays = calcDateDiff(project.startDate, project.endDate);
+      // 兜底：项目没存日期就从费用日期推算
+      if (mealDays <= 0) {
+        var projExps = exps.filter(function(x) { return x.date; }).map(function(x) { return x.date; }).sort();
+        if (projExps.length > 0) {
+          mealDays = calcDateDiff(projExps[0], projExps[projExps.length - 1]);
+        }
+      }
       subsidyItems.push({
         type: 'meal',
         amountDisplay: e.amount.toFixed(2),
