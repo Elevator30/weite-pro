@@ -1439,11 +1439,18 @@ function buildReimbursementForm(project, exps, settings) {
       totals['途中补贴'] += e.amount;
       var mealDays = e.mealDays || 0;
       if (!mealDays && e.detail) { var m = e.detail.match(/(\d+)天/); if (m) mealDays = parseInt(m[1]); }
-      subsidyItems.push({
-        type: 'meal',
-        amountDisplay: e.amount.toFixed(2),
-        mealDays: mealDays
-      });
+      // 按天拆分，每天一行
+      var dailyRate = mealDays > 0 ? e.amount / mealDays : e.amount;
+      for (var mi = 0; mi < mealDays; mi++) {
+        subsidyItems.push({
+          type: 'meal',
+          amountDisplay: dailyRate.toFixed(2),
+          mealDays: 1
+        });
+      }
+      if (mealDays <= 0) {
+        subsidyItems.push({ type: 'meal', amountDisplay: e.amount.toFixed(2), mealDays: 0 });
+      }
     } else if (e.type === 'hotel') {
       // 自费住宿才计入住勤费和住宿费栏，携程住宿只标记不显示金额
       if (!isCtrip) {
@@ -2318,6 +2325,22 @@ function renderViewExpenses() {
   html += '<span style="color:#3498db">携程 ¥' + totalCtrip.toFixed(2) + '</span>';
   html += '</div></div>';
 
+  // 补生餐补按钮
+  var hasMeal = projExpenses.some(e => e.type === 'meal');
+  if (!hasMeal && (viewProject.days || 0) > 0) {
+    var mealSettings = viewProject.mealSettings || [];
+    var estAmount = 0;
+    if (mealSettings.length > 0) {
+      mealSettings.forEach(v => { estAmount += v === 'yes' ? 30 : 20; });
+    } else {
+      estAmount = (viewProject.days || 0) * 30;
+    }
+    html += '<div style="background:#fff3e0;border:1.5px dashed #ff9800;border-radius:10px;padding:10px 14px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;">';
+    html += '<span style="font-size:13px;color:#e65100;">⚠️ 未生成餐补（约¥' + estAmount.toFixed(0) + '）</span>';
+    html += '<button onclick="generateMealSubsidy()" style="background:#ff9800;color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:13px;font-weight:600;cursor:pointer;">一键补生</button>';
+    html += '</div>';
+  }
+
   if (projExpenses.length === 0) {
     html += '<div style="text-align:center;padding:30px;color:#999;font-size:14px;">该项目暂无费用记录</div>';
   } else {
@@ -2339,6 +2362,44 @@ function renderViewExpenses() {
   }
 
   container.innerHTML = html;
+}
+
+function generateMealSubsidy() {
+  if (!viewProject) return;
+  var hasMeal = expenses.some(e => e.projectId === viewProject.id && e.type === 'meal');
+  if (hasMeal) { showToast('该项目已有餐补'); return; }
+  var days = viewProject.days || 0;
+  if (days <= 0) { showToast('该项目没有天数信息'); return; }
+  var mealSettings = viewProject.mealSettings || [];
+  var totalAmount = 0;
+  if (mealSettings.length > 0) {
+    mealSettings.forEach(v => { totalAmount += v === 'yes' ? 30 : 20; });
+  } else {
+    var isCapital = confirm('餐补标准：\n\n确定 = 省会城市（30元/天）\n取消 = 非省会城市（20元/天）');
+    totalAmount = days * (isCapital ? 30 : 20);
+    if (!mealSettings.length) {
+      viewProject.mealSettings = Array.from({length: days}, () => isCapital ? 'yes' : 'no');
+    }
+  }
+  if (totalAmount <= 0) { showToast('餐补金额为0'); return; }
+  expenses.push({
+    id: 'e_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
+    projectId: viewProject.id,
+    date: viewProject.startDate,
+    type: 'meal',
+    payer: 'self',
+    amount: totalAmount,
+    receipt: 'no',
+    detail: '出差餐补（' + days + '天）',
+    mealDays: days,
+    receipts: [],
+    createdAt: new Date().toISOString()
+  });
+  localStorage.setItem('travelExpenses', JSON.stringify(expenses));
+  localStorage.setItem('travelProjects', JSON.stringify(projects));
+  renderViewExpenses();
+  updateHomeStats();
+  showToast('已生成餐补 ¥' + totalAmount.toFixed(2));
 }
 
 var editWorkItemIdx = 0;
