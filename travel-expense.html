@@ -1475,6 +1475,21 @@ function buildReimbursementForm(project, exps, settings) {
     }
   });
 
+  // 如果项目有餐补费用，已经在上面处理了；如果没有但有出差天数，自动按非省会20元/天补一个
+  var hasMealExp = exps.some(function(e) { return e.type === 'meal'; });
+  if (!hasMealExp && project.startDate && project.endDate) {
+    var autoDays = calcDateDiff(project.startDate, project.endDate);
+    if (autoDays > 0) {
+      var autoAmount = autoDays * 20;
+      totals['途中补贴'] += autoAmount;
+      subsidyItems.push({
+        type: 'meal',
+        amountDisplay: autoAmount.toFixed(2),
+        mealDays: autoDays
+      });
+    }
+  }
+
   // 市内交通按城市分行，每城一行"打车"
   Object.keys(localTransportMap).forEach(function(city) {
     var ltData = localTransportMap[city];
