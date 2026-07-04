@@ -264,6 +264,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
 .sub-header-sticky .sub-badge{margin-left:auto;margin-right:10px;font-size:12px;padding:3px 10px;border-radius:12px;background:rgba(255,255,255,.25);}
 .sub-header-sticky .sub-badge.done{background:#28a745;}
 .sub-body{padding:10px 14px 14px;}
+
+.notice-full-table{border:1px solid #000;border-collapse:collapse;}
+.notice-full-table td{border-left:none!important;border-top:none!important;}
+.notice-full-table td:last-child{border-right:none!important;}
+.notice-full-table tr:last-child td{border-bottom:none!important;}
 </style>
 
 <!-- Main Page -->
@@ -3682,40 +3687,40 @@ function buildNoticeFullHTML(task, dateStr, ngItems) {
   h += '</div>';
   h += '<div style="text-align:right;font-size:'+fs+'px;margin-bottom:4px;">文件编号 WT/S-G-2024-001(A)</div>';
 
-  h += '<table style="width:100%;border-collapse:collapse;font-size:'+fs+'px;">';
+  h += '<table class="notice-full-table" style="width:100%;font-size:'+fs+'px;">';
   h += '<colgroup>';
   h += '<col style="width:13%">';
   h += '<col style="width:30%">';
   h += '<col style="width:13%">';
-  h += '<col style="width:15%">';
+  h += '<col style="width:15.5%">';
   h += '<col style="width:13%">';
-  h += '<col style="width:16%">';
+  h += '<col style="width:15.5%">';
   h += '</colgroup>';
 
   // 行4：项目名称行（顶无边，底有边，竖线全有）
   h += '<tr>';
-  h += '<td style="border:0.5px solid #888;border-top:none;padding:1px 3px;text-align:center;background:#f0f0f0;height:28px;">项目名称</td>';
-  h += '<td style="border:0.5px solid #888;border-top:none;border-right:none;padding:1px 3px;">' + escHtml(task.addr||'') + '</td>';
-  h += '<td style="border:0.5px solid #888;border-top:none;padding:1px 3px;text-align:center;background:#f0f0f0;">型号</td>';
-  h += '<td style="border:0.5px solid #888;border-top:none;border-right:none;padding:1px 3px;">' + escHtml(task.model||'') + '</td>';
-  h += '<td style="border:0.5px solid #888;border-top:none;padding:1px 3px;text-align:center;background:#f0f0f0;">产品编号</td>';
+  h += '<td style="border:0.5px solid #888;border-top:none;padding:1px 3px;text-align:center;height:28px;white-space:nowrap;">项目名称</td>';
+  h += '<td style="border:0.5px solid #888;border-top:none;border-right:none;padding:1px 3px;text-align:center;">' + escHtml(task.addr||'') + '</td>';
+  h += '<td style="border:0.5px solid #888;border-top:none;padding:1px 3px;text-align:center;white-space:nowrap;">型号</td>';
+  h += '<td style="border:0.5px solid #888;border-top:none;border-right:none;padding:1px 3px;text-align:center;">' + escHtml(task.model||'') + '</td>';
+  h += '<td style="border:0.5px solid #888;border-top:none;padding:1px 3px;text-align:center;white-space:nowrap;">产品编号</td>';
   h += '<td style="border:0.5px solid #888;border-top:none;padding:1px 3px;">' + escHtml(task.prodNo||'') + '</td>';
   h += '</tr>';
 
   // 行5：安装地点行（上下都有边，竖线全有）
   h += '<tr>';
-  h += '<td style="border:0.5px solid #888;padding:1px 3px;text-align:center;background:#f0f0f0;height:28px;">安装地点</td>';
-  h += '<td style="border:0.5px solid #888;border-right:none;padding:1px 3px;">' + escHtml(task.installAddr||task.addr||'') + '</td>';
-  h += '<td style="border:0.5px solid #888;padding:1px 3px;text-align:center;background:#f0f0f0;">安装单位/人员</td>';
-  h += '<td style="border:0.5px solid #888;border-right:none;padding:1px 3px;">' + escHtml(task.installer||'') + '</td>';
-  h += '<td style="border:0.5px solid #888;padding:1px 3px;text-align:center;background:#f0f0f0;">项目管理</td>';
+  h += '<td style="border:0.5px solid #888;padding:1px 3px;text-align:center;height:28px;white-space:nowrap;">安装地点</td>';
+  h += '<td style="border:0.5px solid #888;border-right:none;padding:1px 3px;text-align:center;">' + escHtml(task.installAddr||task.addr||'') + '</td>';
+  h += '<td style="border:0.5px solid #888;padding:1px 3px;text-align:center;white-space:nowrap;">安装单位/人员</td>';
+  h += '<td style="border:0.5px solid #888;border-right:none;padding:1px 3px;text-align:center;">' + escHtml(task.installer||'') + '</td>';
+  h += '<td style="border:0.5px solid #888;padding:1px 3px;text-align:center;white-space:nowrap;">项目管理</td>';
   h += '<td style="border:0.5px solid #888;padding:1px 3px;">' + escHtml(task.manager||'') + '</td>';
   h += '</tr>';
 
   // 行6：检验依据（B列 + C:G合并，上下都有边）
   h += '<tr>';
-  h += '<td style="border:0.5px solid #888;padding:1px 3px;text-align:center;background:#f0f0f0;height:28px;">检验依据</td>';
-  h += '<td style="border:0.5px solid #888;border-left:none;padding:1px 3px;" colspan="5">《电梯监督检验和定期检验规则》(TSG T7001—2023)</td>';
+  h += '<td style="border:0.5px solid #888;padding:1px 3px;text-align:center;height:28px;white-space:nowrap;">检验依据</td>';
+  h += '<td style="border:0.5px solid #888;border-left:none;padding:1px 3px;text-align:center;" colspan="5">《电梯监督检验和定期检验规则》(TSG T7001—2023)</td>';
   h += '</tr>';
 
   // 行7：经检验上述设备（B:G合并，顶有底无）
@@ -3765,18 +3770,18 @@ function buildNoticeFullHTML(task, dateStr, ngItems) {
 
   // 行34：检验人员行（B + C:E合并 + F + G，仅底部有边，内部无竖线）
   h += '<tr>';
-  h += '<td style="border:0.5px solid #888;border-top:none;border-right:none;padding:4px 3px;height:28px;">检验人员：</td>';
+  h += '<td style="border:0.5px solid #888;border-top:none;border-right:none;padding:4px 3px;height:28px;white-space:nowrap;">检验人员：</td>';
   h += '<td style="border-top:none;border-bottom:0.5px solid #888;padding:4px 3px;height:28px;" colspan="3">' + escHtml(task.signatures && task.signatures.inspectorName || task.manager || '') + '</td>';
-  h += '<td style="border-top:none;border-bottom:0.5px solid #888;padding:4px 3px;height:28px;">检验日期：</td>';
-  h += '<td style="border:0.5px solid #888;border-top:none;border-left:none;padding:4px 3px;height:28px;text-align:right;">' + escHtml(task.checkDate||dateStr||'年 月 日') + '</td>';
+  h += '<td style="border-top:none;border-bottom:0.5px solid #888;padding:4px 3px;height:28px;white-space:nowrap;">检验日期：</td>';
+  h += '<td style="border:0.5px solid #888;border-top:none;border-left:none;padding:4px 3px;height:28px;text-align:right;">' + (task.checkDate||dateStr ? escHtml(task.checkDate||dateStr) : '<span style="letter-spacing:8px;">年月日</span>') + '</td>';
   h += '</tr>';
 
   // 行35：安装单位代表行（B + C:E合并 + F + G，底有边，内部竖线：B-C有、E-F有、F-G有）
   h += '<tr>';
-  h += '<td style="border:0.5px solid #888;border-top:none;padding:4px 3px;height:28px;">安装单位代表：</td>';
+  h += '<td style="border:0.5px solid #888;border-top:none;padding:4px 3px;height:28px;white-space:nowrap;">安装单位代表：</td>';
   h += '<td style="border:0.5px solid #888;padding:4px 3px;height:28px;" colspan="3">' + escHtml(task.installerName||task.installerSign||'') + '</td>';
-  h += '<td style="border:0.5px solid #888;border-top:none;padding:4px 3px;height:28px;">签收日期：</td>';
-  h += '<td style="border:0.5px solid #888;padding:4px 3px;height:28px;text-align:right;">年 月 日</td>';
+  h += '<td style="border:0.5px solid #888;border-top:none;padding:4px 3px;height:28px;white-space:nowrap;">签收日期：</td>';
+  h += '<td style="border:0.5px solid #888;padding:4px 3px;height:28px;text-align:right;"><span style="letter-spacing:8px;">年月日</span></td>';
   h += '</tr>';
 
   // 行36：整改反馈（B:D合并 + E:G合并，上下都有边）
@@ -3789,10 +3794,10 @@ function buildNoticeFullHTML(task, dateStr, ngItems) {
   h += '<tr>';
   h += '<td style="border:0.5px solid #888;border-top:none;padding:4px 3px;height:28px;text-align:center;">安装单位代表：</td>';
   h += '<td style="border:0.5px solid #888;padding:4px 3px;height:28px;text-align:center;">（盖章）</td>';
-  h += '<td style="border:0.5px solid #888;padding:4px 3px;height:28px;text-align:right;">年 月 日</td>';
+  h += '<td style="border:0.5px solid #888;padding:4px 3px;height:28px;text-align:right;"><span style="letter-spacing:8px;">年月日</span></td>';
   h += '<td style="border:0.5px solid #888;padding:4px 3px;height:28px;text-align:center;">检验人员：</td>';
   h += '<td style="border:0.5px solid #888;padding:4px 3px;height:28px;"></td>';
-  h += '<td style="border:0.5px solid #888;padding:4px 3px;text-align:right;height:28px;">年 月 日</td>';
+  h += '<td style="border:0.5px solid #888;padding:4px 3px;text-align:right;height:28px;"><span style="letter-spacing:8px;">年月日</span></td>';
   h += '</tr>';
 
   // 行38：备注（B:G合并，上下都有边）
