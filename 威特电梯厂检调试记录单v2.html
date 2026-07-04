@@ -3755,7 +3755,7 @@ function buildNoticeFullHTML(task, dateStr, ngItems) {
   var conclusion = task.conclusion || '';
   var rectifyDeadline = task.rectifyDeadline || '';
   h += '<tr>';
-  h += '<td style="font-size:'+fs+'px;border:1px solid #555;padding:2px 3px;height:53px;" colspan="6">厂检意见：';
+  h += '<td style="font-size:'+fs+'px;border:1px solid #555;border-bottom:none;padding:2px 3px;height:53px;" colspan="6">厂检意见：';
   if (conclusion === 'pass') {
     h += '☑厂检合格';
   } else if (conclusion === 'pass-rectify') {
