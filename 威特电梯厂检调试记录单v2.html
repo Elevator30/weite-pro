@@ -3790,7 +3790,7 @@ function buildNoticeFullHTML(task, dateStr, ngItems) {
   h += '<tr>';
   h += '<td style="font-size:'+fs+'px;border:1px solid #333;padding:4px 3px;height:63px;" colspan="3">整改情况反馈：以上问题整改完成</td>';
   h += '<td style="font-size:'+fs+'px;border:1px solid #333;padding:4px 3px;height:63px;" colspan="3">整改结果确认：<br>确认人：________&nbsp;&nbsp;&nbsp;&nbsp;确认日期：________</td>';
-  h += '</tr>
+  h += '</tr>';
   // 行37：安装单位代表（盖章）+日期 + 检验人员+日期（行高参考Excel 22.65磅）
   h += '<tr>';
   h += '<td style="font-size:'+fs+'px;border:1px solid #333;border-top:none;padding:4px 3px;height:28px;text-align:center;">安装单位代表：</td>';
@@ -3800,7 +3800,6 @@ function buildNoticeFullHTML(task, dateStr, ngItems) {
   h += '<td style="font-size:'+fs+'px;border:1px solid #333;padding:4px 3px;height:28px;"></td>';
   h += '<td style="font-size:'+fs+'px;border:1px solid #333;padding:4px 3px;height:28px;">年 月 日</td>';
   h += '</tr>';
-';
 
   // 备注行（行高参考Excel备注40磅）
   h += '<tr>';
