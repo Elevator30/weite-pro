@@ -3754,7 +3754,7 @@ function buildNoticeFullHTML(task, dateStr, ngItems) {
   var conclusion = task.conclusion || '';
   var rectifyDeadline = task.rectifyDeadline || '';
   h += '<tr>';
-  h += '<td style="border:1px solid #000;border-bottom:none;padding:2px 3px;height:53px;" colspan="6">厂检意见：';
+  h += '<td style="border:1px solid #000;border-bottom:none;border-top:1px solid #000!important;padding:2px 3px;height:53px;" colspan="6">厂检意见：';
   if (conclusion === 'pass') {
     h += '☑厂检合格';
   } else if (conclusion === 'pass-rectify') {
@@ -3770,18 +3770,18 @@ function buildNoticeFullHTML(task, dateStr, ngItems) {
 
   // 行34：检验人员行（B + C:E合并 + F + G，仅底部有边，内部无竖线）
   h += '<tr>';
-  h += '<td style="border:1px solid #000;border-top:none;padding:4px 3px;height:28px;white-space:nowrap;">检验人员：</td>';
-  h += '<td style="border-right:1px solid #000;border-top:none;border-bottom:1px solid #000;padding:4px 3px;height:28px;" colspan="3">' + escHtml(task.signatures && task.signatures.inspectorName || task.manager || '') + '</td>';
-  h += '<td style="border-right:1px solid #000;border-top:none;border-bottom:1px solid #000;padding:4px 3px;height:28px;white-space:nowrap;">检验日期：</td>';
+  h += '<td style="border:1px solid #000;border-top:none;border-right:none;padding:4px 3px;height:28px;white-space:nowrap;">检验人员：</td>';
+  h += '<td style="border-top:none;border-bottom:1px solid #000;padding:4px 3px;height:28px;" colspan="3">' + escHtml(task.signatures && task.signatures.inspectorName || task.manager || '') + '</td>';
+  h += '<td style="border-top:none;border-bottom:1px solid #000;padding:4px 3px;height:28px;white-space:nowrap;">检验日期：</td>';
   h += '<td style="border:1px solid #000;border-top:none;border-left:none;padding:4px 3px;height:28px;text-align:right;">' + (task.checkDate||dateStr ? escHtml(task.checkDate||dateStr) : '<span style="letter-spacing:16px;">年月日</span>') + '</td>';
   h += '</tr>';
 
   // 行35：安装单位代表行（B + C:E合并 + F + G，底有边，内部竖线：B-C有、E-F有、F-G有）
   h += '<tr>';
-  h += '<td style="border:1px solid #000;border-top:none;padding:4px 3px;height:28px;white-space:nowrap;">安装单位代表：</td>';
-  h += '<td style="border:1px solid #000;padding:4px 3px;height:28px;" colspan="3">' + escHtml(task.installerName||task.installerSign||'') + '</td>';
-  h += '<td style="border:1px solid #000;border-top:none;padding:4px 3px;height:28px;white-space:nowrap;">签收日期：</td>';
-  h += '<td style="border:1px solid #000;padding:4px 3px;height:28px;text-align:right;"><span style="letter-spacing:16px;">年月日</span></td>';
+  h += '<td style="border:1px solid #000;border-top:none;border-right:none;padding:4px 3px;height:28px;white-space:nowrap;">安装单位代表：</td>';
+  h += '<td style="border-top:none;border-bottom:1px solid #000;padding:4px 3px;height:28px;" colspan="3">' + escHtml(task.installerName||task.installerSign||'') + '</td>';
+  h += '<td style="border-top:none;border-bottom:1px solid #000;padding:4px 3px;height:28px;white-space:nowrap;">签收日期：</td>';
+  h += '<td style="border:1px solid #000;border-left:none;padding:4px 3px;height:28px;text-align:right;"><span style="letter-spacing:16px;">年月日</span></td>';
   h += '</tr>';
 
   // 行36：整改反馈（B:D合并 + E:G合并，上下都有边）
