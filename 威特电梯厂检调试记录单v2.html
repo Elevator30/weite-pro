@@ -3380,10 +3380,13 @@ function exportNoticePDF() {
     var ngRow = div.querySelector('.notice-ng-row');
     var blankRow = div.querySelector('.notice-blank-row');
     var needSplit = false;
-    var page1Count = 0;
+    var perPageCount = 0; // 每页最多放多少项
     var itemH = 18; // 单项高度，会重新测量
+    var ngTop = 0; // 表头高度（不符合项行顶部到内容区顶部）
+    var footerH = 0; // 底部签署区高度
+    var totalPages = 1;
 
-    // 续表模式：测量并判断是否需要分页
+    // 续表模式：每页都是完整表格（表头+不符合项+签名区），内容跨页延续
     if (footerRow && ngRow && ngItems.length > 0) {
       var divRect = div.getBoundingClientRect();
       var table = footerRow.closest('table');
@@ -3393,24 +3396,21 @@ function exportNoticePDF() {
 
       // 不符合项行顶部到内容区顶部的距离（表头固定高度）
       var ngTopRect = ngRow.getBoundingClientRect();
-      var ngTop = ngTopRect.top - divRect.top - 57;
+      ngTop = ngTopRect.top - divRect.top - 57;
       var ngH = ngTopRect.height;
       itemH = ngH / ngItems.length;
 
       // 底部签署区高度（footerRow到最后一行）
       var frRect = footerRow.getBoundingClientRect();
-      var footerH = lastRect.bottom - frRect.top;
+      footerH = lastRect.bottom - frRect.top;
 
-      needSplit = totalBottom > availH;
+      // 计算每页最多能放多少项（表头 + 不符合项 + 底部签署区 ≤ 一页）
+      var availNgH = availH - ngTop - footerH - 20; // 留20px余量
+      perPageCount = Math.floor(availNgH / itemH);
+      if (perPageCount < 1) perPageCount = 1;
 
-      if (needSplit) {
-        // 计算第一页能放多少项：表头 + 不符合项 + 底边框 ≤ availH
-        // 第一页没有底部签署区，只有不符合项 + 空白撑高行
-        var availNgH = availH - ngTop - 15; // 留15px给底边框+余量
-        page1Count = Math.floor(availNgH / itemH);
-        if (page1Count < 1) page1Count = 1;
-        if (page1Count >= ngItems.length) page1Count = ngItems.length - 1;
-      }
+      totalPages = Math.ceil(ngItems.length / perPageCount);
+      needSplit = totalPages > 1;
     }
 
     // 在canvas底部绘制页码
@@ -3437,90 +3437,49 @@ function exportNoticePDF() {
       return fullCanvas;
     }
 
-    function renderPage1() {
-      // 第一页：隐藏底部签署区，撑高空白行使表格底部对齐页底
-      var hidden = [];
-      var blankRow = div.querySelector('.notice-blank-row');
-      var origBlankTdStyle = '';
-      if (footerRow) {
-        var next = footerRow;
-        while (next) {
-          if (next.tagName === 'TR') {
-            hidden.push(next);
-            next.style.display = 'none';
-          }
-          next = next.nextElementSibling;
-        }
-      }
-      // 动态撑高空白行，使外框底部刚好到可用高度底部
-      if (blankRow) {
-        var blankTd = blankRow.querySelector('td');
-        if (blankTd) {
-          origBlankTdStyle = blankTd.getAttribute('style') || '';
-          var divRect = div.getBoundingClientRect();
-          var blankRect = blankRow.getBoundingClientRect();
-          // 当前表格底部位置（相对于内容区顶部）
-          var currentBottom = blankRect.bottom - divRect.top - 57;
-          var needMore = availH - currentBottom;
-          if (needMore > 0) {
-            var curH = blankRow.offsetHeight;
-            blankTd.style.height = (curH + needMore) + 'px';
-          }
-        }
-      }
+    // 渲染单页：传入该页的不符合项数组，生成完整表格并渲染
+    function renderPageItems(pageNgItems) {
+      div.innerHTML = buildNoticeFullHTML(task, dateStr, pageNgItems);
       return html2canvas(div, {
         scale: scale, useCORS: true, allowTaint: true,
         backgroundColor: '#ffffff', logging: false, removeContainer: false,
         width: div.scrollWidth, height: div.scrollHeight
-      }).then(function(c) {
-        // 恢复
-        hidden.forEach(function(tr) { tr.style.display = ''; });
-        if (blankRow) {
-          var blankTd = blankRow.querySelector('td');
-          if (blankTd) blankTd.setAttribute('style', origBlankTdStyle);
-        }
-        return c;
       });
     }
 
-    function renderPage2() {
-      // 第二页：完整表格（表头+剩余不符合项+底部签署区），收窄空白行
-      var blankRow2 = div.querySelector('.notice-blank-row');
-      var origBlankStyle = '';
-      if (blankRow2) {
-        var blankTd2 = blankRow2.querySelector('td');
-        if (blankTd2) {
-          origBlankStyle = blankTd2.getAttribute('style') || '';
-          blankTd2.style.height = '4px';
-        }
+    // 循环渲染所有页
+    function renderAllPages() {
+      var canvases = [];
+      var promise = Promise.resolve();
+      for (var p = 0; p < totalPages; p++) {
+        var start = p * perPageCount;
+        var end = Math.min(start + perPageCount, ngItems.length);
+        var pageItems = ngItems.slice(start, end);
+        (function(pageIdx, items) {
+          promise = promise.then(function() {
+            return renderPageItems(items).then(function(c) {
+              canvases.push({canvas: c});
+            });
+          });
+        })(p, pageItems);
       }
-      return html2canvas(div, {
-        scale: scale, useCORS: true, allowTaint: true,
-        backgroundColor: '#ffffff', logging: false, removeContainer: false,
-        width: div.scrollWidth, height: div.scrollHeight
-      }).then(function(c) {
-        if (blankRow2) {
-          var blankTd2 = blankRow2.querySelector('td');
-          if (blankTd2) blankTd2.setAttribute('style', origBlankStyle);
-        }
-        return c;
-      });
+      return promise.then(function() { return canvases; });
     }
 
-    function finalize(pdfCanvasList, totalPages) {
+    function finalize(pdfCanvasList, tPages) {
       try {
         var pdf = new JsPDF({orientation: 'p', unit: 'mm', format: 'a4'});
         var imgW = pageW;
         pdfCanvasList.forEach(function(item, idx) {
           var canvas = item.canvas;
-          canvas = drawPageNumber(canvas, idx + 1, totalPages);
+          canvas = drawPageNumber(canvas, idx + 1, tPages);
           var imgData = canvas.toDataURL('image/jpeg', 0.92);
           var imgH = (canvas.height * imgW) / canvas.width;
           if (idx > 0) pdf.addPage();
           pdf.addImage(imgData, 'JPEG', 0, 0, imgW, imgH);
         });
         pdf.save(filename);
-        showToast('意见通知书导出成功！共' + totalPages + '页');
+        showToast('意见通知书导出成功！共' + tPages + '页');
       } catch(err) {
         console.error('PDF组装失败:', err);
         showToast('PDF组装失败: ' + (err.message||err));
@@ -3542,22 +3501,9 @@ function exportNoticePDF() {
         if (container.parentNode) container.parentNode.removeChild(container);
       });
     } else {
-      // 续表模式：两页分别用不同数量的不符合项构建
-      var page1Items = ngItems.slice(0, page1Count);
-      var page2Items = ngItems.slice(page1Count);
-
-      // 第一页：前page1Count项 + 隐藏底部签署区 + 撑高空白行
-      div.innerHTML = buildNoticeFullHTML(task, dateStr, page1Items);
-      // 重新获取元素引用（innerHTML替换后旧引用失效）
-      footerRow = div.querySelector('.notice-footer-start');
-      blankRow = div.querySelector('.notice-blank-row');
-
-      renderPage1().then(function(c1) {
-        // 第二页：剩余项 + 完整表格
-        div.innerHTML = buildNoticeFullHTML(task, dateStr, page2Items);
-        return renderPage2().then(function(c2) {
-          finalize([{canvas: c1}, {canvas: c2}], 2);
-        });
+      // 续表模式：每页都是完整表格，不符合项内容跨页延续
+      renderAllPages().then(function(canvasList) {
+        finalize(canvasList, totalPages);
       }).catch(function(err) {
         console.error('渲染失败:', err);
         showToast('渲染失败: ' + (err.message||err));
