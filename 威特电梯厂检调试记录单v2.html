@@ -306,8 +306,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
   </div>
   <div id="projectList" class="task-list"></div>
   <div style="height:80px;"></div>
-  <div class="no-print" style="position:fixed;bottom:20px;left:50%;transform:translateX(-50%);width:90%;max-width:400px;z-index:100;display:flex;justify-content:center;">
-    <button style="flex:1;max-width:280px;padding:14px 32px;font-size:16px;border-radius:26px;box-shadow:0 4px 12px rgba(102,126,234,0.3);font-weight:700;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border:none;cursor:pointer;" onclick="showNewProject()">➕ 新建项目</button>
+  <div class="no-print" style="position:fixed;bottom:20px;left:50%;transform:translateX(-50%);width:90%;max-width:400px;z-index:200;display:flex;justify-content:center;pointer-events:auto;">
+    <button style="flex:1;max-width:280px;padding:14px 32px;font-size:16px;border-radius:26px;box-shadow:0 4px 12px rgba(102,126,234,0.3);font-weight:700;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border:none;cursor:pointer;pointer-events:auto;" onclick="showNewProject()">➕ 新建项目</button>
   </div>
 </div>
 
@@ -1386,13 +1386,18 @@ function deleteProject(index) {
 }
 
 function showNewProject() {
-  document.getElementById('newProjName').value = '';
-  document.getElementById('newProjInstaller').value = '';
-  document.getElementById('newProjManager').value = '';
-  document.getElementById('newProjAddrDetail').value = '';
-  document.getElementById('newProjRemark').value = '';
-  initProvinceSelect('newProjProvince', 'newProjCity', 'newProjDistrict');
   openMoModal('moNewProject');
+  var nameEl = document.getElementById('newProjName');
+  if (nameEl) nameEl.value = '';
+  var instEl = document.getElementById('newProjInstaller');
+  if (instEl) instEl.value = '';
+  var mgrEl = document.getElementById('newProjManager');
+  if (mgrEl) mgrEl.value = '';
+  var addrEl = document.getElementById('newProjAddrDetail');
+  if (addrEl) addrEl.value = '';
+  var remarkEl = document.getElementById('newProjRemark');
+  if (remarkEl) remarkEl.value = '';
+  initProvinceSelect('newProjProvince', 'newProjCity', 'newProjDistrict');
 }
 
 function createProject() {
@@ -1556,25 +1561,24 @@ function deleteTask(index) {
 // ============ NEW CHECK ============
 function showNewCheck() {
   var proj = getCurrentProject();
-  document.getElementById('newProdNo').value = '';
-  document.getElementById('newLiftNo').value = '';
-  document.getElementById('newModel').value = '';
-  document.getElementById('newLoad').value = '';
-  document.getElementById('newSpeed').value = '';
-  document.getElementById('newCheckDate').value = new Date().toISOString().split('T')[0];
-  document.getElementById('configFileName').textContent = '未上传配置单';
+  openMoModal('moNewCheck');
+  var el;
+  el = document.getElementById('newProdNo'); if (el) el.value = '';
+  el = document.getElementById('newLiftNo'); if (el) el.value = '';
+  el = document.getElementById('newModel'); if (el) el.value = '';
+  el = document.getElementById('newLoad'); if (el) el.value = '';
+  el = document.getElementById('newSpeed'); if (el) el.value = '';
+  el = document.getElementById('newCheckDate'); if (el) el.value = new Date().toISOString().split('T')[0];
+  el = document.getElementById('configFileName'); if (el) el.textContent = '未上传配置单';
   configPartsData = {};
   
   // 从项目信息带入
   if (proj) {
-    document.getElementById('newProjectName').textContent = proj.name || '';
-    document.getElementById('newInstaller').value = proj.installer || '';
-    document.getElementById('newInstallAddr').value = proj.installAddr || '';
-    document.getElementById('newManager').value = proj.projectManagerName || '';
+    el = document.getElementById('newProjectName'); if (el) el.textContent = proj.name || '';
+    el = document.getElementById('newInstaller'); if (el) el.value = proj.installer || '';
+    el = document.getElementById('newInstallAddr'); if (el) el.value = proj.installAddr || '';
+    el = document.getElementById('newManager'); if (el) el.value = proj.projectManagerName || '';
   }
-  
-  
-  openMoModal('moNewCheck');
 }
 
 function createTask() {
