@@ -3372,40 +3372,156 @@ function exportNoticePDF() {
 
   showToast('正在渲染...');
   setTimeout(function() {
-    html2canvas(div, {
-      scale: 3, useCORS: true, allowTaint: true,
-      backgroundColor: '#ffffff', logging: false, removeContainer: false,
-      width: div.scrollWidth, height: div.scrollHeight
-    }).then(function(canvas) {
-      try {
-        var pdf = new JsPDF({orientation: 'p', unit: 'mm', format: 'a4'});
-        var pageW = 210, pageH = 297;
-        var imgW = pageW;
-        var imgH = (canvas.height * imgW) / canvas.width;
-        var imgData = canvas.toDataURL('image/jpeg', 0.92);
-        if (imgH <= pageH) {
-          pdf.addImage(imgData, 'JPEG', 0, 0, imgW, imgH);
-        } else {
-          var pos = 0;
-          while (pos < imgH) {
-            if (pos > 0) pdf.addPage();
-            pdf.addImage(imgData, 'JPEG', 0, -pos, imgW, imgH);
-            pos += pageH;
+    var pageW = 210, pageH = 297;
+    var scale = 3;
+    // A4内容可用高度（CSS像素）：div宽595px，上下padding各57px
+    var availH = 595 * 297 / 210 - 57 * 2;
+    var footerRow = div.querySelector('.notice-footer-start');
+    var needSplit = false;
+
+    // 检测是否需要分页：底部签署区是否超出一页
+    if (footerRow) {
+      var divRect = div.getBoundingClientRect();
+      var frRect = footerRow.getBoundingClientRect();
+      // 底部区域顶部位置（相对于内容区，即减去paddingTop）
+      var footerTop = frRect.top - divRect.top - 57;
+      // 底部区域总高度：从footerRow到表格最后一行
+      var table = footerRow.closest('table');
+      var footerBottom = 0;
+      if (table) {
+        var lastTr = table.querySelector('tbody > tr:last-child');
+        if (lastTr) {
+          var lastRect = lastTr.getBoundingClientRect();
+          footerBottom = lastRect.bottom - divRect.top - 57;
+        }
+      }
+      if (footerBottom === 0) {
+        footerBottom = footerTop + frRect.height;
+      }
+      // 底部区域底部超出可用高度 → 需要分页
+      if (footerBottom > availH) {
+        needSplit = true;
+      }
+    }
+
+    // 在canvas底部绘制页码
+    function drawPageNumber(canvas, pageNum, totalPages) {
+      var ctx = canvas.getContext('2d');
+      var text = '第' + pageNum + '页 共' + totalPages + '页';
+      ctx.font = '28px PingFang SC, Heiti SC, sans-serif';
+      ctx.fillStyle = '#666';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'bottom';
+      // 距底部约12mm → canvas像素: (12/297) * canvas.height
+      var y = canvas.height - Math.round(12 / 297 * canvas.height);
+      ctx.fillText(text, canvas.width / 2, y);
+    }
+
+    function renderPage1() {
+      // 第一页：隐藏底部签署区
+      var hidden = [];
+      if (footerRow) {
+        var next = footerRow;
+        while (next) {
+          if (next.tagName === 'TR') {
+            hidden.push(next);
+            next.style.display = 'none';
+          }
+          next = next.nextElementSibling;
+        }
+      }
+      return html2canvas(div, {
+        scale: scale, useCORS: true, allowTaint: true,
+        backgroundColor: '#ffffff', logging: false, removeContainer: false,
+        width: div.scrollWidth, height: div.scrollHeight
+      }).then(function(c) {
+        // 恢复
+        hidden.forEach(function(tr) { tr.style.display = ''; });
+        return c;
+      });
+    }
+
+    function renderPage2() {
+      // 第二页：只显示底部签署区，隐藏上面的内容
+      var hidden = [];
+      // 隐藏表格中footerRow之前的所有行
+      if (footerRow) {
+        var prev = footerRow.previousElementSibling;
+        while (prev) {
+          if (prev.tagName === 'TR') {
+            hidden.push(prev);
+            prev.style.display = 'none';
+          }
+          prev = prev.previousElementSibling;
+        }
+        // 隐藏表格前面的所有元素（标题等）
+        var table = footerRow.closest('table');
+        if (table) {
+          var el = table.previousElementSibling;
+          while (el) {
+            hidden.push(el);
+            el.style.display = 'none';
+            el = el.previousElementSibling;
           }
         }
+      }
+      return html2canvas(div, {
+        scale: scale, useCORS: true, allowTaint: true,
+        backgroundColor: '#ffffff', logging: false, removeContainer: false,
+        width: div.scrollWidth, height: div.scrollHeight
+      }).then(function(c) {
+        // 恢复
+        hidden.forEach(function(el) { el.style.display = ''; });
+        return c;
+      });
+    }
+
+    function finalize(pdfCanvasList, totalPages) {
+      try {
+        var pdf = new JsPDF({orientation: 'p', unit: 'mm', format: 'a4'});
+        var imgW = pageW;
+        pdfCanvasList.forEach(function(item, idx) {
+          var canvas = item.canvas;
+          drawPageNumber(canvas, idx + 1, totalPages);
+          var imgData = canvas.toDataURL('image/jpeg', 0.92);
+          var imgH = (canvas.height * imgW) / canvas.width;
+          if (idx > 0) pdf.addPage();
+          pdf.addImage(imgData, 'JPEG', 0, 0, imgW, imgH);
+        });
         pdf.save(filename);
-        var pageCount = Math.ceil(imgH / pageH);
-        showToast('意见通知书导出成功！共' + pageCount + '页');
+        showToast('意见通知书导出成功！共' + totalPages + '页');
       } catch(err) {
         console.error('PDF组装失败:', err);
         showToast('PDF组装失败: ' + (err.message||err));
       }
       if (container.parentNode) container.parentNode.removeChild(container);
-    }).catch(function(err) {
-      console.error('渲染失败:', err);
-      showToast('渲染失败: ' + (err.message||err));
-      if (container.parentNode) container.parentNode.removeChild(container);
-    });
+    }
+
+    if (!needSplit) {
+      // 单页
+      html2canvas(div, {
+        scale: scale, useCORS: true, allowTaint: true,
+        backgroundColor: '#ffffff', logging: false, removeContainer: false,
+        width: div.scrollWidth, height: div.scrollHeight
+      }).then(function(canvas) {
+        finalize([{canvas: canvas}], 1);
+      }).catch(function(err) {
+        console.error('渲染失败:', err);
+        showToast('渲染失败: ' + (err.message||err));
+        if (container.parentNode) container.parentNode.removeChild(container);
+      });
+    } else {
+      // 两页：先渲第一页，再渲第二页
+      renderPage1().then(function(c1) {
+        return renderPage2().then(function(c2) {
+          finalize([{canvas: c1}, {canvas: c2}], 2);
+        });
+      }).catch(function(err) {
+        console.error('渲染失败:', err);
+        showToast('渲染失败: ' + (err.message||err));
+        if (container.parentNode) container.parentNode.removeChild(container);
+      });
+    }
   }, 300);
 }
 
@@ -3753,7 +3869,7 @@ function buildNoticeFullHTML(task, dateStr, ngItems) {
   // 行33：厂检意见（B:G合并，顶有底无）
   var conclusion = task.conclusion || '';
   var rectifyDeadline = task.rectifyDeadline || '';
-  h += '<tr>';
+  h += '<tr class="notice-footer-start">';
   h += '<td style="border:1px solid #000;border-bottom:none;border-top:1px solid #000!important;padding:2px 3px;height:53px;" colspan="6">厂检意见：';
   if (conclusion === 'pass') {
     h += '☑厂检合格';
@@ -3773,7 +3889,7 @@ function buildNoticeFullHTML(task, dateStr, ngItems) {
   h += '<td style="border:1px solid #000;border-top:none;border-right:none;padding:4px 3px;height:28px;white-space:nowrap;">检验人员：</td>';
   h += '<td style="border-top:none;border-bottom:1px solid #000;padding:4px 3px;height:28px;" colspan="3">' + escHtml(task.signatures && task.signatures.inspectorName || task.manager || '') + '</td>';
   h += '<td style="border-top:none;border-bottom:1px solid #000;padding:4px 3px;height:28px;white-space:nowrap;">检验日期：</td>';
-  h += '<td style="border:1px solid #000;border-top:none;border-left:none;padding:4px 3px;height:28px;text-align:right;">' + (task.checkDate||dateStr ? escHtml(task.checkDate||dateStr) : '<span style="letter-spacing:16px;">年月日</span>') + '</td>';
+  h += '<td style="border:1px solid #000;border-top:none;border-left:none;padding:4px 3px;height:28px;text-align:right;">' + (task.checkDate||dateStr ? escHtml(task.checkDate||dateStr) : '<span style="letter-spacing:10px;white-space:nowrap;">年月日</span>') + '</td>';
   h += '</tr>';
 
   // 行35：安装单位代表行（B + C:E合并 + F + G，底有边，内部竖线：B-C有、E-F有、F-G有）
@@ -3781,7 +3897,7 @@ function buildNoticeFullHTML(task, dateStr, ngItems) {
   h += '<td style="border:1px solid #000;border-top:none;padding:4px 3px;height:28px;white-space:nowrap;">安装单位代表：</td>';
   h += '<td style="border:1px solid #000;padding:4px 3px;height:28px;" colspan="3">' + escHtml(task.installerName||task.installerSign||'') + '</td>';
   h += '<td style="border:1px solid #000;border-top:none;padding:4px 3px;height:28px;white-space:nowrap;">签收日期：</td>';
-  h += '<td style="border:1px solid #000;padding:4px 3px;height:28px;text-align:right;"><span style="letter-spacing:16px;">年月日</span></td>';
+  h += '<td style="border:1px solid #000;padding:4px 3px;height:28px;text-align:right;"><span style="letter-spacing:10px;white-space:nowrap;">年月日</span></td>';
   h += '</tr>';
 
   // 行36：整改反馈（B:D合并 + E:G合并，上下都有边）
@@ -3794,10 +3910,10 @@ function buildNoticeFullHTML(task, dateStr, ngItems) {
   h += '<tr>';
   h += '<td style="border:1px solid #000;border-top:none;padding:4px 3px;height:28px;text-align:center;">安装单位代表：</td>';
   h += '<td style="border:1px solid #000;padding:4px 3px;height:28px;text-align:center;">（盖章）</td>';
-  h += '<td style="border:1px solid #000;padding:4px 3px;height:28px;text-align:right;"><span style="letter-spacing:16px;">年月日</span></td>';
+  h += '<td style="border:1px solid #000;padding:4px 3px;height:28px;text-align:right;"><span style="letter-spacing:10px;white-space:nowrap;">年月日</span></td>';
   h += '<td style="border:1px solid #000;padding:4px 3px;height:28px;text-align:center;">检验人员：</td>';
   h += '<td style="border:1px solid #000;padding:4px 3px;height:28px;"></td>';
-  h += '<td style="border:1px solid #000;padding:4px 3px;text-align:right;height:28px;"><span style="letter-spacing:16px;">年月日</span></td>';
+  h += '<td style="border:1px solid #000;padding:4px 3px;text-align:right;height:28px;"><span style="letter-spacing:10px;white-space:nowrap;">年月日</span></td>';
   h += '</tr>';
 
   // 行38：备注（B:G合并，上下都有边）
