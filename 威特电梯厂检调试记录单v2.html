@@ -3406,15 +3406,26 @@ function exportNoticePDF() {
 
     // 在canvas底部绘制页码
     function drawPageNumber(canvas, pageNum, totalPages) {
-      var ctx = canvas.getContext('2d');
+      // 创建A4全高的canvas，确保页码在页面底部
+      var a4H = Math.round(canvas.width * 297 / 210);
+      var fullCanvas = document.createElement('canvas');
+      fullCanvas.width = canvas.width;
+      fullCanvas.height = a4H;
+      var ctx = fullCanvas.getContext('2d');
+      // 白色背景
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, fullCanvas.width, fullCanvas.height);
+      // 把内容画上去
+      ctx.drawImage(canvas, 0, 0);
+      // 画页码（距底部约15mm）
       var text = '第' + pageNum + '页 共' + totalPages + '页';
-      ctx.font = '28px PingFang SC, Heiti SC, sans-serif';
-      ctx.fillStyle = '#666';
+      ctx.font = '30px sans-serif';
+      ctx.fillStyle = '#333333';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'bottom';
-      // 距底部约12mm → canvas像素: (12/297) * canvas.height
-      var y = canvas.height - Math.round(12 / 297 * canvas.height);
-      ctx.fillText(text, canvas.width / 2, y);
+      var y = a4H - Math.round(15 / 297 * a4H);
+      ctx.fillText(text, fullCanvas.width / 2, y);
+      return fullCanvas;
     }
 
     function renderPage1() {
@@ -3482,7 +3493,7 @@ function exportNoticePDF() {
         var imgW = pageW;
         pdfCanvasList.forEach(function(item, idx) {
           var canvas = item.canvas;
-          drawPageNumber(canvas, idx + 1, totalPages);
+          canvas = drawPageNumber(canvas, idx + 1, totalPages);
           var imgData = canvas.toDataURL('image/jpeg', 0.92);
           var imgH = (canvas.height * imgW) / canvas.width;
           if (idx > 0) pdf.addPage();
@@ -3889,31 +3900,31 @@ function buildNoticeFullHTML(task, dateStr, ngItems) {
   h += '<td style="border:1px solid #000;border-top:none;border-right:none;padding:4px 3px;height:28px;white-space:nowrap;">检验人员：</td>';
   h += '<td style="border-top:none;border-bottom:1px solid #000;padding:4px 3px;height:28px;" colspan="3">' + escHtml(task.signatures && task.signatures.inspectorName || task.manager || '') + '</td>';
   h += '<td style="border-top:none;border-bottom:1px solid #000;padding:4px 3px;height:28px;white-space:nowrap;">检验日期：</td>';
-  h += '<td style="border:1px solid #000;border-top:none;border-left:none;padding:4px 3px;height:28px;text-align:right;">' + (task.checkDate||dateStr ? escHtml(task.checkDate||dateStr) : '<span style="letter-spacing:10px;white-space:nowrap;">年月日</span>') + '</td>';
+  h += '<td style="border:1px solid #000;border-top:none;border-left:none;padding:4px 1px;height:28px;text-align:right;">' + (task.checkDate||dateStr ? escHtml(task.checkDate||dateStr) : '<span style="letter-spacing:10px;white-space:nowrap;">年月日</span>') + '</td>';
   h += '</tr>';
 
-  // 行35：安装单位代表行（B + C:E合并 + F + G，底有边，内部竖线：B-C有、E-F有、F-G有）
+  // 行35：项目管理人员 / 安装人员
   h += '<tr>';
-  h += '<td style="border:1px solid #000;border-top:none;padding:4px 3px;height:28px;white-space:nowrap;">安装单位代表：</td>';
-  h += '<td style="border:1px solid #000;padding:4px 3px;height:28px;" colspan="3">' + escHtml(task.installerName||task.installerSign||'') + '</td>';
-  h += '<td style="border:1px solid #000;border-top:none;padding:4px 3px;height:28px;white-space:nowrap;">签收日期：</td>';
-  h += '<td style="border:1px solid #000;padding:4px 3px;height:28px;text-align:right;"><span style="letter-spacing:10px;white-space:nowrap;">年月日</span></td>';
+  h += '<td style="border:1px solid #000;border-top:none;padding:4px 3px;height:28px;white-space:nowrap;">项目管理人员：</td>';
+  h += '<td style="border:1px solid #000;padding:4px 3px;height:28px;" colspan="3">' + escHtml(task.pmName||task.manager||'') + '</td>';
+  h += '<td style="border:1px solid #000;border-top:none;padding:4px 3px;height:28px;white-space:nowrap;">安装人员：</td>';
+  h += '<td style="border:1px solid #000;padding:4px 3px;height:28px;">' + escHtml(task.installerName||task.installerSign||'') + '</td>';
   h += '</tr>';
 
-  // 行36：整改反馈（B:D合并 + E:G合并，上下都有边）
+  // 行36：整改情况反馈 + 整改结果确认
   h += '<tr>';
-  h += '<td style="border:1px solid #000;padding:4px 3px;height:63px;" colspan="3">整改情况反馈：以上问题整改完成</td>';
-  h += '<td style="border:1px solid #000;padding:4px 3px;height:63px;" colspan="3">整改结果确认：<br><div style="display:flex;justify-content:space-between;"><span>确认人：________</span><span>确认日期：________</span></div></td>';
+  h += '<td style="border:1px solid #000;padding:4px 3px;height:63px;line-height:1.8;" colspan="3">整改情况反馈：<br>□以上问题已整改完成，并提供相关视频/图片，用以验证整改情况</td>';
+  h += '<td style="border:1px solid #000;padding:4px 3px;height:63px;line-height:1.8;" colspan="3">整改结果确认：<br>□约定期限内未提供整改材料（视频/图片），不合格<br>□整改合格<br>□整改不合格</td>';
   h += '</tr>';
 
-  // 行37：安装单位代表（盖章）+检验人员（6列独立，底有边，B列顶无边）
+  // 行37：项目管理人员（盖章）+检验人员（6列独立，底有边，B列顶无边）
   h += '<tr>';
-  h += '<td style="border:1px solid #000;border-top:none;padding:4px 3px;height:28px;text-align:center;">安装单位代表：</td>';
+  h += '<td style="border:1px solid #000;border-top:none;padding:4px 3px;height:28px;text-align:center;">项目管理人员：</td>';
   h += '<td style="border:1px solid #000;padding:4px 3px;height:28px;text-align:center;">（盖章）</td>';
-  h += '<td style="border:1px solid #000;padding:4px 3px;height:28px;text-align:right;"><span style="letter-spacing:10px;white-space:nowrap;">年月日</span></td>';
+  h += '<td style="border:1px solid #000;padding:4px 1px;height:28px;text-align:right;"><span style="letter-spacing:10px;white-space:nowrap;">年月日</span></td>';
   h += '<td style="border:1px solid #000;padding:4px 3px;height:28px;text-align:center;">检验人员：</td>';
   h += '<td style="border:1px solid #000;padding:4px 3px;height:28px;"></td>';
-  h += '<td style="border:1px solid #000;padding:4px 3px;text-align:right;height:28px;"><span style="letter-spacing:10px;white-space:nowrap;">年月日</span></td>';
+  h += '<td style="border:1px solid #000;padding:4px 1px;text-align:right;height:28px;"><span style="letter-spacing:10px;white-space:nowrap;">年月日</span></td>';
   h += '</tr>';
 
   // 行38：备注（B:G合并，上下都有边）
