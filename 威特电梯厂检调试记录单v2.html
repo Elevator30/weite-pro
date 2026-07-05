@@ -3493,7 +3493,7 @@ function exportNoticePDF() {
         var imgW = pageW;
         pdfCanvasList.forEach(function(item, idx) {
           var canvas = item.canvas;
-          canvas = drawPageNumber(canvas, idx + 1, totalPages);
+          // canvas = drawPageNumber(canvas, idx + 1, totalPages); // 临时关闭页码，验证缓存
           var imgData = canvas.toDataURL('image/jpeg', 0.92);
           var imgH = (canvas.height * imgW) / canvas.width;
           if (idx > 0) pdf.addPage();
