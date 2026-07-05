@@ -3389,7 +3389,7 @@ function exportNoticePDF() {
       var table = footerRow.closest('table');
       var footerBottom = 0;
       if (table) {
-        var lastTr = table.querySelector('tbody > tr:last-child');
+        var lastTr = table.rows[table.rows.length - 1];
         if (lastTr) {
           var lastRect = lastTr.getBoundingClientRect();
           footerBottom = lastRect.bottom - divRect.top - 57;
@@ -3429,8 +3429,10 @@ function exportNoticePDF() {
     }
 
     function renderPage1() {
-      // 第一页：隐藏底部签署区
+      // 第一页：隐藏底部签署区，撑高空白行使表格底部对齐页底
       var hidden = [];
+      var blankRow = div.querySelector('.notice-blank-row');
+      var origBlankTdStyle = '';
       if (footerRow) {
         var next = footerRow;
         while (next) {
@@ -3441,6 +3443,22 @@ function exportNoticePDF() {
           next = next.nextElementSibling;
         }
       }
+      // 动态撑高空白行，使外框底部刚好到可用高度底部
+      if (blankRow) {
+        var blankTd = blankRow.querySelector('td');
+        if (blankTd) {
+          origBlankTdStyle = blankTd.getAttribute('style') || '';
+          var divRect = div.getBoundingClientRect();
+          var blankRect = blankRow.getBoundingClientRect();
+          // 当前表格底部位置（相对于内容区顶部）
+          var currentBottom = blankRect.bottom - divRect.top - 57;
+          var needMore = availH - currentBottom;
+          if (needMore > 0) {
+            var curH = blankRow.offsetHeight;
+            blankTd.style.height = (curH + needMore) + 'px';
+          }
+        }
+      }
       return html2canvas(div, {
         scale: scale, useCORS: true, allowTaint: true,
         backgroundColor: '#ffffff', logging: false, removeContainer: false,
@@ -3448,6 +3466,10 @@ function exportNoticePDF() {
       }).then(function(c) {
         // 恢复
         hidden.forEach(function(tr) { tr.style.display = ''; });
+        if (blankRow) {
+          var blankTd = blankRow.querySelector('td');
+          if (blankTd) blankTd.setAttribute('style', origBlankTdStyle);
+        }
         return c;
       });
     }
@@ -3870,7 +3892,7 @@ function buildNoticeFullHTML(task, dateStr, ngItems) {
   var a4ContentH = 727;
   var remainForBlank = a4ContentH - fixedH - contentItemsH;
   var blankH = remainForBlank > 100 ? Math.max(remainForBlank, 50) : 20;
-  h += '<tr>';
+  h += '<tr class="notice-blank-row">';
   h += '<td style="border-left:1px solid #000;border-right:1px solid #000;border-bottom:1px solid #000;height:'+blankH+'px;" colspan="6">&nbsp;</td>';
   h += '</tr>';
 
