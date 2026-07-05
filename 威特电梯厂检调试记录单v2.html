@@ -3377,30 +3377,39 @@ function exportNoticePDF() {
     // A4内容可用高度（CSS像素）：div宽595px，上下padding各57px
     var availH = 595 * 297 / 210 - 57 * 2;
     var footerRow = div.querySelector('.notice-footer-start');
+    var ngRow = div.querySelector('.notice-ng-row');
+    var blankRow = div.querySelector('.notice-blank-row');
     var needSplit = false;
+    var page1Count = 0;
+    var itemH = 18; // 单项高度，会重新测量
 
-    // 检测是否需要分页：底部签署区是否超出一页
-    if (footerRow) {
+    // 续表模式：测量并判断是否需要分页
+    if (footerRow && ngRow && ngItems.length > 0) {
       var divRect = div.getBoundingClientRect();
-      var frRect = footerRow.getBoundingClientRect();
-      // 底部区域顶部位置（相对于内容区，即减去paddingTop）
-      var footerTop = frRect.top - divRect.top - 57;
-      // 底部区域总高度：从footerRow到表格最后一行
       var table = footerRow.closest('table');
-      var footerBottom = 0;
-      if (table) {
-        var lastTr = table.rows[table.rows.length - 1];
-        if (lastTr) {
-          var lastRect = lastTr.getBoundingClientRect();
-          footerBottom = lastRect.bottom - divRect.top - 57;
-        }
-      }
-      if (footerBottom === 0) {
-        footerBottom = footerTop + frRect.height;
-      }
-      // 底部区域底部超出可用高度 → 需要分页
-      if (footerBottom > availH) {
-        needSplit = true;
+      var lastTr = table.rows[table.rows.length - 1];
+      var lastRect = lastTr.getBoundingClientRect();
+      var totalBottom = lastRect.bottom - divRect.top - 57;
+
+      // 不符合项行顶部到内容区顶部的距离（表头固定高度）
+      var ngTopRect = ngRow.getBoundingClientRect();
+      var ngTop = ngTopRect.top - divRect.top - 57;
+      var ngH = ngTopRect.height;
+      itemH = ngH / ngItems.length;
+
+      // 底部签署区高度（footerRow到最后一行）
+      var frRect = footerRow.getBoundingClientRect();
+      var footerH = lastRect.bottom - frRect.top;
+
+      needSplit = totalBottom > availH;
+
+      if (needSplit) {
+        // 计算第一页能放多少项：表头 + 不符合项 + 底边框 ≤ availH
+        // 第一页没有底部签署区，只有不符合项 + 空白撑高行
+        var availNgH = availH - ngTop - 15; // 留15px给底边框+余量
+        page1Count = Math.floor(availNgH / itemH);
+        if (page1Count < 1) page1Count = 1;
+        if (page1Count >= ngItems.length) page1Count = ngItems.length - 1;
       }
     }
 
@@ -3475,29 +3484,14 @@ function exportNoticePDF() {
     }
 
     function renderPage2() {
-      // 第二页：只显示底部签署区，隐藏上面的内容
-      var hidden = [];
-      if (footerRow) {
-        var table = footerRow.closest('table');
-        if (table) {
-          // 用table.rows遍历所有行（跨tbody），找到footerRow的索引，隐藏之前的所有行
-          var footerIdx = -1;
-          for (var i = 0; i < table.rows.length; i++) {
-            if (table.rows[i] === footerRow) { footerIdx = i; break; }
-          }
-          if (footerIdx > 0) {
-            for (var j = 0; j < footerIdx; j++) {
-              hidden.push(table.rows[j]);
-              table.rows[j].style.display = 'none';
-            }
-          }
-          // 隐藏表格前面的所有元素（标题等）
-          var el = table.previousElementSibling;
-          while (el) {
-            hidden.push(el);
-            el.style.display = 'none';
-            el = el.previousElementSibling;
-          }
+      // 第二页：完整表格（表头+剩余不符合项+底部签署区），收窄空白行
+      var blankRow2 = div.querySelector('.notice-blank-row');
+      var origBlankStyle = '';
+      if (blankRow2) {
+        var blankTd2 = blankRow2.querySelector('td');
+        if (blankTd2) {
+          origBlankStyle = blankTd2.getAttribute('style') || '';
+          blankTd2.style.height = '4px';
         }
       }
       return html2canvas(div, {
@@ -3505,8 +3499,10 @@ function exportNoticePDF() {
         backgroundColor: '#ffffff', logging: false, removeContainer: false,
         width: div.scrollWidth, height: div.scrollHeight
       }).then(function(c) {
-        // 恢复
-        hidden.forEach(function(el) { el.style.display = ''; });
+        if (blankRow2) {
+          var blankTd2 = blankRow2.querySelector('td');
+          if (blankTd2) blankTd2.setAttribute('style', origBlankStyle);
+        }
         return c;
       });
     }
@@ -3546,8 +3542,19 @@ function exportNoticePDF() {
         if (container.parentNode) container.parentNode.removeChild(container);
       });
     } else {
-      // 两页：先渲第一页，再渲第二页
+      // 续表模式：两页分别用不同数量的不符合项构建
+      var page1Items = ngItems.slice(0, page1Count);
+      var page2Items = ngItems.slice(page1Count);
+
+      // 第一页：前page1Count项 + 隐藏底部签署区 + 撑高空白行
+      div.innerHTML = buildNoticeFullHTML(task, dateStr, page1Items);
+      // 重新获取元素引用（innerHTML替换后旧引用失效）
+      footerRow = div.querySelector('.notice-footer-start');
+      blankRow = div.querySelector('.notice-blank-row');
+
       renderPage1().then(function(c1) {
+        // 第二页：剩余项 + 完整表格
+        div.innerHTML = buildNoticeFullHTML(task, dateStr, page2Items);
         return renderPage2().then(function(c2) {
           finalize([{canvas: c1}, {canvas: c2}], 2);
         });
@@ -3875,7 +3882,7 @@ function buildNoticeFullHTML(task, dateStr, ngItems) {
   h += '</tr>';
 
   // 行7：经检验上述设备（B:G合并，顶有底无）
-  h += '<tr>';
+  h += '<tr class="notice-ng-row">';
   h += '<td style="border:1px solid #000;border-bottom:none;padding:2px 3px;vertical-align:top;" colspan="6">经检验上述设备，存在以下问题：';
   if (ngItems.length > 0) {
     for (var i = 0; i < ngItems.length; i++) {
