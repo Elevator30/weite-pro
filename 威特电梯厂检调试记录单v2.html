@@ -989,14 +989,6 @@ function showNewCheck() {
     document.getElementById('newManager').value = proj.projectManagerName || '';
   }
   
-  // 填充复制来源下拉
-  var copySelect = document.getElementById('copyFromTask');
-  if (copySelect && proj) {
-    copySelect.innerHTML = '<option value="">不复制</option>';
-    (proj.tasks || []).forEach(function(t, i) {
-      copySelect.innerHTML += '<option value="' + i + '">' + (t.prodNo||'未编号') + ' - ' + (t.model||'') + '</option>';
-    });
-  }
   
   openMoModal('moNewCheck');
 }
@@ -1008,26 +1000,21 @@ function createTask() {
   var proj = getCurrentProject();
   if (!proj) { showToast('请先创建项目！'); return; }
   
-  // 检查是否从已有电梯复制
-  var copySelect = document.getElementById('copyFromTask');
-  var copyFromIdx = -1;
-  if (copySelect && copySelect.value !== '') {
-    copyFromIdx = parseInt(copySelect.value);
-  }
-  
-  var task;
-  if (copyFromIdx >= 0 && copyFromIdx < (proj.tasks || []).length) {
-    // 从已有电梯复制
-    var source = proj.tasks[copyFromIdx];
-    task = JSON.parse(JSON.stringify(source));
-    task.id = Date.now();
-    task.prodNo = prodNo;
-    task.liftNo = document.getElementById('newLiftNo').value.trim();
-    task.checkDate = document.getElementById('newCheckDate').value;
-    task.checks = {};
-    task.signatures = {};
-    task.configParts = {};
-    task.attachments = {
+  var task = {
+    id: Date.now(),
+    prodNo: prodNo,
+    addr: proj.name, // 项目名称从项目读取
+    model: document.getElementById('newModel').value.trim(),
+    load: document.getElementById('newLoad').value.trim(),
+    speed: document.getElementById('newSpeed').value.trim(),
+    liftNo: document.getElementById('newLiftNo').value.trim(),
+    installer: proj.installer, // 从项目读取
+    installAddr: proj.installAddr, // 从项目读取
+    manager: proj.projectManagerName, // 从项目读取
+    checkDate: document.getElementById('newCheckDate').value,
+    checks: {},
+    configParts: JSON.parse(JSON.stringify(configPartsData)),
+    attachments: {
       attach1: {cargate:[Array(15).fill(''),Array(15).fill('')], laygate:[]},
       attach2: {轿厢缓冲距:'',对重缓冲距:'',最大允许值:'',轿厢压缩行程:'',对重压缩行程:'',顶部空间:{},底坑空间:{}},
       attach3: {rows:[{carL:'',carR:'',weightL:'',weightR:''}], maxDev:{carL:'',carR:'',weightL:'',weightR:''}},
@@ -1035,53 +1022,21 @@ function createTask() {
       attach5: {载重:'',电压:{},电流:{},平衡系数:''},
       attach6: {F1:'',F2:'',F3:'',F4:'',F5:'',F6:'',F7:'',F8:'',平均值:'',偏差:''},
       attach7: {}
-    };
-    task.conclusion = '';
-    task.rectifyDeadline = '';
-    task.remark = '';
-    task.sig1 = ''; task.sig2 = ''; task.sig3 = '';
-    task.projectManagerSign = '';
-    task.installerSign = '';
-  } else {
-    // 新建
-    task = {
-      id: Date.now(),
-      prodNo: prodNo,
-      addr: proj.name, // 项目名称从项目读取
-      model: document.getElementById('newModel').value.trim(),
-      load: document.getElementById('newLoad').value.trim(),
-      speed: document.getElementById('newSpeed').value.trim(),
-      liftNo: document.getElementById('newLiftNo').value.trim(),
-      installer: proj.installer, // 从项目读取
-      installAddr: proj.installAddr, // 从项目读取
-      manager: proj.projectManagerName, // 从项目读取
-      checkDate: document.getElementById('newCheckDate').value,
-      checks: {},
-      configParts: JSON.parse(JSON.stringify(configPartsData)),
-      attachments: {
-        attach1: {cargate:[Array(15).fill(''),Array(15).fill('')], laygate:[]},
-        attach2: {轿厢缓冲距:'',对重缓冲距:'',最大允许值:'',轿厢压缩行程:'',对重压缩行程:'',顶部空间:{},底坑空间:{}},
-        attach3: {rows:[{carL:'',carR:'',weightL:'',weightR:''}], maxDev:{carL:'',carR:'',weightL:'',weightR:''}},
-        attach4: {rows:[{car:'',weight:''}], maxDev:{car:'',weight:''}, refCar:'', refWeight:''},
-        attach5: {载重:'',电压:{},电流:{},平衡系数:''},
-        attach6: {F1:'',F2:'',F3:'',F4:'',F5:'',F6:'',F7:'',F8:'',平均值:'',偏差:''},
-        attach7: {}
-      },
-      remark: '',
-      sig1: '', sig2: '', sig3: '',
-      conclusion: '',
-      rectifyDeadline: '',
-      projectManagerSign: '',
-      installerSign: '',
-      installerName: '',
-      projectManagerName: ''
-    };
-    
-    // 如果配置单有载重，自动填入附表5
-    var loadWeight = configPartsData['额定载重量'] || '';
-    if (loadWeight) {
-      task.attachments.attach5.载重 = loadWeight;
-    }
+    },
+    remark: '',
+    sig1: '', sig2: '', sig3: '',
+    conclusion: '',
+    rectifyDeadline: '',
+    projectManagerSign: '',
+    installerSign: '',
+    installerName: '',
+    projectManagerName: ''
+  };
+  
+  // 如果配置单有载重，自动填入附表5
+  var loadWeight = configPartsData['额定载重量'] || '';
+  if (loadWeight) {
+    task.attachments.attach5.载重 = loadWeight;
   }
   
   if (!proj.tasks) proj.tasks = [];
@@ -1090,7 +1045,7 @@ function createTask() {
   closeMoModal('moNewCheck');
   currentTaskIndex = proj.tasks.length - 1;
   // 新建后同步配置单数据到任务
-  if (Object.keys(configPartsData).length > 0 && copyFromIdx < 0) {
+  if (Object.keys(configPartsData).length > 0) {
     proj.tasks[currentTaskIndex].configParts = JSON.parse(JSON.stringify(configPartsData));
     saveProjects();
   }
@@ -5056,13 +5011,6 @@ function renderNoticeList() {
       <div class="fr"><label>安装地点</label><input type="text" id="newInstallAddr" readonly style="background:#f5f5f5;"></div>
       <div class="fr"><label>项目管理员</label><input type="text" id="newManager" readonly style="background:#f5f5f5;"></div>
       <div class="fr"><label>检验日期</label><input type="date" id="newCheckDate"></div>
-      <div class="fr">
-        <label>从已有电梯复制</label>
-        <select id="copyFromTask">
-          <option value="">不复制</option>
-        </select>
-      </div>
-      <div style="font-size:11px;color:#999;margin-top:-8px;margin-left:88px;">选择后将复制配置单和检查项结构</div>
     </div>
     <div class="mc">
       <button class="mc-cancel" onclick="closeMoModal('moNewCheck')">取消</button>
