@@ -3477,19 +3477,21 @@ function exportNoticePDF() {
     function renderPage2() {
       // 第二页：只显示底部签署区，隐藏上面的内容
       var hidden = [];
-      // 隐藏表格中footerRow之前的所有行
       if (footerRow) {
-        var prev = footerRow.previousElementSibling;
-        while (prev) {
-          if (prev.tagName === 'TR') {
-            hidden.push(prev);
-            prev.style.display = 'none';
-          }
-          prev = prev.previousElementSibling;
-        }
-        // 隐藏表格前面的所有元素（标题等）
         var table = footerRow.closest('table');
         if (table) {
+          // 用table.rows遍历所有行（跨tbody），找到footerRow的索引，隐藏之前的所有行
+          var footerIdx = -1;
+          for (var i = 0; i < table.rows.length; i++) {
+            if (table.rows[i] === footerRow) { footerIdx = i; break; }
+          }
+          if (footerIdx > 0) {
+            for (var j = 0; j < footerIdx; j++) {
+              hidden.push(table.rows[j]);
+              table.rows[j].style.display = 'none';
+            }
+          }
+          // 隐藏表格前面的所有元素（标题等）
           var el = table.previousElementSibling;
           while (el) {
             hidden.push(el);
