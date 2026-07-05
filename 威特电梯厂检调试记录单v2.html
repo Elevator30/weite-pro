@@ -3409,7 +3409,7 @@ function exportNoticePDF() {
       footerH = lastRect.bottom - frRect.top;
 
       // 计算每页最多能放多少项（表头 + 不符合项 + 底部签署区 ≤ 一页）
-      var availNgH = availH - ngTop - footerH - titleH - 8; // 留8px余量
+      var availNgH = availH - ngTop - footerH - titleH - 2; // 留2px余量
       perPageCount = Math.floor(availNgH / itemH);
       if (perPageCount < 1) perPageCount = 1;
 
@@ -3878,19 +3878,29 @@ function buildNoticeFullHTML(task, dateStr, ngItems, startIndex) {
   h += '</td></tr>';
 
   // 行34：检验人员行（B + C:E合并 + F + G，仅底部有边，内部无竖线）
+  var inspSig = (task.signatures && task.signatures.inspectorSig) || '';
+  var inspName = (task.signatures && task.signatures.inspectorName) || task.manager || '';
   h += '<tr>';
   h += '<td style="border:1px solid #000;border-top:none;border-right:none;padding:4px 3px;height:28px;white-space:nowrap;">检验人员：</td>';
-  h += '<td style="border-top:none;border-bottom:1px solid #000;padding:4px 3px;height:28px;" colspan="3">' + escHtml(task.signatures && task.signatures.inspectorName || task.manager || '') + '</td>';
+  h += '<td style="border-top:none;border-bottom:1px solid #000;padding:4px 3px;height:28px;position:relative;" colspan="3">';
+  h += escHtml(inspName);
+  if (inspSig) h += '<img src="' + inspSig + '" style="position:absolute;right:4px;bottom:2px;height:22px;opacity:0.85;">';
+  h += '</td>';
   h += '<td style="border-top:none;border-bottom:1px solid #000;padding:4px 3px;height:28px;white-space:nowrap;">检验日期：</td>';
   h += '<td style="border:1px solid #000;border-top:none;border-left:none;padding:4px 1px;height:28px;text-align:right;">' + (task.checkDate||dateStr ? escHtml(task.checkDate||dateStr) : '<span style="letter-spacing:10px;white-space:nowrap;">年月日</span>') + '</td>';
   h += '</tr>';
 
   // 行35：安装单位代表 / 签收日期
+  var pmSig = (task.signatures && task.signatures.pmSig) || '';
+  var pmName = task.projectManagerName || task.manager || '';
   h += '<tr>';
   h += '<td style="border:1px solid #000;border-top:none;padding:4px 3px;height:28px;white-space:nowrap;">安装单位代表：</td>';
-  h += '<td style="border:1px solid #000;padding:4px 3px;height:28px;" colspan="3">' + escHtml(task.pmName||task.manager||'') + '</td>';
+  h += '<td style="border:1px solid #000;padding:4px 3px;height:28px;position:relative;" colspan="3">';
+  h += escHtml(pmName);
+  if (pmSig) h += '<img src="' + pmSig + '" style="position:absolute;right:4px;bottom:2px;height:22px;opacity:0.85;">';
+  h += '</td>';
   h += '<td style="border:1px solid #000;border-top:none;padding:4px 3px;height:28px;white-space:nowrap;">签收日期：</td>';
-  h += '<td style="border:1px solid #000;padding:4px 3px;height:28px;">' + escHtml(task.installerName||task.installerSign||'') + '</td>';
+  h += '<td style="border:1px solid #000;padding:4px 3px;height:28px;">' + (task.checkDate ? escHtml(task.checkDate) : '') + '</td>';
   h += '</tr>';
 
   // 行36：整改情况反馈 + 整改结果确认
