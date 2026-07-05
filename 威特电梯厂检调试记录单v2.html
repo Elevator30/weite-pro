@@ -1026,8 +1026,22 @@ function createTask() {
     task.checkDate = document.getElementById('newCheckDate').value;
     task.checks = {};
     task.signatures = {};
+    task.configParts = {};
+    task.attachments = {
+      attach1: {cargate:[Array(15).fill(''),Array(15).fill('')], laygate:[]},
+      attach2: {轿厢缓冲距:'',对重缓冲距:'',最大允许值:'',轿厢压缩行程:'',对重压缩行程:'',顶部空间:{},底坑空间:{}},
+      attach3: {rows:[{carL:'',carR:'',weightL:'',weightR:''}], maxDev:{carL:'',carR:'',weightL:'',weightR:''}},
+      attach4: {rows:[{car:'',weight:''}], maxDev:{car:'',weight:''}, refCar:'', refWeight:''},
+      attach5: {载重:'',电压:{},电流:{},平衡系数:''},
+      attach6: {F1:'',F2:'',F3:'',F4:'',F5:'',F6:'',F7:'',F8:'',平均值:'',偏差:''},
+      attach7: {}
+    };
     task.conclusion = '';
     task.rectifyDeadline = '';
+    task.remark = '';
+    task.sig1 = ''; task.sig2 = ''; task.sig3 = '';
+    task.projectManagerSign = '';
+    task.installerSign = '';
   } else {
     // 新建
     task = {
