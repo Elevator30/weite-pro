@@ -3903,11 +3903,11 @@ function buildNoticeFullHTML(task, dateStr, ngItems) {
   h += '<td style="border:1px solid #000;border-top:none;border-left:none;padding:4px 1px;height:28px;text-align:right;">' + (task.checkDate||dateStr ? escHtml(task.checkDate||dateStr) : '<span style="letter-spacing:10px;white-space:nowrap;">年月日</span>') + '</td>';
   h += '</tr>';
 
-  // 行35：项目管理人员 / 安装人员
+  // 行35：安装单位代表 / 签收日期
   h += '<tr>';
-  h += '<td style="border:1px solid #000;border-top:none;padding:4px 3px;height:28px;white-space:nowrap;">项目管理人员：</td>';
+  h += '<td style="border:1px solid #000;border-top:none;padding:4px 3px;height:28px;white-space:nowrap;">安装单位代表：</td>';
   h += '<td style="border:1px solid #000;padding:4px 3px;height:28px;" colspan="3">' + escHtml(task.pmName||task.manager||'') + '</td>';
-  h += '<td style="border:1px solid #000;border-top:none;padding:4px 3px;height:28px;white-space:nowrap;">安装人员：</td>';
+  h += '<td style="border:1px solid #000;border-top:none;padding:4px 3px;height:28px;white-space:nowrap;">签收日期：</td>';
   h += '<td style="border:1px solid #000;padding:4px 3px;height:28px;">' + escHtml(task.installerName||task.installerSign||'') + '</td>';
   h += '</tr>';
 
@@ -3917,9 +3917,9 @@ function buildNoticeFullHTML(task, dateStr, ngItems) {
   h += '<td style="border:1px solid #000;padding:4px 3px;height:63px;line-height:1.8;" colspan="3">整改结果确认：<br>□约定期限内未提供整改材料（视频/图片），不合格<br>□整改合格<br>□整改不合格</td>';
   h += '</tr>';
 
-  // 行37：项目管理人员（盖章）+检验人员（6列独立，底有边，B列顶无边）
+  // 行37：安装单位代表（盖章）+检验人员（6列独立，底有边，B列顶无边）
   h += '<tr>';
-  h += '<td style="border:1px solid #000;border-top:none;padding:4px 3px;height:28px;text-align:center;">项目管理人员：</td>';
+  h += '<td style="border:1px solid #000;border-top:none;padding:4px 3px;height:28px;text-align:center;">安装单位代表：</td>';
   h += '<td style="border:1px solid #000;padding:4px 3px;height:28px;text-align:center;">（盖章）</td>';
   h += '<td style="border:1px solid #000;padding:4px 1px;height:28px;text-align:right;"><span style="letter-spacing:10px;white-space:nowrap;">年月日</span></td>';
   h += '<td style="border:1px solid #000;padding:4px 3px;height:28px;text-align:center;">检验人员：</td>';
