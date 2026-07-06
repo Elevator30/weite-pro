@@ -4124,7 +4124,7 @@ function calcBalanceFactor(upCurrents, downCurrents) {
   
   return {
     found: found,
-    value: Math.round(balancePoint * 10) / 10
+    value: Math.round(balancePoint * 100) / 100
   };
 }
 
@@ -4307,9 +4307,9 @@ function drawBalanceChart(canvasId, upCurrents, downCurrents, balancePoint) {
       ctx.font = 'bold 11px Arial';
       ctx.textAlign = 'left';
       if (hasRealIntersection) {
-        ctx.fillText('交点: ' + balancePoint + '%', bx + 5, by - 5);
+        ctx.fillText('交点: ' + (Math.round(balancePoint * 100) / 100) + '%', bx + 5, by - 5);
       } else {
-        ctx.fillText('无交点(估算: ' + balancePoint + '%)', bx + 5, by - 5);
+        ctx.fillText('无交点(估算: ' + (Math.round(balancePoint * 100) / 100) + '%)', bx + 5, by - 5);
       }
     }
   }
@@ -4453,12 +4453,26 @@ function updateAtt5Current(key, idx, val) {
   var att5 = task.attachments.attach5;
   if (!att5.电流[key]) att5.电流[key] = ['','','','',''];
   att5.电流[key][idx] = val;
-  saveCurrentTask();
-  // 实时更新图表（不重新渲染整个表）
+  
+  // 实时计算平衡系数
   var upCurrents = att5.电流.电流上行 || ['','','','',''];
   var downCurrents = att5.电流.电流下行 || ['','','','',''];
-  var bp = parseFloat(att5.平衡系数) || 0;
-  drawBalanceChart('balanceChart', upCurrents, downCurrents, bp);
+  var result = calcBalanceFactor(upCurrents, downCurrents);
+  if (result.found) {
+    att5.平衡系数 = result.value.toString();
+    // 自动回填到id 76
+    if (!task.checks[76]) task.checks[76] = {};
+    task.checks[76].v = result.value + '%';
+    if (result.value >= 40 && result.value <= 50) {
+      task.checks[76].s = 'ok';
+    } else {
+      task.checks[76].s = 'ng';
+      task.checks[76].n = '平衡系数不在40%-50%范围内';
+    }
+  }
+  
+  saveCurrentTask();
+  renderAttachments();
 }
 
 function calcAndDrawBalance() {
@@ -6128,8 +6142,8 @@ function buildAttachHTML(task, dateStr, pageNum) {
     topKeys.forEach(function(k,i){
       h += '<tr><td style="border:1px solid #000;padding:1px 2px;">顶部'+escHtml(topLabels[i])+'</td><td style="border:1px solid #000;padding:1px 2px;text-align:center;">' + escHtml(att2.顶部空间[k]||'') + '</td></tr>';
     });
-    var pitKeys = ['p1','p2','p3','p4','p5'];
-    var pitLabels = ['①底坑距','②对重制导','③水平距','④最高部件','⑤轿底空间'];
+    var pitKeys = ['p1','p2','p3h','p3v1','p3v2','p4','p5'];
+    var pitLabels = ['①底坑距','②对重制导','③水平距','③-1护脚板垂直距','③-2轿厢最低部件距','④最高部件','⑤轿底空间'];
     pitKeys.forEach(function(k,i){
       h += '<tr><td style="border:1px solid #000;padding:1px 2px;">底坑'+escHtml(pitLabels[i])+'</td><td style="border:1px solid #000;padding:1px 2px;text-align:center;">' + escHtml(att2.底坑空间[k]||'') + '</td></tr>';
     });
@@ -6348,8 +6362,8 @@ function buildSingleAttachHTML(task, dateStr, attNum) {
     topKeys.forEach(function(k,i){
       h += '<tr><td style="border:1px solid #000;padding:1px 2px;">顶部'+escHtml(topLabels[i])+'</td><td style="border:1px solid #000;padding:1px 2px;text-align:center;">' + escHtml(att2.顶部空间[k]||'') + '</td></tr>';
     });
-    var pitKeys = ['p1','p2','p3','p4','p5'];
-    var pitLabels = ['①底坑距','②对重制导','③水平距','④最高部件','⑤轿底空间'];
+    var pitKeys = ['p1','p2','p3h','p3v1','p3v2','p4','p5'];
+    var pitLabels = ['①底坑距','②对重制导','③水平距','③-1护脚板垂直距','③-2轿厢最低部件距','④最高部件','⑤轿底空间'];
     pitKeys.forEach(function(k,i){
       h += '<tr><td style="border:1px solid #000;padding:1px 2px;">底坑'+escHtml(pitLabels[i])+'</td><td style="border:1px solid #000;padding:1px 2px;text-align:center;">' + escHtml(att2.底坑空间[k]||'') + '</td></tr>';
     });
