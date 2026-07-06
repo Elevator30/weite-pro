@@ -8,7 +8,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="威特厂检记录">
 <meta name="theme-color" content="#667eea">
-<title>威特电梯厂检调试记录单V2 v49</title>
+<title>威特电梯厂检调试记录单V2 v50</title>
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%231a3a6b'/%3E%3Ctext x='50' y='42' font-family='Arial' font-size='28' font-weight='900' text-anchor='middle' fill='white'%3EVEITE%3C/text%3E%3Ctext x='50' y='72' font-family='serif' font-size='16' font-weight='800' text-anchor='middle' fill='%23e63946'%3E电梯%3C/text%3E%3C/svg%3E">
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
@@ -1652,13 +1652,13 @@ function createTask() {
     configParts: JSON.parse(JSON.stringify(configPartsData)),
     attachments: {
       attach1: {cargate:[Array(15).fill(''),Array(15).fill('')], laygate:[]},
-      attach2: {轿厢缓冲距:'',对重缓冲距:'',最大允许值:'',轿厢压缩行程:'',对重压缩行程:'',顶部空间:{},底坑空间:{}},
-      attach3: {rows:[{carL:'',carR:'',weightL:'',weightR:''}], maxDev:{carL:'',carR:'',weightL:'',weightR:''}},
-      attach4: {rows:[{car:'',weight:''}], maxDev:{car:'',weight:''}, refCar:'', refWeight:''},
-      attach5: {载重:'',电压:{},电流:{},平衡系数:''},
-      attach6: {F1:'',F2:'',F3:'',F4:'',F5:'',F6:'',F7:'',F8:'',平均值:'',偏差:''},
-      attach7: {}
-    },
+      attach2: {轿厢缓冲距:'',对重缓冲距:'',最大允许值:'',轿厢压缩行程:'',对重压缩行程:'',顶部空间:{s1:'',s2:'',s3:'',s4:'',s5L:'',s5W:'',s5H:''},底坑空间:{p1:'',p2:'',p3h:'',p3v1:'',p3v2:'',p4:'',p5L:'',p5W:'',p5H:''}},
+      attach3: {rows:[{carL:'',carR:'',weightL:'',weightR:''}], hasWeightSafety: 'yes'},
+      attach4: {rows:[{car:'',weight:''}], refCar:'', refWeight:''},
+      attach5: {载重:'',砝码重量:'25',电压:{},电流:{电流上行:['','','','',''], 电流下行:['','','','','']}, 平衡系数:''},
+      attach6: {ropeCount: 6, forces: ['','','','','','','','','','','',''], 平均值:'',偏差:''},
+      attach7: {开门层站:'',关门层站:'',开门轿厢:'',关门轿厢:'',上行轿厢:'',下行轿厢:'',机房1:'',机房2:'',机房3:'',无机房层门:''}
+    },,
     remark: '',
     sig1: '', sig2: '', sig3: '',
     conclusion: '',
@@ -3069,9 +3069,9 @@ function switchAtt(index) {
   renderAttachments();
 }
 
-// ============ ATTACHMENT 1 - 门间隙 (下拉选择模式) ============
-var currentAtt1Door = 'cargate'; // 'cargate' 前门, 'cargated' 后门, 'laygate' 层门
-var currentLaygateEditIdx = -1; // -1=未编辑, -2=新增模式, >=0=编辑某层
+// ============ ATTACHMENT 1 - 门间隙 (v50 布局调整) ============
+var currentAtt1Door = 'cargate';
+var currentLaygateEditIdx = -1;
 
 function startNewLaygate() {
   currentLaygateEditIdx = -2;
@@ -3104,23 +3104,17 @@ function saveAndNewLaygate() {
   if (!att1.laygate) att1.laygate = [];
   att1.laygate.push({name: name, data: data});
   saveCurrentTask();
-  // 保持在新增模式，清空输入准备下一层
   currentLaygateEditIdx = -2;
   var target = document.getElementById('attModalBody') || document.getElementById('attContent');
   if (target) renderAttach1(target);
-  // 滚动到顶部方便填下一个
   var mb = document.getElementById('attModalBody');
   if (mb) mb.scrollTop = 0;
   showToast(name + ' 已保存，请继续填写下一层');
 }
 
-function saveNewLaygate() {
-  saveAndNewLaygate();
-}
+function saveNewLaygate() { saveAndNewLaygate(); }
 
 function saveEditAndNewLaygate() {
-  // 先保存当前编辑的楼层数据（实时保存已在updateLaygateVal中完成）
-  // 切换到新增模式
   currentLaygateEditIdx = -2;
   var target = document.getElementById('attModalBody') || document.getElementById('attContent');
   if (target) renderAttach1(target);
@@ -3131,24 +3125,17 @@ function saveEditAndNewLaygate() {
 
 function renderAttach1(container) {
   if (!container) return;
-  var task = getCurrentTask();
-  if (!task) return;
+  var task = getCurrentTask(); if (!task) return;
   var att1 = task.attachments.attach1;
   
-  // 修复旧数据格式：cargate可能是扁平数组
   if (att1.cargate && !Array.isArray(att1.cargate[0])) {
     att1.cargate = [Array(15).fill(''), Array(15).fill('')];
   }
-  if (!att1.cargate) {
-    att1.cargate = [Array(15).fill(''), Array(15).fill('')];
-  }
-  if (!att1.laygate) {
-    att1.laygate = [];
-  }
+  if (!att1.cargate) att1.cargate = [Array(15).fill(''), Array(15).fill('')];
+  if (!att1.laygate) att1.laygate = [];
   
   var html = '<div class="att-card"><div class="att-card-title">🚪 门间隙测量表</div>';
   
-  // 门类型选择
   html += '<div class="fr"><label>门类型</label><select id="att1DoorType" onchange="changeAtt1DoorType(this.value)" style="flex:1;border:1px solid #ddd;border-radius:6px;padding:10px;font-size:14px;">';
   html += '<option value="cargate"' + (currentAtt1Door === 'cargate' ? ' selected' : '') + '>轿门-前门</option>';
   html += '<option value="cargated"' + (currentAtt1Door === 'cargated' ? ' selected' : '') + '>轿门-后门</option>';
@@ -3156,10 +3143,7 @@ function renderAttach1(container) {
   html += '</select></div>';
   
   if (currentAtt1Door === 'laygate') {
-    // 层门模式 - 列表+编辑
     var laygates = att1.laygate || [];
-    
-    // 已保存楼层列表
     if (laygates.length > 0) {
       html += '<div style="margin-bottom:10px;font-size:12px;font-weight:600;color:#4a5568;">📋 已保存楼层</div>';
       laygates.forEach(function(d, i) {
@@ -3172,174 +3156,128 @@ function renderAttach1(container) {
         html += '</div>';
       });
     }
-    
-    // 编辑区
-    // 层门模式：没有编辑时默认进入新增
-    if (currentLaygateEditIdx === -1) {
-      currentLaygateEditIdx = -2;
-    }
+    if (currentLaygateEditIdx === -1) currentLaygateEditIdx = -2;
     if (currentLaygateEditIdx >= 0) {
-      // 编辑已有楼层
       var d = laygates[currentLaygateEditIdx];
       html += '<div style="margin-top:10px;padding:12px;background:#fff;border:1.5px solid #667eea;border-radius:10px;">';
       html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">';
       html += '<span style="font-size:13px;font-weight:600;color:#667eea;">✏️ 编辑: </span>';
-      html += '<input type="text" value="' + (d.name||'') + '" placeholder="楼层号(如3楼/5楼/顶层)" onchange="updateLaygateName(' + currentLaygateEditIdx + ',this.value)" style="flex:1;border:1px solid #ddd;border-radius:6px;padding:8px;font-size:13px;">';
+      html += '<input type="text" value="' + (d.name||'') + '" placeholder="楼层号" onchange="updateLaygateName(' + currentLaygateEditIdx + ',this.value)" style="flex:1;border:1px solid #ddd;border-radius:6px;padding:8px;font-size:13px;">';
       html += '<button onclick="closeLaygateEdit()" style="background:#f5f5f5;border:1px solid #ddd;border-radius:6px;padding:6px 10px;font-size:12px;cursor:pointer;">收起</button>';
       html += '</div>';
       html += renderAtt1LaygateInputs(d.data || Array(15).fill(''), currentLaygateEditIdx);
       html += '<div style="margin-top:8px;"><button onclick="saveEditAndNewLaygate()" style="width:100%;padding:10px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;">保存并新增下一层</button></div>';
       html += '</div>';
     } else if (currentLaygateEditIdx === -2) {
-      // 新增模式
       html += '<div style="margin-top:10px;padding:12px;background:#fff;border:1.5px solid #667eea;border-radius:10px;">';
       html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">';
       html += '<span style="font-size:13px;font-weight:600;color:#667eea;">➕ 新增楼层</span>';
-      html += '<input type="text" id="newLaygateName" placeholder="楼层号(如3楼/5楼/顶层)" style="flex:1;border:1px solid #ddd;border-radius:6px;padding:8px;font-size:13px;">';
+      html += '<input type="text" id="newLaygateName" placeholder="楼层号" style="flex:1;border:1px solid #ddd;border-radius:6px;padding:8px;font-size:13px;">';
       html += '</div>';
       html += renderAtt1LaygateInputs(Array(15).fill(''), '_new');
       html += '<div style="margin-top:8px;"><button onclick="saveAndNewLaygate()" style="width:100%;padding:10px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;">新增楼层</button></div>';
       html += '</div>';
     }
   } else {
-    // 轿门模式 - 左右配对排列
+    // 轿门模式 v50: 3行（去掉门地坎、轿门刀、层门锁滚轮、门扇与地坎）
     var cargateIdx = currentAtt1Door === 'cargate' ? 0 : 1;
-    var cargateData = att1.cargate[cargateIdx] || Array(15).fill('');
-    var pairs = [
-      [{label:'门地坎距离-左', std:'≤35mm', idx:0, warn:'>'}, {label:'门地坎距离-右', std:'≤35mm', idx:1, warn:'>'}],
-      [{label:'门扇与立柱间隙-左', std:'≤6mm', idx:2, warn:'>'}, {label:'门扇与立柱间隙-右', std:'≤6mm', idx:3, warn:'>'}],
-      [{label:'门扇与门楣间隙-左', std:'≤6mm', idx:4, warn:'>'}, {label:'门扇与门楣间隙-右', std:'≤6mm', idx:5, warn:'>'}],
-      [{label:'门扇间施力间隙', std:'旁开≤30/中分≤45', idx:6, warn:'>'}, null],
-      [{label:'门扇间间隙-左', std:'3-6mm', idx:7, warn:'>'}, {label:'门扇间间隙-右', std:'3-6mm', idx:8, warn:'>'}],
-      [{label:'门锁啮合长度', std:'≥7mm', idx:9, warn:'<'}, null],
-      [{label:'轿门刀与层门地坎-左', std:'≥5mm', idx:10, warn:'<'}, {label:'轿门刀与层门地坎-右', std:'≥5mm', idx:11, warn:'<'}],
-      [{label:'层门锁滚轮与轿厢地坎-左', std:'≥5mm', idx:12, warn:'<'}, {label:'层门锁滚轮与轿厢地坎-右', std:'≥5mm', idx:13, warn:'<'}],
-      [{label:'门扇与地坎间隙', std:'≤6mm', idx:14, warn:'>'}, null]
+    var cd = att1.cargate[cargateIdx] || Array(15).fill('');
+    
+    var rows = [
+      {type:'pair', l:{label:'门扇与立柱/门楣间隙-左',std:'≤6mm',idx:2}, r:{label:'门扇与立柱/门楣间隙-右',std:'≤6mm',idx:3}},
+      {type:'pair', l:{label:'门扇间间隙',std:'3-6mm',idx:7}, r:{label:'门扇间施力间隙',std:'旁开≤30/中分≤45',idx:6}},
+      {type:'single', f:{label:'门锁啮合长度',std:'≥7mm',idx:9}}
     ];
     
-    pairs.forEach(function(pair, pi) {
+    rows.forEach(function(row) {
       html += '<div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;padding:6px 0;border-bottom:1px solid #f0f0f0;">';
-      // 左项
-      var f = pair[0];
-      var val = cargateData[f.idx] || '';
-      html += '<div style="flex:1;min-width:0;">';
-      html += '<div style="font-size:11px;color:#4a5568;margin-bottom:2px;">' + f.label + '</div>';
-      html += '<div style="display:flex;align-items:center;gap:4px;">';
-      html += '<input type="text" value="' + val + '" placeholder="-" inputmode="decimal" onchange="updateCargateVal(' + cargateIdx + ',' + f.idx + ',this.value)" style="width:50px;border:1px solid #ddd;border-radius:4px;padding:4px 6px;font-size:13px;text-align:center;">';
-      html += '<span style="font-size:12px;color:#999;">' + f.std + '</span>';
-      html += '</div></div>';
-      // 右项
-      if (pair[1]) {
-        var f2 = pair[1];
-        var val2 = cargateData[f2.idx] || '';
-        html += '<div style="flex:1;min-width:0;">';
-        html += '<div style="font-size:11px;color:#4a5568;margin-bottom:2px;">' + f2.label + '</div>';
-        html += '<div style="display:flex;align-items:center;gap:4px;">';
-        html += '<input type="text" value="' + val2 + '" placeholder="-" inputmode="decimal" onchange="updateCargateVal(' + cargateIdx + ',' + f2.idx + ',this.value)" style="width:50px;border:1px solid #ddd;border-radius:4px;padding:4px 6px;font-size:13px;text-align:center;">';
-        html += '<span style="font-size:12px;color:#999;">' + f2.std + '</span>';
-        html += '</div></div>';
+      function mkInput(f) {
+        var val = cd[f.idx] || '';
+        var s = '<div style="flex:1;min-width:0;"><div style="font-size:11px;color:#4a5568;margin-bottom:2px;">' + f.label + '</div>';
+        s += '<div style="display:flex;align-items:center;gap:4px;">';
+        s += '<input type="text" value="' + val + '" placeholder="-" inputmode="decimal" oninput="updateCargateVal(' + cargateIdx + ',' + f.idx + ',this.value)" style="width:50px;border:1px solid #ddd;border-radius:4px;padding:4px 6px;font-size:13px;text-align:center;">';
+        s += '<span style="font-size:12px;color:#999;">' + f.std + '</span></div></div>';
+        return s;
+      }
+      if (row.type === 'pair') {
+        html += mkInput(row.l) + mkInput(row.r);
+      } else {
+        html += mkInput(row.f);
       }
       html += '</div>';
     });
   }
   
   html += '</div>';
-  
-  // 自动判定结果
   html += renderAttach1Judge();
-  
   container.innerHTML = html;
 }
 
 function updateCargateVal(cargateIdx, fieldIdx, val) {
-  var task = getCurrentTask(); if (!task) return; var att1 = task.attachments.attach1;
+  var task = getCurrentTask(); if (!task) return;
+  var att1 = task.attachments.attach1;
   if (!att1.cargate[cargateIdx]) att1.cargate[cargateIdx] = Array(15).fill('');
   att1.cargate[cargateIdx][fieldIdx] = val;
   saveCurrentTask();
 }
 
 function updateLaygateName(rowIdx, val) {
-  var task = getCurrentTask(); if (!task) return; var att1 = task.attachments.attach1;
-  if (att1.laygate[rowIdx]) att1.laygate[rowIdx].name = val;
+  var task = getCurrentTask(); if (!task) return;
+  if (task.attachments.attach1.laygate[rowIdx])
+    task.attachments.attach1.laygate[rowIdx].name = val;
   saveCurrentTask();
 }
 
 function deleteLaygateRow(rowIdx) {
-  var task = getCurrentTask(); if (!task) return; var att1 = task.attachments.attach1;
-  att1.laygate.splice(rowIdx, 1);
+  var task = getCurrentTask(); if (!task) return;
+  task.attachments.attach1.laygate.splice(rowIdx, 1);
   saveCurrentTask();
   currentLaygateEditIdx = -1;
   var target = document.getElementById('attModalBody') || document.getElementById('attContent');
   if (target) renderAttach1(target);
 }
 
-function updateLaygateVal(rowIdx, fieldIdx, val) {
-  var task = getCurrentTask(); if (!task) return; var att1 = task.attachments.attach1;
-  if (att1.laygate[rowIdx] && att1.laygate[rowIdx].data) {
-    att1.laygate[rowIdx].data[fieldIdx] = val;
-  }
-  saveCurrentTask();
-}
-
 function renderAttach1Judge() {
-  // 简单判定逻辑
-  var task = getCurrentTask(); if (!task) return; var att1 = task.attachments.attach1;
-  var judgeHtml = '<div style="margin-top:12px;padding:10px;background:#f8fafc;border-radius:8px;font-size:12px;color:#718096;">自动判定: 门间隙数据待填写</div>';
-  return judgeHtml;
+  return '<div style="margin-top:12px;padding:10px;background:#f8fafc;border-radius:8px;font-size:12px;color:#718096;">自动判定: 门间隙数据待填写</div>';
 }
 
 function changeAtt1DoorType(type) {
   currentAtt1Door = type;
   var target = document.getElementById('attModalBody') || document.getElementById('attContent');
   if (target) renderAttach1(target);
-  // 更新底部按钮
   updateAtt1Footer();
 }
 
 function renderAtt1LaygateInputs(data, rowIdx) {
   var isNew = (rowIdx === '_new');
-  var pairs = [
-    [{label:'门地坎距离-左', std:'≤35mm', idx:0}, {label:'门地坎距离-右', std:'≤35mm', idx:1}],
-    [{label:'门扇与立柱间隙-左', std:'≤6mm', idx:2}, {label:'门扇与立柱间隙-右', std:'≤6mm', idx:3}],
-    [{label:'门扇与门楣间隙-左', std:'≤6mm', idx:4}, {label:'门扇与门楣间隙-右', std:'≤6mm', idx:5}],
-    [{label:'门扇间施力间隙', std:'旁开≤30/中分≤45', idx:6}, null],
-    [{label:'门扇间间隙-左', std:'3-6mm', idx:7}, {label:'门扇间间隙-右', std:'3-6mm', idx:8}],
-    [{label:'门锁啮合长度', std:'≥7mm', idx:9}, null],
-    [{label:'轿门刀与层门地坎-左', std:'≥5mm', idx:10}, {label:'轿门刀与层门地坎-右', std:'≥5mm', idx:11}],
-    [{label:'层门锁滚轮与轿厢地坎-左', std:'≥5mm', idx:12}, {label:'层门锁滚轮与轿厢地坎-右', std:'≥5mm', idx:13}],
-    [{label:'门扇与地坎间隙', std:'≤6mm', idx:14}, null]
+  // v50层门布局: 5行
+  var rows = [
+    {type:'pair', l:{label:'门扇与立柱/门楣间隙-左',std:'≤6mm',idx:2}, r:{label:'门扇与立柱/门楣间隙-右',std:'≤6mm',idx:3}},
+    {type:'pair', l:{label:'门扇间间隙',std:'3-6mm',idx:7}, r:{label:'门扇间施力间隙',std:'旁开≤30/中分≤45',idx:6}},
+    {type:'single', f:{label:'门锁啮合长度',std:'≥7mm',idx:9}},
+    {type:'pair', l:{label:'轿门刀与层门地坎',std:'≥5mm',idx:10}, r:{label:'层门锁滚轮与轿厢地坎',std:'≥5mm',idx:12}},
+    {type:'pair', l:{label:'门扇与地坎间隙-左',std:'≤6mm',idx:14}, r:{label:'门扇与地坎间隙-右',std:'≤6mm',idx:1}}
   ];
   
   var html = '';
-  pairs.forEach(function(pair) {
+  rows.forEach(function(row) {
     html += '<div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;padding:4px 0;border-bottom:1px solid #f0f0f0;">';
-    // 左项
-    var f = pair[0];
-    var val = data[f.idx] || '';
-    html += '<div style="flex:1;min-width:0;">';
-    html += '<div style="font-size:12px;color:#4a5568;margin-bottom:1px;">' + f.label + '</div>';
-    html += '<div style="display:flex;align-items:center;gap:3px;">';
-    if (isNew) {
-      html += '<input type="text" value="' + val + '" placeholder="-" inputmode="decimal" id="laygate_new_' + f.idx + '" style="width:50px;border:1px solid #ddd;border-radius:4px;padding:3px 5px;font-size:12px;text-align:center;">';
-    } else {
-      html += '<input type="text" value="' + val + '" placeholder="-" inputmode="decimal" onchange="updateLaygateVal(' + rowIdx + ',' + f.idx + ',this.value)" style="width:50px;border:1px solid #ddd;border-radius:4px;padding:3px 5px;font-size:12px;text-align:center;">';
-    }
-    html += '<span style="font-size:9px;color:#999;">' + f.std + '</span>';
-    html += '</div></div>';
-    // 右项
-    if (pair[1]) {
-      var f2 = pair[1];
-      var val2 = data[f2.idx] || '';
-      html += '<div style="flex:1;min-width:0;">';
-      html += '<div style="font-size:12px;color:#4a5568;margin-bottom:1px;">' + f2.label + '</div>';
-      html += '<div style="display:flex;align-items:center;gap:3px;">';
+    function mkInput(f) {
+      var val = data[f.idx] || '';
+      var s = '<div style="flex:1;min-width:0;"><div style="font-size:12px;color:#4a5568;margin-bottom:1px;">' + f.label + '</div>';
+      s += '<div style="display:flex;align-items:center;gap:3px;">';
       if (isNew) {
-        html += '<input type="text" value="' + val2 + '" placeholder="-" inputmode="decimal" id="laygate_new_' + f2.idx + '" style="width:50px;border:1px solid #ddd;border-radius:4px;padding:3px 5px;font-size:12px;text-align:center;">';
+        s += '<input type="text" value="' + val + '" placeholder="-" inputmode="decimal" id="laygate_new_' + f.idx + '" style="width:50px;border:1px solid #ddd;border-radius:4px;padding:3px 5px;font-size:12px;text-align:center;">';
       } else {
-        html += '<input type="text" value="' + val2 + '" placeholder="-" inputmode="decimal" onchange="updateLaygateVal(' + rowIdx + ',' + f2.idx + ',this.value)" style="width:50px;border:1px solid #ddd;border-radius:4px;padding:3px 5px;font-size:12px;text-align:center;">';
+        s += '<input type="text" value="' + val + '" placeholder="-" inputmode="decimal" oninput="updateLaygateVal(' + rowIdx + ',' + f.idx + ',this.value)" style="width:50px;border:1px solid #ddd;border-radius:4px;padding:3px 5px;font-size:12px;text-align:center;">';
       }
-      html += '<span style="font-size:9px;color:#999;">' + f2.std + '</span>';
-      html += '</div></div>';
+      s += '<span style="font-size:9px;color:#999;">' + f.std + '</span></div></div>';
+      return s;
+    }
+    if (row.type === 'pair') {
+      html += mkInput(row.l) + mkInput(row.r);
+    } else {
+      html += mkInput(row.f);
     }
     html += '</div>';
   });
@@ -3347,47 +3285,223 @@ function renderAtt1LaygateInputs(data, rowIdx) {
 }
 
 function updateLaygateVal(rowIdx, idx, val) {
-  var task = getCurrentTask();
-  if (!task) return;
-  if (!task.attachments.attach1.laygate[rowIdx]) {
+  var task = getCurrentTask(); if (!task) return;
+  if (!task.attachments.attach1.laygate[rowIdx])
     task.attachments.attach1.laygate[rowIdx] = {name:'', data:Array(15).fill('')};
-  }
-  if (!task.attachments.attach1.laygate[rowIdx].data) {
+  if (!task.attachments.attach1.laygate[rowIdx].data)
     task.attachments.attach1.laygate[rowIdx].data = Array(15).fill('');
-  }
   task.attachments.attach1.laygate[rowIdx].data[idx] = val;
   saveCurrentTask();
-  // 不重新渲染，避免键盘丢失焦点
 }
-// ============ ATTACHMENT 2 - 缓冲距 ============
-function renderAttach2(container) {
+
+// ============ ATTACHMENT 2 - 空间尺寸 (v50 全面改造) ============
+function getRatedSpeed() {
   var task = getCurrentTask();
-  if (!task) return;
+  if (!task) return 0;
+  var cfg = task.configParts || {};
+  var v = parseFloat(cfg['额定速度']) || 0;
+  return v;
+}
+
+function calcStdValue(formula, v) {
+  if (formula === '0.1+0.035v2') return 0.1 + 0.035 * v * v;
+  if (formula === '1.0+0.035v2') return 1.0 + 0.035 * v * v;
+  if (formula === '0.3+0.035v2') return 0.3 + 0.035 * v * v;
+  return 0;
+}
+
+function renderAttach2(container) {
+  var task = getCurrentTask(); if (!task) return;
   var att2 = task.attachments.attach2 || {};
-  // 确保数据结构完整，避免undefined
-  if (!att2.顶部空间) att2.顶部空间 = {s1:'',s2:'',s3:'',s4:'',s5:''};
-  if (!att2.底坑空间) att2.底坑空间 = {p1:'',p2:'',p3:'',p4:'',p5:''};
+  var v = getRatedSpeed();
   
-  var html = '<div class="att-card"><div class="att-card-title">📏 缓冲距</div>';
-  html += '<div class="att-row"><label>轿厢缓冲距</label><input type="text" value="' + (att2.轿厢缓冲距||'') + '" placeholder="mm" inputmode="decimal" onchange="updateAtt2(\'轿厢缓冲距\',this.value)"></div>';
-  html += '<div class="att-row"><label>对重缓冲距</label><input type="text" value="' + (att2.对重缓冲距||'') + '" placeholder="mm" inputmode="decimal" onchange="updateAtt2(\'对重缓冲距\',this.value)"></div>';
-  html += '<div class="att-row"><label>最大允许值</label><input type="text" value="' + (att2.最大允许值||'') + '" placeholder="mm" inputmode="decimal" onchange="updateAtt2(\'最大允许值\',this.value)"></div>';
+  if (!att2.顶部空间) att2.顶部空间 = {s1:'',s2:'',s3:'',s4:'',s5L:'',s5W:'',s5H:''};
+  if (!att2.底坑空间) att2.底坑空间 = {p1:'',p2:'',p3h:'',p3v1:'',p3v2:'',p4:'',p5L:'',p5W:'',p5H:''};
+  
+  var carBuf = parseFloat(att2.轿厢缓冲距) || 0;
+  var cwBuf = parseFloat(att2.对重缓冲距) || 0;
+  var carComp = parseFloat(att2.轿厢压缩行程) || 0;
+  var cwComp = parseFloat(att2.对重压缩行程) || 0;
+  
+  var carTotalMm = (carBuf + carComp).toFixed(0);
+  var cwTotalMm = (cwBuf + cwComp).toFixed(0);
+  var carTotalM = ((carBuf + carComp) / 1000).toFixed(3);
+  var cwTotalM = ((cwBuf + cwComp) / 1000).toFixed(3);
+  
+  var html = '<div class="att-card"><div class="att-card-title">📏 缓冲距与压缩行程</div>';
+  
+  html += '<div style="font-size:12px;color:#667eea;font-weight:600;margin-bottom:8px;">额定速度: ' + (v || '--') + ' m/s</div>';
+  
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">';
+  html += '<div><div style="font-size:11px;color:#666;margin-bottom:2px;">轿厢缓冲距 (mm)</div>';
+  html += '<input type="text" value="' + (att2.轿厢缓冲距||'') + '" placeholder="mm" inputmode="decimal" oninput="updateAtt2(\'轿厢缓冲距\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:6px;font-size:13px;text-align:center;"></div>';
+  html += '<div><div style="font-size:11px;color:#666;margin-bottom:2px;">对重缓冲距 (mm)</div>';
+  html += '<input type="text" value="' + (att2.对重缓冲距||'') + '" placeholder="mm" inputmode="decimal" oninput="updateAtt2(\'对重缓冲距\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:6px;font-size:13px;text-align:center;"></div>';
   html += '</div>';
   
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">';
+  html += '<div><div style="font-size:11px;color:#666;margin-bottom:2px;">轿厢缓冲器压缩行程 (mm)</div>';
+  html += '<input type="text" value="' + (att2.轿厢压缩行程||'') + '" placeholder="mm" inputmode="decimal" oninput="updateAtt2(\'轿厢压缩行程\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:6px;font-size:13px;text-align:center;"></div>';
+  html += '<div><div style="font-size:11px;color:#666;margin-bottom:2px;">对重缓冲器压缩行程 (mm)</div>';
+  html += '<input type="text" value="' + (att2.对重压缩行程||'') + '" placeholder="mm" inputmode="decimal" oninput="updateAtt2(\'对重压缩行程\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:6px;font-size:13px;text-align:center;"></div>';
+  html += '</div>';
+  
+  html += '<div style="padding:8px;background:#e6f7ff;border-radius:6px;font-size:12px;line-height:1.6;">';
+  html += '🚪 对重压缓冲器时轿门与层门地坎距离: <strong>' + cwTotalMm + ' mm</strong><br>';
+  html += '🚪 轿厢压缓冲器时轿门与层门地坎距离: <strong>' + carTotalMm + ' mm</strong>';
+  html += '</div>';
+  html += '</div>';
+  
+  // ===== 井道顶部空间 =====
   html += '<div class="att-card"><div class="att-card-title">🏗️ 井道顶部空间</div>';
-  var topKeys = ['s1','s2','s3','s4','s5'];
-  var topLabels = ['①轿厢导轨进一步制导行程','②轿顶可站人面积垂直距离','③井道顶最低部件与轿顶部件距离','④悬挂装置端接装置附件距离','⑤轿顶空间(≥0.5×0.6×0.8m)'];
-  topKeys.forEach(function(k, i) {
-    html += '<div class="att-row"><label>' + topLabels[i] + '</label><input type="text" value="' + (att2.顶部空间[k]||'') + '" placeholder="m" inputmode="decimal" onchange="updateAtt2Top(\'' + k + '\',this.value)"></div>';
+  html += '<div style="font-size:11px;color:#666;margin-bottom:8px;">检验结果 = 上端站平层时测量值 - (对重缓冲距 + 对重缓冲器压缩行程)</div>';
+  
+  var topItems = [
+    {key:'s1', label:'①轿厢导轨进一步制导行程', formula:'0.1+0.035v2'},
+    {key:'s2', label:'②轿顶可站人面积垂直距离', formula:'1.0+0.035v2'},
+    {key:'s3', label:'③井道顶最低部件与轿顶部件距离', formula:'0.3+0.035v2'},
+    {key:'s4', label:'④悬挂装置端接装置附件距离', formula:'0.1+0.035v2'}
+  ];
+  
+  var cwSubM = (cwBuf + cwComp) / 1000; // 对重侧总压缩量，单位m
+  
+  topItems.forEach(function(item) {
+    var measured = parseFloat(att2.顶部空间[item.key]) || 0;
+    var stdVal = calcStdValue(item.formula, v);
+    var hasData = measured > 0 && cwBuf + cwComp > 0;
+    var result = hasData ? (measured - cwSubM).toFixed(3) : '';
+    var isOk = hasData ? (parseFloat(result) >= stdVal) : null;
+    var okColor = isOk === null ? '#999' : (isOk ? '#52c41a' : '#ff4d4f');
+    var okText = isOk === null ? '未判定' : (isOk ? '✓合格' : '✕不合格');
+    
+    html += '<div style="margin-bottom:8px;padding:8px;background:#fafafa;border-radius:6px;">';
+    html += '<div style="font-size:12px;font-weight:600;color:#333;margin-bottom:4px;">' + item.label + '</div>';
+    html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;align-items:center;">';
+    html += '<div><div style="font-size:10px;color:#666;">上端站平层时(m)</div>';
+    html += '<input type="text" value="' + (att2.顶部空间[item.key]||'') + '" placeholder="m" inputmode="decimal" oninput="updateAtt2Top(\'' + item.key + '\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
+    html += '<div><div style="font-size:10px;color:#666;">检验结果(m)</div>';
+    html += '<div style="padding:5px;background:#fff;border:1px solid #e0e0e0;border-radius:4px;text-align:center;font-size:12px;font-weight:600;">' + (result || '-') + '</div></div>';
+    html += '<div><div style="font-size:10px;color:#666;">标准≥' + stdVal.toFixed(3) + 'm</div>';
+    html += '<div style="padding:5px;background:#fff;border-radius:4px;text-align:center;font-size:12px;font-weight:600;color:' + okColor + ';">' + okText + '</div></div>';
+    html += '</div></div>';
   });
+  
+  // ⑤轿顶空间 - 三个输入
+  var s5L = parseFloat(att2.顶部空间.s5L) || 0;
+  var s5W = parseFloat(att2.顶部空间.s5W) || 0;
+  var s5H = parseFloat(att2.顶部空间.s5H) || 0;
+  var s5HasData = s5L > 0 && s5W > 0 && s5H > 0;
+  var s5Ok = s5HasData && (s5L >= 0.5 && s5W >= 0.6 && s5H >= 0.8);
+  
+  html += '<div style="margin-bottom:8px;padding:8px;background:#fafafa;border-radius:6px;">';
+  html += '<div style="font-size:12px;font-weight:600;color:#333;margin-bottom:4px;">⑤轿顶空间 (≥0.5m×0.6m×0.8m)</div>';
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px;">';
+  html += '<div><div style="font-size:10px;color:#666;">长(m) ≥0.5</div>';
+  html += '<input type="text" value="' + (att2.顶部空间.s5L||'') + '" placeholder="m" inputmode="decimal" oninput="updateAtt2Top(\'s5L\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
+  html += '<div><div style="font-size:10px;color:#666;">宽(m) ≥0.6</div>';
+  html += '<input type="text" value="' + (att2.顶部空间.s5W||'') + '" placeholder="m" inputmode="decimal" oninput="updateAtt2Top(\'s5W\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
+  html += '<div><div style="font-size:10px;color:#666;">高(m) ≥0.8</div>';
+  html += '<input type="text" value="' + (att2.顶部空间.s5H||'') + '" placeholder="m" inputmode="decimal" oninput="updateAtt2Top(\'s5H\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
+  html += '</div>';
+  html += '<div style="text-align:right;font-size:12px;font-weight:600;color:' + (s5HasData ? (s5Ok ? '#52c41a' : '#ff4d4f') : '#999') + ';">' + (s5HasData ? (s5Ok ? '✓合格' : '✕不合格') : '未判定') + '</div>';
+  html += '</div>';
   html += '</div>';
   
+  // ===== 底坑空间 =====
   html += '<div class="att-card"><div class="att-card-title">🕳️ 底坑空间</div>';
-  var pitKeys = ['p1','p2','p3','p4','p5'];
-  var pitLabels = ['①底坑底与轿厢最低部件距离','②对重导轨进一步制导行程','③水平距离0.15m内垂直距离','④固定最高部件与轿厢最低部件','⑤轿底空间(≥0.5×0.6×1.0m)'];
-  pitKeys.forEach(function(k, i) {
-    html += '<div class="att-row"><label>' + pitLabels[i] + '</label><input type="text" value="' + (att2.底坑空间[k]||'') + '" placeholder="m" inputmode="decimal" onchange="updateAtt2Pit(\'' + k + '\',this.value)"></div>';
-  });
+  html += '<div style="font-size:11px;color:#666;margin-bottom:8px;">检验结果 = 下端站平层时测量值 - (轿厢缓冲距 + 轿厢缓冲器压缩行程)</div>';
+  
+  var carSubM = (carBuf + carComp) / 1000; // 轿厢侧总压缩量，单位m
+  var p3h = parseFloat(att2.底坑空间.p3h) || 0;
+  var p1Std = p3h > 0 ? (p3h <= 0.15 ? 0.1 : 0.5) : 0.5;
+  
+  // ①底坑底与轿厢最低部件距离
+  var p1Val = parseFloat(att2.底坑空间.p1) || 0;
+  var p1HasData = p1Val > 0 && carBuf + carComp > 0;
+  var p1Result = p1HasData ? (p1Val - carSubM).toFixed(3) : '';
+  var p1Ok = p1HasData ? (parseFloat(p1Result) >= p1Std) : null;
+  var p1Color = p1Ok === null ? '#999' : (p1Ok ? '#52c41a' : '#ff4d4f');
+  
+  html += '<div style="margin-bottom:8px;padding:8px;background:#fafafa;border-radius:6px;">';
+  html += '<div style="font-size:12px;font-weight:600;color:#333;margin-bottom:4px;">①底坑底与轿厢最低部件距离 <span style="font-size:10px;font-weight:400;color:#999;">(水平距离' + (p3h > 0 ? (p3h <= 0.15 ? '≤0.15→≥0.1m' : '>0.15→≥0.5m') : '联动第③项') + ')</span></div>';
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;align-items:center;">';
+  html += '<div><div style="font-size:10px;color:#666;">下端站平层时(m)</div>';
+  html += '<input type="text" value="' + (att2.底坑空间.p1||'') + '" placeholder="m" inputmode="decimal" oninput="updateAtt2Pit(\'p1\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
+  html += '<div><div style="font-size:10px;color:#666;">检验结果(m)</div>';
+  html += '<div style="padding:5px;background:#fff;border:1px solid #e0e0e0;border-radius:4px;text-align:center;font-size:12px;font-weight:600;">' + (p1Result || '-') + '</div></div>';
+  html += '<div><div style="font-size:10px;color:#666;">标准≥' + p1Std.toFixed(1) + 'm</div>';
+  html += '<div style="padding:5px;background:#fff;border-radius:4px;text-align:center;font-size:12px;font-weight:600;color:' + p1Color + ';">' + (p1Ok === null ? '未判定' : (p1Ok ? '✓合格' : '✕不合格')) + '</div></div>';
+  html += '</div></div>';
+  
+  // ②对重导轨进一步制导行程
+  var p2Val = parseFloat(att2.底坑空间.p2) || 0;
+  var p2Std = calcStdValue('0.1+0.035v2', v);
+  var p2HasData = p2Val > 0 && carBuf + carComp > 0;
+  var p2Result = p2HasData ? (p2Val - carSubM).toFixed(3) : '';
+  var p2Ok = p2HasData ? (parseFloat(p2Result) >= p2Std) : null;
+  var p2Color = p2Ok === null ? '#999' : (p2Ok ? '#52c41a' : '#ff4d4f');
+  
+  html += '<div style="margin-bottom:8px;padding:8px;background:#fafafa;border-radius:6px;">';
+  html += '<div style="font-size:12px;font-weight:600;color:#333;margin-bottom:4px;">②对重导轨进一步制导行程</div>';
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;align-items:center;">';
+  html += '<div><div style="font-size:10px;color:#666;">下端站平层时(m)</div>';
+  html += '<input type="text" value="' + (att2.底坑空间.p2||'') + '" placeholder="m" inputmode="decimal" oninput="updateAtt2Pit(\'p2\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
+  html += '<div><div style="font-size:10px;color:#666;">检验结果(m)</div>';
+  html += '<div style="padding:5px;background:#fff;border:1px solid #e0e0e0;border-radius:4px;text-align:center;font-size:12px;font-weight:600;">' + (p2Result || '-') + '</div></div>';
+  html += '<div><div style="font-size:10px;color:#666;">标准≥' + p2Std.toFixed(3) + 'm</div>';
+  html += '<div style="padding:5px;background:#fff;border-radius:4px;text-align:center;font-size:12px;font-weight:600;color:' + p2Color + ';">' + (p2Ok === null ? '未判定' : (p2Ok ? '✓合格' : '✕不合格')) + '</div></div>';
+  html += '</div></div>';
+  
+  // ③水平距离及相关尺寸
+  html += '<div style="margin-bottom:8px;padding:8px;background:#fafafa;border-radius:6px;">';
+  html += '<div style="font-size:12px;font-weight:600;color:#333;margin-bottom:4px;">③水平距离及相关尺寸</div>';
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">';
+  html += '<div><div style="font-size:10px;color:#666;">水平距离(护脚板与井道壁)(m)</div>';
+  html += '<input type="text" value="' + (att2.底坑空间.p3h||'') + '" placeholder="m" inputmode="decimal" oninput="updateAtt2Pit(\'p3h\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
+  html += '<div><div style="font-size:10px;color:#666;">垂直滑动门/护脚板垂直距离(m)</div>';
+  html += '<input type="text" value="' + (att2.底坑空间.p3v1||'') + '" placeholder="m" inputmode="decimal" oninput="updateAtt2Pit(\'p3v1\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
+  html += '<div><div style="font-size:10px;color:#666;">轿厢最低部件垂直距离(m)</div>';
+  html += '<input type="text" value="' + (att2.底坑空间.p3v2||'') + '" placeholder="m" inputmode="decimal" oninput="updateAtt2Pit(\'p3v2\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
+  html += '</div></div>';
+  
+  // ④底坑固定最高部件与轿厢最低部件距离
+  var p4Val = parseFloat(att2.底坑空间.p4) || 0;
+  var p4HasData = p4Val > 0 && carBuf + carComp > 0;
+  var p4Result = p4HasData ? (p4Val - carSubM).toFixed(3) : '';
+  var p4Ok = p4HasData ? (parseFloat(p4Result) >= 0.3) : null;
+  var p4Color = p4Ok === null ? '#999' : (p4Ok ? '#52c41a' : '#ff4d4f');
+  
+  html += '<div style="margin-bottom:8px;padding:8px;background:#fafafa;border-radius:6px;">';
+  html += '<div style="font-size:12px;font-weight:600;color:#333;margin-bottom:4px;">④底坑固定最高部件与轿厢最低部件距离</div>';
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;align-items:center;">';
+  html += '<div><div style="font-size:10px;color:#666;">下端站平层时(m)</div>';
+  html += '<input type="text" value="' + (att2.底坑空间.p4||'') + '" placeholder="m" inputmode="decimal" oninput="updateAtt2Pit(\'p4\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
+  html += '<div><div style="font-size:10px;color:#666;">检验结果(m)</div>';
+  html += '<div style="padding:5px;background:#fff;border:1px solid #e0e0e0;border-radius:4px;text-align:center;font-size:12px;font-weight:600;">' + (p4Result || '-') + '</div></div>';
+  html += '<div><div style="font-size:10px;color:#666;">标准≥0.3m</div>';
+  html += '<div style="padding:5px;background:#fff;border-radius:4px;text-align:center;font-size:12px;font-weight:600;color:' + p4Color + ';">' + (p4Ok === null ? '未判定' : (p4Ok ? '✓合格' : '✕不合格')) + '</div></div>';
+  html += '</div></div>';
+  
+  // ⑤底坑空间尺寸
+  var p5L = parseFloat(att2.底坑空间.p5L) || 0;
+  var p5W = parseFloat(att2.底坑空间.p5W) || 0;
+  var p5H = parseFloat(att2.底坑空间.p5H) || 0;
+  var p5HasData = p5L > 0 && p5W > 0 && p5H > 0;
+  var p5Ok = p5HasData && (p5L >= 0.5 && p5W >= 0.6 && p5H >= 1.0);
+  
+  html += '<div style="margin-bottom:8px;padding:8px;background:#fafafa;border-radius:6px;">';
+  html += '<div style="font-size:12px;font-weight:600;color:#333;margin-bottom:4px;">⑤底坑空间尺寸 (≥0.5m×0.6m×1.0m)</div>';
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px;">';
+  html += '<div><div style="font-size:10px;color:#666;">长(m) ≥0.5</div>';
+  html += '<input type="text" value="' + (att2.底坑空间.p5L||'') + '" placeholder="m" inputmode="decimal" oninput="updateAtt2Pit(\'p5L\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
+  html += '<div><div style="font-size:10px;color:#666;">宽(m) ≥0.6</div>';
+  html += '<input type="text" value="' + (att2.底坑空间.p5W||'') + '" placeholder="m" inputmode="decimal" oninput="updateAtt2Pit(\'p5W\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
+  html += '<div><div style="font-size:10px;color:#666;">高(m) ≥1.0</div>';
+  html += '<input type="text" value="' + (att2.底坑空间.p5H||'') + '" placeholder="m" inputmode="decimal" oninput="updateAtt2Pit(\'p5H\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
+  html += '</div>';
+  html += '<div style="text-align:right;font-size:12px;font-weight:600;color:' + (p5HasData ? (p5Ok ? '#52c41a' : '#ff4d4f') : '#999') + ';">' + (p5HasData ? (p5Ok ? '✓合格' : '✕不合格') : '未判定') + '</div>';
+  html += '</div>';
+  
   html += '</div>';
   
   // 自动判定
@@ -3397,23 +3511,17 @@ function renderAttach2(container) {
 }
 
 function renderAttach2Judge() {
-  var task = getCurrentTask();
-  if (!task) return;
+  var task = getCurrentTask(); if (!task) return '';
   var att2 = task.attachments.attach2 || {};
   
-  // 简化判定：空间数据有问题则标记相关项
   var ids = [209, 210, 211];
   ids.forEach(function(id) {
     if (!task.checks[id]) task.checks[id] = {};
-    // 根据实际数据设置状态（这里简化处理）
     var hasData = false;
     if (id === 209) hasData = att2.顶部空间 && (att2.顶部空间.s1 || att2.顶部空间.s2);
-    if (id === 210) hasData = att2.顶部空间 && (att2.顶部空间.s3 || att2.顶部空间.s4 || att2.顶部空间.s5);
+    if (id === 210) hasData = att2.顶部空间 && (att2.顶部空间.s3 || att2.顶部空间.s4 || att2.顶部空间.s5L);
     if (id === 211) hasData = att2.底坑空间 && (att2.底坑空间.p1 || att2.底坑空间.p2);
-    
-    if (hasData) {
-      task.checks[id].s = 'ok';
-    }
+    if (hasData) task.checks[id].s = 'ok';
   });
   
   var html = '<div class="auto-result">';
@@ -3430,7 +3538,8 @@ function updateAtt2(key, val) {
 }
 
 function updateAtt2Top(key, val) {
-  var task = getCurrentTask(); if (!task) return; var att2 = task.attachments.attach2;
+  var task = getCurrentTask(); if (!task) return;
+  var att2 = task.attachments.attach2;
   if (!att2.顶部空间) att2.顶部空间 = {};
   att2.顶部空间[key] = val;
   saveCurrentTask();
@@ -3438,23 +3547,58 @@ function updateAtt2Top(key, val) {
 }
 
 function updateAtt2Pit(key, val) {
-  var task = getCurrentTask(); if (!task) return; var att2 = task.attachments.attach2;
+  var task = getCurrentTask(); if (!task) return;
+  var att2 = task.attachments.attach2;
   if (!att2.底坑空间) att2.底坑空间 = {};
   att2.底坑空间[key] = val;
   saveCurrentTask();
   renderAttachments();
 }
 
-// ============ ATTACHMENT 3 - 导轨铅垂度 (4列并排表格) ============
+// ============ ATTACHMENT 3 - 导轨铅垂度 (v50 自动计算+安全钳) ============
+function calcMaxDeviation(rows, key) {
+  var vals = [];
+  rows.forEach(function(r) {
+    var v = parseFloat(r[key]);
+    if (!isNaN(v)) vals.push(v);
+  });
+  if (vals.length < 2) return '';
+  var maxV = Math.max.apply(null, vals);
+  var minV = Math.min.apply(null, vals);
+  return (maxV - minV).toFixed(2);
+}
+
 function renderAttach3(container) {
-  var task = getCurrentTask();
-  if (!task) return;
-  var att3 = task.attachments.attach3 || {rows:[{carL:'',carR:'',weightL:'',weightR:''}], maxDev:{carL:'',carR:'',weightL:'',weightR:''}};
+  var task = getCurrentTask(); if (!task) return;
+  var att3 = task.attachments.attach3 || {};
   if (!att3.rows) att3.rows = [{carL:'',carR:'',weightL:'',weightR:''}];
-  if (!att3.maxDev) att3.maxDev = {carL:'',carR:'',weightL:'',weightR:''};
+  if (att3.hasWeightSafety === undefined) att3.hasWeightSafety = 'yes';
+  
+  // 实时计算最大偏差
+  var maxDev = {
+    carL: calcMaxDeviation(att3.rows, 'carL'),
+    carR: calcMaxDeviation(att3.rows, 'carR'),
+    weightL: calcMaxDeviation(att3.rows, 'weightL'),
+    weightR: calcMaxDeviation(att3.rows, 'weightR')
+  };
+  
+  // 判定标准
+  var carStd = 1.2;
+  var weightStd = att3.hasWeightSafety === 'yes' ? 1.2 : 2.0;
   
   var html = '<div class="att-card"><div class="att-card-title">📐 导轨工作面铅垂度测量表</div>';
-  html += '<div style="font-size:11px;color:#666;margin-bottom:12px;">标准: ≤1.2mm/5m</div>';
+  
+  // 判定标准说明
+  html += '<div style="font-size:11px;color:#666;margin-bottom:12px;line-height:1.5;">';
+  html += '标准: 轿厢导轨 ≤' + carStd + 'mm/5m；对重导轨 ' + (att3.hasWeightSafety === 'yes' ? '有安全钳 ≤' + weightStd : '无安全钳 ≤' + weightStd) + 'mm/5m';
+  html += '</div>';
+  
+  // 对重安全钳选项
+  html += '<div style="margin-bottom:12px;padding:8px;background:#eef2ff;border-radius:6px;">';
+  html += '<label style="font-size:12px;font-weight:600;color:#4a5568;margin-right:10px;">对重导轨设安全钳:</label>';
+  html += '<label style="margin-right:15px;font-size:12px;"><input type="radio" name="weightSafety" value="yes" ' + (att3.hasWeightSafety === 'yes' ? 'checked' : '') + ' onchange="updateAtt3Safety(\'yes\')"> 是</label>';
+  html += '<label style="font-size:12px;"><input type="radio" name="weightSafety" value="no" ' + (att3.hasWeightSafety === 'no' ? 'checked' : '') + ' onchange="updateAtt3Safety(\'no\')"> 否</label>';
+  html += '</div>';
   
   // 表头
   html += '<div style="display:grid;grid-template-columns:60px repeat(4,1fr);gap:4px;margin-bottom:8px;font-size:11px;font-weight:600;">';
@@ -3469,58 +3613,92 @@ function renderAttach3(container) {
   att3.rows.forEach(function(row, ri) {
     html += '<div style="display:grid;grid-template-columns:50px repeat(4,1fr) 30px;gap:4px;margin-bottom:4px;align-items:center;">';
     html += '<div style="text-align:center;font-size:11px;color:#666;">测点' + (ri+1) + '</div>';
-    html += '<div><input type="text" value="' + (row.carL||'') + '" placeholder="mm" inputmode="decimal" onchange="updateAtt3(' + ri + ',\'carL\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:6px;font-size:12px;text-align:center;"></div>';
-    html += '<div><input type="text" value="' + (row.carR||'') + '" placeholder="mm" inputmode="decimal" onchange="updateAtt3(' + ri + ',\'carR\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:6px;font-size:12px;text-align:center;"></div>';
-    html += '<div><input type="text" value="' + (row.weightL||'') + '" placeholder="mm" inputmode="decimal" onchange="updateAtt3(' + ri + ',\'weightL\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:6px;font-size:12px;text-align:center;"></div>';
-    html += '<div><input type="text" value="' + (row.weightR||'') + '" placeholder="mm" inputmode="decimal" onchange="updateAtt3(' + ri + ',\'weightR\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:6px;font-size:12px;text-align:center;"></div>';
+    html += '<div><input type="text" value="' + (row.carL||'') + '" placeholder="mm" inputmode="decimal" oninput="updateAtt3(' + ri + ',\'carL\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:6px;font-size:12px;text-align:center;"></div>';
+    html += '<div><input type="text" value="' + (row.carR||'') + '" placeholder="mm" inputmode="decimal" oninput="updateAtt3(' + ri + ',\'carR\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:6px;font-size:12px;text-align:center;"></div>';
+    html += '<div><input type="text" value="' + (row.weightL||'') + '" placeholder="mm" inputmode="decimal" oninput="updateAtt3(' + ri + ',\'weightL\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:6px;font-size:12px;text-align:center;"></div>';
+    html += '<div><input type="text" value="' + (row.weightR||'') + '" placeholder="mm" inputmode="decimal" oninput="updateAtt3(' + ri + ',\'weightR\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:6px;font-size:12px;text-align:center;"></div>';
     html += '<div>' + (att3.rows.length > 1 ? '<button onclick="deleteAtt3Row(' + ri + ')" style="background:#fee;border:1px solid #fcc;color:#c0392b;border-radius:4px;padding:4px;font-size:11px;cursor:pointer;">✕</button>' : '') + '</div>';
     html += '</div>';
   });
   
   html += '<div class="att-plus" onclick="addAtt3Row()">+ 新增一行</div>';
   
-  // 最大偏差行
+  // 最大偏差行（自动计算，只读显示）
   html += '<div style="margin-top:16px;padding:12px;background:#fff3f0;border-radius:8px;">';
-  html += '<div style="font-size:12px;font-weight:600;color:#dc3545;margin-bottom:8px;">最大偏差 (mm)</div>';
+  html += '<div style="font-size:12px;font-weight:600;color:#dc3545;margin-bottom:8px;">最大偏差 (mm) - 自动计算</div>';
   html += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">';
-  var k1 = 'carL', k2 = 'carR', k3 = 'weightL', k4 = 'weightR';
-  html += '<div><input type="text" value="' + (att3.maxDev.carL||'') + '" placeholder="轿厢左" inputmode="decimal" onchange="updateAtt3Max(\'' + k1 + '\',this.value)" style="width:100%;border:1px solid #dc3545;border-radius:4px;padding:8px;font-size:13px;text-align:center;"></div>';
-  html += '<div><input type="text" value="' + (att3.maxDev.carR||'') + '" placeholder="轿厢右" inputmode="decimal" onchange="updateAtt3Max(\'' + k2 + '\',this.value)" style="width:100%;border:1px solid #dc3545;border-radius:4px;padding:8px;font-size:13px;text-align:center;"></div>';
-  html += '<div><input type="text" value="' + (att3.maxDev.weightL||'') + '" placeholder="对重左" inputmode="decimal" onchange="updateAtt3Max(\'' + k3 + '\',this.value)" style="width:100%;border:1px solid #dc3545;border-radius:4px;padding:8px;font-size:13px;text-align:center;"></div>';
-  html += '<div><input type="text" value="' + (att3.maxDev.weightR||'') + '" placeholder="对重右" inputmode="decimal" onchange="updateAtt3Max(\'' + k4 + '\',this.value)" style="width:100%;border:1px solid #dc3545;border-radius:4px;padding:8px;font-size:13px;text-align:center;"></div>';
-  html += '</div></div>';
   
+  var devItems = [
+    {key:'carL', label:'轿厢左', std:carStd},
+    {key:'carR', label:'轿厢右', std:carStd},
+    {key:'weightL', label:'对重左', std:weightStd},
+    {key:'weightR', label:'对重右', std:weightStd}
+  ];
+  
+  devItems.forEach(function(item) {
+    var val = maxDev[item.key];
+    var isOk = val ? (parseFloat(val) <= item.std) : null;
+    var color = isOk === null ? '#333' : (isOk ? '#52c41a' : '#ff4d4f');
+    html += '<div style="text-align:center;">';
+    html += '<div style="padding:8px;background:#fff;border:1px solid #dc3545;border-radius:4px;font-size:13px;font-weight:600;color:' + color + ';">';
+    html += (val || '-') + '</div>';
+    html += '<div style="font-size:10px;color:#999;margin-top:2px;">≤' + item.std + '</div>';
+    html += '</div>';
+  });
+  
+  html += '</div></div>';
   html += '</div>';
   
   // 自动判定
-  html += renderAttach3Judge();
+  html += renderAttach3Judge(maxDev, carStd, weightStd);
   
   container.innerHTML = html;
 }
 
-function renderAttach3Judge() {
-  var task = getCurrentTask();
-  if (!task) return;
-  var att3 = task.attachments.attach3 || {rows:[], maxDev:{}};
+function renderAttach3Judge(maxDev, carStd, weightStd) {
+  var task = getCurrentTask(); if (!task) return '';
+  var att3 = task.attachments.attach3 || {};
+  
+  if (!maxDev) {
+    maxDev = {
+      carL: calcMaxDeviation(att3.rows || [], 'carL'),
+      carR: calcMaxDeviation(att3.rows || [], 'carR'),
+      weightL: calcMaxDeviation(att3.rows || [], 'weightL'),
+      weightR: calcMaxDeviation(att3.rows || [], 'weightR')
+    };
+  }
+  if (!carStd) carStd = 1.2;
+  if (!weightStd) weightStd = (att3.hasWeightSafety === 'no') ? 2.0 : 1.2;
   
   var hasFail = false;
-  var vals = [att3.maxDev.carL, att3.maxDev.carR, att3.maxDev.weightL, att3.maxDev.weightR];
-  vals.forEach(function(v) {
-    if (v) {
-      var maxDev = parseFloat(v) || 0;
-      if (maxDev > 1.2) hasFail = true;
+  var hasData = false;
+  
+  var carItems = ['carL', 'carR'];
+  carItems.forEach(function(k) {
+    if (maxDev[k]) {
+      hasData = true;
+      if (parseFloat(maxDev[k]) > carStd) hasFail = true;
+    }
+  });
+  
+  var weightItems = ['weightL', 'weightR'];
+  weightItems.forEach(function(k) {
+    if (maxDev[k]) {
+      hasData = true;
+      if (parseFloat(maxDev[k]) > weightStd) hasFail = true;
     }
   });
   
   if (!task.checks[140]) task.checks[140] = {};
-  if (hasFail) {
-    task.checks[140].s = 'ng';
-    task.checks[140].n = '导轨铅垂度超1.2mm/5m';
-  } else if (vals.some(function(v){return v;})) {
-    task.checks[140].s = 'ok';
+  if (hasData) {
+    if (hasFail) {
+      task.checks[140].s = 'ng';
+      task.checks[140].n = '导轨铅垂度超标';
+    } else {
+      task.checks[140].s = 'ok';
+    }
   }
   
-  var hasData = vals.some(function(v){return v;});
   var html = '<div class="auto-result' + (!hasFail && hasData ? ' pass' : '') + '">';
   html += '<strong>自动判定:</strong> id140(导轨铅垂度) ';
   if (task.checks[140].s === 'ok') html += '<span style="color:#52c41a;">✓合格</span>';
@@ -3531,23 +3709,25 @@ function renderAttach3Judge() {
 }
 
 function updateAtt3(rowIdx, key, val) {
-  var task = getCurrentTask(); if (!task) return; var att3 = task.attachments.attach3;
+  var task = getCurrentTask(); if (!task) return;
+  var att3 = task.attachments.attach3;
   if (!att3.rows[rowIdx]) att3.rows[rowIdx] = {carL:'',carR:'',weightL:'',weightR:''};
   att3.rows[rowIdx][key] = val;
   saveCurrentTask();
   renderAttachments();
 }
 
-function updateAtt3Max(key, val) {
-  var task = getCurrentTask(); if (!task) return; var att3 = task.attachments.attach3;
-  if (!att3.maxDev) att3.maxDev = {carL:'',carR:'',weightL:'',weightR:''};
-  att3.maxDev[key] = val;
+function updateAtt3Safety(val) {
+  var task = getCurrentTask(); if (!task) return;
+  var att3 = task.attachments.attach3;
+  att3.hasWeightSafety = val;
   saveCurrentTask();
   renderAttachments();
 }
 
 function addAtt3Row() {
-  var task = getCurrentTask(); if (!task) return; var att3 = task.attachments.attach3;
+  var task = getCurrentTask(); if (!task) return;
+  var att3 = task.attachments.attach3;
   att3.rows.push({carL:'',carR:'',weightL:'',weightR:''});
   saveCurrentTask();
   var target = document.getElementById('attModalBody') || document.getElementById('attContent');
@@ -3555,7 +3735,8 @@ function addAtt3Row() {
 }
 
 function deleteAtt3Row(rowIdx) {
-  var task = getCurrentTask(); if (!task) return; var att3 = task.attachments.attach3;
+  var task = getCurrentTask(); if (!task) return;
+  var att3 = task.attachments.attach3;
   if (att3.rows.length <= 1) return;
   att3.rows.splice(rowIdx, 1);
   saveCurrentTask();
@@ -3563,13 +3744,47 @@ function deleteAtt3Row(rowIdx) {
   if (target) renderAttach3(target);
 }
 
-// ============ ATTACHMENT 4 - 导轨面距 (2列并排表格) ============
+// ============ ATTACHMENT 4 - 导轨面距 (v50 偏差自动计算) ============
+function calcFaceDistMaxDev(rows, ref, key) {
+  var refVal = parseFloat(ref) || 0;
+  if (refVal <= 0) return { maxDev: '', hasNegative: false, hasData: false };
+  
+  var maxDev = -Infinity;
+  var hasNegative = false;
+  var hasData = false;
+  
+  rows.forEach(function(r) {
+    var v = parseFloat(r[key]);
+    if (!isNaN(v) && v > 0) {
+      hasData = true;
+      var dev = v - refVal;
+      if (dev < 0) hasNegative = true;
+      if (dev > maxDev) maxDev = dev;
+    }
+  });
+  
+  return {
+    maxDev: hasData ? maxDev.toFixed(2) : '',
+    hasNegative: hasNegative,
+    hasData: hasData
+  };
+}
+
 function renderAttach4(container) {
-  var task = getCurrentTask();
-  if (!task) return;
-  var att4 = task.attachments.attach4 || {rows:[{car:'',weight:''}], maxDev:{car:'',weight:''}};
+  var task = getCurrentTask(); if (!task) return;
+  var att4 = task.attachments.attach4 || {};
   if (!att4.rows) att4.rows = [{car:'',weight:''}];
-  if (!att4.maxDev) att4.maxDev = {car:'',weight:''};
+  if (!att4.refCar) att4.refCar = '';
+  if (!att4.refWeight) att4.refWeight = '';
+  
+  var carResult = calcFaceDistMaxDev(att4.rows, att4.refCar, 'car');
+  var weightResult = calcFaceDistMaxDev(att4.rows, att4.refWeight, 'weight');
+  
+  var carStd = 2;
+  var weightStd = 3;
+  
+  var carOk = carResult.hasData && !carResult.hasNegative && parseFloat(carResult.maxDev) <= carStd;
+  var weightOk = weightResult.hasData && !weightResult.hasNegative && parseFloat(weightResult.maxDev) <= weightStd;
   
   var html = '<div class="att-card"><div class="att-card-title">📏 导轨顶面距离测量表</div>';
   
@@ -3577,67 +3792,93 @@ function renderAttach4(container) {
   html += '<div style="margin-bottom:12px;padding:10px;background:#eef2ff;border-radius:8px;">';
   html += '<div style="font-size:12px;font-weight:600;color:#4a5568;margin-bottom:8px;">📐 基准值（从配置单或图纸上获取）</div>';
   html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">';
-  html += '<div><div style="font-size:11px;color:#667eea;margin-bottom:4px;">轿厢导轨基准值 (mm)</div><input type="text" value="' + (att4.refCar||'') + '" placeholder="如: 1050" inputmode="decimal" onchange="updateAtt4Ref(\'refCar\',this.value)" style="width:100%;border:1.5px solid #667eea;border-radius:6px;padding:8px;font-size:14px;text-align:center;"></div>';
-  html += '<div><div style="font-size:11px;color:#764ba2;margin-bottom:4px;">对重导轨基准值 (mm)</div><input type="text" value="' + (att4.refWeight||'') + '" placeholder="如: 980" inputmode="decimal" onchange="updateAtt4Ref(\'refWeight\',this.value)" style="width:100%;border:1.5px solid #764ba2;border-radius:6px;padding:8px;font-size:14px;text-align:center;"></div>';
+  html += '<div><div style="font-size:11px;color:#667eea;margin-bottom:4px;">轿厢导轨基准值 (mm)</div><input type="text" value="' + (att4.refCar||'') + '" placeholder="如: 1050" inputmode="decimal" oninput="updateAtt4Ref(\'refCar\',this.value)" style="width:100%;border:1.5px solid #667eea;border-radius:6px;padding:8px;font-size:14px;text-align:center;"></div>';
+  html += '<div><div style="font-size:11px;color:#764ba2;margin-bottom:4px;">对重导轨基准值 (mm)</div><input type="text" value="' + (att4.refWeight||'') + '" placeholder="如: 980" inputmode="decimal" oninput="updateAtt4Ref(\'refWeight\',this.value)" style="width:100%;border:1.5px solid #764ba2;border-radius:6px;padding:8px;font-size:14px;text-align:center;"></div>';
   html += '</div></div>';
   
   // 表头
   html += '<div style="display:grid;grid-template-columns:60px 1fr 1fr;gap:4px;margin-bottom:8px;font-size:11px;font-weight:600;">';
   html += '<div style="text-align:center;color:#666;">测点</div>';
-  html += '<div style="text-align:center;background:#667eea;color:#fff;padding:6px;border-radius:4px;">轿厢导轨 <span style="font-size:12px;">(0~+2mm)</span></div>';
-  html += '<div style="text-align:center;background:#764ba2;color:#fff;padding:6px;border-radius:4px;">对重导轨 <span style="font-size:12px;">(0~+3mm)</span></div>';
+  html += '<div style="text-align:center;background:#667eea;color:#fff;padding:6px;border-radius:4px;">轿厢导轨 <span style="font-size:12px;">(0~+' + carStd + 'mm)</span></div>';
+  html += '<div style="text-align:center;background:#764ba2;color:#fff;padding:6px;border-radius:4px;">对重导轨 <span style="font-size:12px;">(0~+' + weightStd + 'mm)</span></div>';
   html += '</div>';
   
   // 数据行
   att4.rows.forEach(function(row, ri) {
     html += '<div style="display:grid;grid-template-columns:50px 1fr 1fr 30px;gap:4px;margin-bottom:4px;align-items:center;">';
     html += '<div style="text-align:center;font-size:11px;color:#666;">测点' + (ri+1) + '</div>';
-    html += '<div><input type="text" value="' + (row.car||'') + '" placeholder="mm" inputmode="decimal" onchange="updateAtt4(' + ri + ',\'car\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:6px;font-size:12px;text-align:center;"></div>';
-    html += '<div><input type="text" value="' + (row.weight||'') + '" placeholder="mm" inputmode="decimal" onchange="updateAtt4(' + ri + ',\'weight\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:6px;font-size:12px;text-align:center;"></div>';
+    html += '<div><input type="text" value="' + (row.car||'') + '" placeholder="mm" inputmode="decimal" oninput="updateAtt4(' + ri + ',\'car\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:6px;font-size:12px;text-align:center;"></div>';
+    html += '<div><input type="text" value="' + (row.weight||'') + '" placeholder="mm" inputmode="decimal" oninput="updateAtt4(' + ri + ',\'weight\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:6px;font-size:12px;text-align:center;"></div>';
     html += '<div>' + (att4.rows.length > 1 ? '<button onclick="deleteAtt4Row(' + ri + ')" style="background:#fee;border:1px solid #fcc;color:#c0392b;border-radius:4px;padding:4px;font-size:11px;cursor:pointer;">✕</button>' : '') + '</div>';
     html += '</div>';
   });
   
   html += '<div class="att-plus" onclick="addAtt4Row()">+ 新增一行</div>';
   
-  // 最大偏差行
+  // 最大偏差行（自动计算）
   html += '<div style="margin-top:16px;padding:12px;background:#fff3f0;border-radius:8px;">';
-  html += '<div style="font-size:12px;font-weight:600;color:#dc3545;margin-bottom:8px;">最大偏差 (mm)</div>';
-  var kc = 'car', kw = 'weight';
+  html += '<div style="font-size:12px;font-weight:600;color:#dc3545;margin-bottom:8px;">最大偏差 (mm) - 自动计算</div>';
   html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">';
-  html += '<div><input type="text" value="' + (att4.maxDev.car||'') + '" placeholder="轿厢导轨" inputmode="decimal" onchange="updateAtt4Max(\'' + kc + '\',this.value)" style="width:100%;border:1px solid #dc3545;border-radius:4px;padding:8px;font-size:13px;text-align:center;"></div>';
-  html += '<div><input type="text" value="' + (att4.maxDev.weight||'') + '" placeholder="对重导轨" inputmode="decimal" onchange="updateAtt4Max(\'' + kw + '\',this.value)" style="width:100%;border:1px solid #dc3545;border-radius:4px;padding:8px;font-size:13px;text-align:center;"></div>';
-  html += '</div></div>';
+  
+  // 轿厢
+  var carColor = carResult.hasData ? (carOk ? '#52c41a' : '#ff4d4f') : '#333';
+  var carStatus = carResult.hasData ? (carResult.hasNegative ? '有负偏差!' : (carOk ? '✓合格' : '✕超标')) : '-';
+  html += '<div style="text-align:center;">';
+  html += '<div style="padding:8px;background:#fff;border:1px solid #dc3545;border-radius:4px;font-size:13px;font-weight:600;color:' + carColor + ';">';
+  html += (carResult.maxDev || '-') + '</div>';
+  html += '<div style="font-size:10px;color:' + carColor + ';margin-top:2px;">' + carStatus + '</div>';
+  html += '</div>';
+  
+  // 对重
+  var weightColor = weightResult.hasData ? (weightOk ? '#52c41a' : '#ff4d4f') : '#333';
+  var weightStatus = weightResult.hasData ? (weightResult.hasNegative ? '有负偏差!' : (weightOk ? '✓合格' : '✕超标')) : '-';
+  html += '<div style="text-align:center;">';
+  html += '<div style="padding:8px;background:#fff;border:1px solid #dc3545;border-radius:4px;font-size:13px;font-weight:600;color:' + weightColor + ';">';
+  html += (weightResult.maxDev || '-') + '</div>';
+  html += '<div style="font-size:10px;color:' + weightColor + ';margin-top:2px;">' + weightStatus + '</div>';
+  html += '</div>';
   
   html += '</div>';
   
+  // 判定说明
+  html += '<div style="margin-top:8px;font-size:11px;color:#666;line-height:1.5;">';
+  html += '判定规则: 所有测点偏差≥0（实测≥基准值）且最大偏差≤允许值 → 合格<br>';
+  html += '只要有一个测点偏差为负（实测<基准值）→ 直接不合格';
+  html += '</div>';
+  
+  html += '</div></div>';
+  
   // 自动判定
-  html += renderAttach4Judge();
+  html += renderAttach4Judge(carResult, weightResult, carStd, weightStd);
   
   container.innerHTML = html;
 }
 
-function renderAttach4Judge() {
-  var task = getCurrentTask();
-  if (!task) return;
-  var att4 = task.attachments.attach4 || {rows:[], maxDev:{}};
+function renderAttach4Judge(carResult, weightResult, carStd, weightStd) {
+  var task = getCurrentTask(); if (!task) return '';
+  var att4 = task.attachments.attach4 || {};
   
-  var hasFail = false;
-  var carVal = parseFloat(att4.maxDev.car) || 0;
-  var weightVal = parseFloat(att4.maxDev.weight) || 0;
-  if (att4.maxDev.car && (carVal < 0 || carVal > 2)) hasFail = true;
-  if (att4.maxDev.weight && (weightVal < 0 || weightVal > 3)) hasFail = true;
+  if (!carResult) carResult = calcFaceDistMaxDev(att4.rows || [], att4.refCar || '', 'car');
+  if (!weightResult) weightResult = calcFaceDistMaxDev(att4.rows || [], att4.refWeight || '', 'weight');
+  if (!carStd) carStd = 2;
+  if (!weightStd) weightStd = 3;
+  
+  var carOk = carResult.hasData && !carResult.hasNegative && parseFloat(carResult.maxDev) <= carStd;
+  var weightOk = weightResult.hasData && !weightResult.hasNegative && parseFloat(weightResult.maxDev) <= weightStd;
+  var allOk = carOk && weightOk;
+  var hasData = carResult.hasData || weightResult.hasData;
   
   if (!task.checks[138]) task.checks[138] = {};
-  if (hasFail) {
-    task.checks[138].s = 'ng';
-    task.checks[138].n = '导轨面距超出允许范围';
-  } else if (att4.maxDev.car || att4.maxDev.weight) {
-    task.checks[138].s = 'ok';
+  if (hasData) {
+    if (allOk) {
+      task.checks[138].s = 'ok';
+    } else {
+      task.checks[138].s = 'ng';
+      task.checks[138].n = '导轨面距超出允许范围';
+    }
   }
   
-  var hasData = att4.maxDev.car || att4.maxDev.weight;
-  var html = '<div class="auto-result' + (!hasFail && hasData ? ' pass' : '') + '">';
+  var html = '<div class="auto-result' + (allOk && hasData ? ' pass' : '') + '">';
   html += '<strong>自动判定:</strong> id138(导轨面距) ';
   if (task.checks[138].s === 'ok') html += '<span style="color:#52c41a;">✓合格</span>';
   else if (task.checks[138].s === 'ng') html += '<span style="color:#ff4d4f;">✕不合格</span>';
@@ -3647,29 +3888,25 @@ function renderAttach4Judge() {
 }
 
 function updateAtt4(rowIdx, key, val) {
-  var task = getCurrentTask(); if (!task) return; var att4 = task.attachments.attach4;
+  var task = getCurrentTask(); if (!task) return;
+  var att4 = task.attachments.attach4;
   if (!att4.rows[rowIdx]) att4.rows[rowIdx] = {car:'',weight:''};
   att4.rows[rowIdx][key] = val;
   saveCurrentTask();
   renderAttachments();
 }
 
-function updateAtt4Max(key, val) {
-  var task = getCurrentTask(); if (!task) return; var att4 = task.attachments.attach4;
-  if (!att4.maxDev) att4.maxDev = {car:'',weight:''};
-  att4.maxDev[key] = val;
+function updateAtt4Ref(key, val) {
+  var task = getCurrentTask(); if (!task) return;
+  var att4 = task.attachments.attach4;
+  att4[key] = val;
   saveCurrentTask();
   renderAttachments();
 }
 
-function updateAtt4Ref(key, val) {
-  var task = getCurrentTask(); if (!task) return; var att4 = task.attachments.attach4;
-  att4[key] = val;
-  saveCurrentTask();
-}
-
 function addAtt4Row() {
-  var task = getCurrentTask(); if (!task) return; var att4 = task.attachments.attach4;
+  var task = getCurrentTask(); if (!task) return;
+  var att4 = task.attachments.attach4;
   att4.rows.push({car:'',weight:''});
   saveCurrentTask();
   var target = document.getElementById('attModalBody') || document.getElementById('attContent');
@@ -3677,7 +3914,8 @@ function addAtt4Row() {
 }
 
 function deleteAtt4Row(rowIdx) {
-  var task = getCurrentTask(); if (!task) return; var att4 = task.attachments.attach4;
+  var task = getCurrentTask(); if (!task) return;
+  var att4 = task.attachments.attach4;
   if (att4.rows.length <= 1) return;
   att4.rows.splice(rowIdx, 1);
   saveCurrentTask();
@@ -3685,51 +3923,316 @@ function deleteAtt4Row(rowIdx) {
   if (target) renderAttach4(target);
 }
 
-// ============ ATTACHMENT 5 - 平衡系数 (自动计算) ============
+// ============ ATTACHMENT 5 - 载荷试验 (v50 自动计算+Canvas图) ============
+function calcBalanceFactor(upCurrents, downCurrents) {
+  var upVals = upCurrents.map(function(v){return parseFloat(v);});
+  var downVals = downCurrents.map(function(v){return parseFloat(v);});
+  var percentages = [30, 40, 45, 50, 60];
+  
+  // 检查有效数据
+  var validUp = upVals.filter(function(v){return !isNaN(v) && v > 0;});
+  var validDown = downVals.filter(function(v){return !isNaN(v) && v > 0;});
+  if (validUp.length < 2 || validDown.length < 2) {
+    return { found: false, value: 0, reason: '数据不足' };
+  }
+  
+  // 找相邻区间内的交叉点
+  var found = false;
+  var balancePoint = 0;
+  
+  for (var i = 0; i < 4; i++) {
+    var x1 = percentages[i];
+    var x2 = percentages[i + 1];
+    var y1 = upVals[i];
+    var y2 = upVals[i + 1];
+    var z1 = downVals[i];
+    var z2 = downVals[i + 1];
+    
+    if (isNaN(y1) || isNaN(y2) || isNaN(z1) || isNaN(z2)) continue;
+    
+    // 上行电流随载荷增大而增大，下行随载荷增大而减小
+    // 检查在这个区间内是否有交叉
+    var diff1 = y1 - z1; // 上行-下行
+    var diff2 = y2 - z2;
+    
+    // 如果差值从负变正（或从正变负），说明有交叉
+    if (diff1 * diff2 <= 0 && Math.abs(diff1 - diff2) > 0.001) {
+      // 线性插值找交叉点
+      var t = Math.abs(diff1) / Math.abs(diff2 - diff1);
+      balancePoint = x1 + t * (x2 - x1);
+      found = true;
+      break;
+    }
+  }
+  
+  if (!found) {
+    // 如果没找到交叉点，找差值最接近的位置作为估算
+    var minDiff = Infinity;
+    var minIdx = 0;
+    for (var j = 0; j < 5; j++) {
+      if (!isNaN(upVals[j]) && !isNaN(downVals[j])) {
+        var d = Math.abs(upVals[j] - downVals[j]);
+        if (d < minDiff) {
+          minDiff = d;
+          minIdx = j;
+        }
+      }
+    }
+    balancePoint = percentages[minIdx];
+  }
+  
+  return {
+    found: found,
+    value: Math.round(balancePoint * 10) / 10
+  };
+}
+
+function drawBalanceChart(canvasId, upCurrents, downCurrents, balancePoint) {
+  var canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  
+  var ctx = canvas.getContext('2d');
+  var w = canvas.width;
+  var h = canvas.height;
+  
+  // 清空
+  ctx.clearRect(0, 0, w, h);
+  
+  var percentages = [30, 40, 45, 50, 60];
+  var upVals = upCurrents.map(function(v){return parseFloat(v) || 0;});
+  var downVals = downCurrents.map(function(v){return parseFloat(v) || 0;});
+  
+  // 计算范围
+  var allVals = upVals.concat(downVals).filter(function(v){return v > 0;});
+  if (allVals.length === 0) {
+    ctx.fillStyle = '#999';
+    ctx.font = '12px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('请输入电流数据后查看图表', w/2, h/2);
+    return;
+  }
+  
+  var maxCurrent = Math.max.apply(null, allVals) * 1.15;
+  var minCurrent = 0;
+  
+  // 边距
+  var padL = 40, padR = 15, padT = 15, padB = 25;
+  var chartW = w - padL - padR;
+  var chartH = h - padT - padB;
+  
+  // 坐标映射
+  function xPos(pct) {
+    return padL + (pct - 30) / 30 * chartW;
+  }
+  function yPos(val) {
+    return padT + chartH - (val - minCurrent) / (maxCurrent - minCurrent) * chartH;
+  }
+  
+  // 画网格线
+  ctx.strokeStyle = '#f0f0f0';
+  ctx.lineWidth = 1;
+  for (var i = 0; i <= 4; i++) {
+    var y = padT + chartH * i / 4;
+    ctx.beginPath();
+    ctx.moveTo(padL, y);
+    ctx.lineTo(w - padR, y);
+    ctx.stroke();
+    
+    var val = maxCurrent * (1 - i/4);
+    ctx.fillStyle = '#999';
+    ctx.font = '10px Arial';
+    ctx.textAlign = 'right';
+    ctx.fillText(val.toFixed(0), padL - 3, y + 3);
+  }
+  
+  // 画x轴标签
+  ctx.fillStyle = '#666';
+  ctx.textAlign = 'center';
+  percentages.forEach(function(p) {
+    ctx.fillText(p + '%', xPos(p), h - 8);
+  });
+  
+  // 画上行曲线
+  ctx.strokeStyle = '#1890ff';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  var started = false;
+  for (var i = 0; i < 5; i++) {
+    if (upVals[i] > 0) {
+      var x = xPos(percentages[i]);
+      var y = yPos(upVals[i]);
+      if (!started) {
+        ctx.moveTo(x, y);
+        started = true;
+      } else {
+        ctx.lineTo(x, y);
+      }
+    }
+  }
+  ctx.stroke();
+  
+  // 画上行数据点
+  ctx.fillStyle = '#1890ff';
+  for (var i = 0; i < 5; i++) {
+    if (upVals[i] > 0) {
+      ctx.beginPath();
+      ctx.arc(xPos(percentages[i]), yPos(upVals[i]), 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  
+  // 画下行曲线
+  ctx.strokeStyle = '#ff4d4f';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  started = false;
+  for (var i = 0; i < 5; i++) {
+    if (downVals[i] > 0) {
+      var x = xPos(percentages[i]);
+      var y = yPos(downVals[i]);
+      if (!started) {
+        ctx.moveTo(x, y);
+        started = true;
+      } else {
+        ctx.lineTo(x, y);
+      }
+    }
+  }
+  ctx.stroke();
+  
+  // 画下行数据点
+  ctx.fillStyle = '#ff4d4f';
+  for (var i = 0; i < 5; i++) {
+    if (downVals[i] > 0) {
+      ctx.beginPath();
+      ctx.arc(xPos(percentages[i]), yPos(downVals[i]), 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  
+  // 标注交叉点
+  if (balancePoint && balancePoint > 0) {
+    var bx = xPos(balancePoint);
+    // 估算交叉点电流值
+    var crossCurrent = 0;
+    for (var i = 0; i < 4; i++) {
+      if (balancePoint >= percentages[i] && balancePoint <= percentages[i+1]) {
+        var t = (balancePoint - percentages[i]) / (percentages[i+1] - percentages[i]);
+        crossCurrent = upVals[i] + t * (upVals[i+1] - upVals[i]);
+        break;
+      }
+    }
+    if (crossCurrent > 0) {
+      var by = yPos(crossCurrent);
+      ctx.strokeStyle = '#52c41a';
+      ctx.setLineDash([3, 3]);
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(bx, padT);
+      ctx.lineTo(bx, h - padB);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      
+      // 交叉点标记
+      ctx.fillStyle = '#52c41a';
+      ctx.beginPath();
+      ctx.arc(bx, by, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      
+      // 标注文字
+      ctx.fillStyle = '#52c41a';
+      ctx.font = 'bold 11px Arial';
+      ctx.textAlign = 'left';
+      ctx.fillText('交点: ' + balancePoint + '%', bx + 5, by - 5);
+    }
+  }
+  
+  // 图例
+  ctx.font = '11px Arial';
+  ctx.textAlign = 'left';
+  ctx.fillStyle = '#1890ff';
+  ctx.fillRect(padL + 5, padT + 5, 12, 3);
+  ctx.fillStyle = '#333';
+  ctx.fillText('上行', padL + 22, padT + 10);
+  
+  ctx.fillStyle = '#ff4d4f';
+  ctx.fillRect(padL + 5, padT + 20, 12, 3);
+  ctx.fillStyle = '#333';
+  ctx.fillText('下行', padL + 22, padT + 25);
+}
+
 function renderAttach5(container) {
-  var task = getCurrentTask();
-  if (!task) return;
-  var att5 = task.attachments.attach5 || {载重:'',电压:{},电流:{},平衡系数:''};
+  var task = getCurrentTask(); if (!task) return;
+  var att5 = task.attachments.attach5 || {};
+  
+  // 确保数据结构
+  if (!att5.电流) att5.电流 = {};
+  if (!att5.电流.电流上行) att5.电流.电流上行 = ['','','','',''];
+  if (!att5.电流.电流下行) att5.电流.电流下行 = ['','','','',''];
+  if (!att5.砝码重量) att5.砝码重量 = '25';
+  
+  // 从配置单获取额定载重
+  var cfg = task.configParts || {};
+  var ratedLoad = cfg['额定载重量'] || att5.载重 || '';
+  if (ratedLoad && !att5.载重) att5.载重 = ratedLoad;
+  
+  var loadWeight = parseFloat(att5.载重) || 0;
+  var weightPerBlock = parseFloat(att5.砝码重量) || 25;
+  
+  var percentages = [30, 40, 45, 50, 60];
   
   var html = '<div class="att-card"><div class="att-card-title">⚖️ 平衡系数检验记录</div>';
   
-  // 载重和百分比计算行
-  html += '<div class="calc-row"><label>额定载重(Kg)</label><input type="text" id="att5Load" value="' + (att5.载重||'') + '" placeholder="Kg" inputmode="decimal" onchange="updateAtt5(\'载重\',this.value)"></div>';
+  // 额定载重和砝码设置
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">';
+  html += '<div><div style="font-size:11px;color:#666;margin-bottom:2px;">额定载重 (Kg)</div>';
+  html += '<input type="text" id="att5Load" value="' + (att5.载重||'') + '" placeholder="Kg" inputmode="decimal" oninput="updateAtt5(\'载重\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:8px;font-size:13px;text-align:center;"></div>';
+  html += '<div><div style="font-size:11px;color:#666;margin-bottom:2px;">砝码单块重量 (kg)</div>';
+  html += '<input type="text" value="' + (att5.砝码重量||'25') + '" placeholder="kg" inputmode="decimal" oninput="updateAtt5(\'砝码重量\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:8px;font-size:13px;text-align:center;"></div>';
+  html += '</div>';
   
-  var loadWeight = parseFloat(att5.载重) || 0;
-  var percentages = [30, 40, 45, 50, 60];
-  html += '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:12px;">';
+  // 各载荷点计算
+  html += '<div style="margin-bottom:8px;font-size:12px;font-weight:600;color:#4a5568;">各载荷点砝码计算</div>';
+  html += '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-bottom:12px;padding:8px;background:#f0f9ff;border-radius:6px;">';
   percentages.forEach(function(p) {
-    var calcWeight = Math.round(loadWeight * p / 100);
-    html += '<div style="text-align:center;font-size:11px;color:#667eea;font-weight:600;">' + p + '%<br><span style="color:#333;">' + calcWeight + 'kg</span></div>';
+    var calcWeight = loadWeight > 0 ? Math.round(loadWeight * p / 100) : '-';
+    var blocks = (loadWeight > 0 && weightPerBlock > 0) ? (loadWeight * p / 100 / weightPerBlock).toFixed(1) : '-';
+    html += '<div style="text-align:center;font-size:11px;">';
+    html += '<div style="font-weight:600;color:#667eea;">' + p + '%</div>';
+    html += '<div style="color:#333;">' + calcWeight + 'kg</div>';
+    html += '<div style="color:#666;">≈' + blocks + '块</div>';
+    html += '</div>';
   });
   html += '</div>';
   
   // 电流测试表
-  html += '<div style="margin-top:16px;font-weight:600;margin-bottom:8px;">电流测试(5个百分点的上下行电流)</div>';
+  html += '<div style="margin-top:8px;font-weight:600;margin-bottom:8px;font-size:13px;">电流测试(5个百分点的上下行电流 A)</div>';
   html += '<table style="width:100%;border-collapse:collapse;font-size:12px;"><tr style="background:#f7fafc;">';
-  html += '<th style="padding:8px;border:1px solid #ddd;width:30%;">项目</th>';
+  html += '<th style="padding:6px;border:1px solid #ddd;width:30%;">项目</th>';
   percentages.forEach(function(p) {
-    html += '<th style="padding:8px;border:1px solid #ddd;">' + p + '%</th>';
+    html += '<th style="padding:6px;border:1px solid #ddd;">' + p + '%</th>';
   });
   html += '</tr>';
   
   var rows = [
-    {k:'电流上行',l:'电流(A)-上行'},
-    {k:'电流下行',l:'电流(A)-下行'}
+    {k:'电流上行',l:'上行电流(A)',color:'#1890ff'},
+    {k:'电流下行',l:'下行电流(A)',color:'#ff4d4f'}
   ];
   rows.forEach(function(r) {
-    html += '<tr><td style="padding:8px;border:1px solid #ddd;font-weight:600;">' + r.l + '</td>';
+    html += '<tr><td style="padding:6px;border:1px solid #ddd;font-weight:600;color:' + r.color + ';">' + r.l + '</td>';
     for (var i = 0; i < 5; i++) {
-      var vals = att5.电流[r.k] || [];
-      html += '<td style="padding:6px;border:1px solid #ddd;"><input type="text" value="' + (vals[i]||'') + '" inputmode="decimal" onchange="updateAtt5Current(\'' + r.k + '\',' + i + ',this.value)" style="width:100%;border:none;text-align:center;font-size:12px;"></td>';
+      var vals = att5.电流[r.k] || ['','','','',''];
+      html += '<td style="padding:4px;border:1px solid #ddd;"><input type="text" value="' + (vals[i]||'') + '" inputmode="decimal" oninput="updateAtt5Current(\'' + r.k + '\',' + i + ',this.value)" style="width:100%;border:none;text-align:center;font-size:12px;"></td>';
     }
     html += '</tr>';
   });
   html += '</table>';
   
-  // 计算平衡系数按钮
-  html += '<button onclick="calcBalanceFactor()" style="width:100%;padding:12px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;margin-top:12px;">计算平衡系数</button>';
+  // 计算按钮
+  html += '<button onclick="calcAndDrawBalance()" style="width:100%;padding:10px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;margin-top:12px;">计算平衡系数并绘图</button>';
   
   // 平衡系数结果
   html += '<div class="calc-row" style="margin-top:12px;background:#e6f7ff;">';
@@ -3738,12 +4241,26 @@ function renderAttach5(container) {
   html += '<span style="color:#1890ff;">(标准:40%-50%)</span>';
   html += '</div>';
   
+  // Canvas 图表
+  html += '<div style="margin-top:12px;padding:10px;background:#fff;border:1px solid #e0e0e0;border-radius:8px;">';
+  html += '<div style="font-size:12px;font-weight:600;color:#4a5568;margin-bottom:6px;">📊 电流-载荷曲线图</div>';
+  html += '<canvas id="balanceChart" width="320" height="200" style="width:100%;max-width:100%;"></canvas>';
+  html += '</div>';
+  
   html += '</div>';
   
   // 自动判定
   html += renderAttach5Judge();
   
   container.innerHTML = html;
+  
+  // 绘制图表
+  setTimeout(function() {
+    var upCurrents = att5.电流.电流上行 || ['','','','',''];
+    var downCurrents = att5.电流.电流下行 || ['','','','',''];
+    var bp = parseFloat(att5.平衡系数) || 0;
+    drawBalanceChart('balanceChart', upCurrents, downCurrents, bp);
+  }, 50);
 }
 
 function updateAtt5(key, val) {
@@ -3753,80 +4270,37 @@ function updateAtt5(key, val) {
 }
 
 function updateAtt5Current(key, idx, val) {
-  var task = getCurrentTask(); if (!task) return; var att5 = task.attachments.attach5;
+  var task = getCurrentTask(); if (!task) return;
+  var att5 = task.attachments.attach5;
   if (!att5.电流[key]) att5.电流[key] = ['','','','',''];
   att5.电流[key][idx] = val;
   saveCurrentTask();
-  renderAttachments();
+  // 实时更新图表（不重新渲染整个表）
+  var upCurrents = att5.电流.电流上行 || ['','','','',''];
+  var downCurrents = att5.电流.电流下行 || ['','','','',''];
+  var bp = parseFloat(att5.平衡系数) || 0;
+  drawBalanceChart('balanceChart', upCurrents, downCurrents, bp);
 }
 
-function calcBalanceFactor() {
-  var task = getCurrentTask(); if (!task) return; var att5 = task.attachments.attach5;
-  var upCurrents = att5.电流['电流上行'] || [];
-  var downCurrents = att5.电流['电流下行'] || [];
+function calcAndDrawBalance() {
+  var task = getCurrentTask(); if (!task) return;
+  var att5 = task.attachments.attach5;
+  var upCurrents = att5.电流.电流上行 || [];
+  var downCurrents = att5.电流.电流下行 || [];
   
-  // 线性插值法计算平衡系数
-  var upVals = upCurrents.map(function(v){return parseFloat(v);}).filter(function(v){return !isNaN(v);});
-  var downVals = downCurrents.map(function(v){return parseFloat(v);}).filter(function(v){return !isNaN(v);});
+  var result = calcBalanceFactor(upCurrents, downCurrents);
   
-  if (upVals.length < 2 || downVals.length < 2) {
-    showToast('请至少填写2个上行和2个下行电流值');
-    return;
+  if (!result.found && result.reason) {
+    showToast(result.reason);
   }
   
-  var percentages = [30, 40, 45, 50, 60];
-  
-  // 找交叉点
-  var balancePoint = 0;
-  var found = false;
-  
-  for (var i = 0; i < upVals.length - 1; i++) {
-    var x1 = percentages[i];
-    var x2 = percentages[i + 1];
-    var y1 = upVals[i];
-    var y2 = upVals[i + 1];
-    var z1 = downVals[i];
-    var z2 = downVals[i + 1];
-    
-    // 线性插值：上行电流 = a*x + b, 下行电流 = c*x + d
-    var a = (y2 - y1) / (x2 - x1);
-    var b = y1 - a * x1;
-    var c = (z2 - z1) / (x2 - x1);
-    var d = z1 - c * x1;
-    
-    // 交叉点: a*x + b = c*x + d => x = (d - b) / (a - c)
-    if (Math.abs(a - c) > 0.001) {
-      var x = (d - b) / (a - c);
-      if (x >= 30 && x <= 60) {
-        balancePoint = x;
-        found = true;
-        break;
-      }
-    }
-  }
-  
-  if (!found) {
-    // 简化方法：取上下行电流最接近时的百分比
-    var minDiff = Infinity;
-    for (var j = 0; j < upVals.length && j < downVals.length; j++) {
-      var diff = Math.abs(upVals[j] - downVals[j]);
-      if (diff < minDiff) {
-        minDiff = diff;
-        balancePoint = percentages[j];
-      }
-    }
-  }
-  
-  balancePoint = Math.round(balancePoint * 10) / 10;
-  att5.平衡系数 = balancePoint.toString();
+  att5.平衡系数 = result.value.toString();
   
   // 自动回填到id 76
-  var task = getCurrentTask();
-  if (!task) return;
   if (!task.checks[76]) task.checks[76] = {};
-  task.checks[76].v = balancePoint + '%';
+  task.checks[76].v = result.value + '%';
   
-  if (balancePoint >= 40 && balancePoint <= 50) {
+  if (result.value >= 40 && result.value <= 50) {
     task.checks[76].s = 'ok';
   } else {
     task.checks[76].s = 'ng';
@@ -3834,14 +4308,17 @@ function calcBalanceFactor() {
   }
   
   saveCurrentTask();
-  document.getElementById('att5Result').value = balancePoint;
+  
+  var resultEl = document.getElementById('att5Result');
+  if (resultEl) resultEl.value = result.value;
+  
+  drawBalanceChart('balanceChart', upCurrents, downCurrents, result.value);
   renderAttachments();
-  showToast('平衡系数计算完成: ' + balancePoint + '%');
+  showToast('平衡系数: ' + result.value + '%');
 }
 
 function renderAttach5Judge() {
-  var task = getCurrentTask();
-  if (!task) return;
+  var task = getCurrentTask(); if (!task) return '';
   var att5 = task.attachments.attach5 || {};
   
   var balance = parseFloat(att5.平衡系数) || 0;
@@ -3857,7 +4334,7 @@ function renderAttach5Judge() {
     }
   }
   
-  var html = '<div class="auto-result' + (isPass ? ' pass' : '') + '">';
+  var html = '<div class="auto-result' + (isPass && balance > 0 ? ' pass' : '') + '">';
   html += '<strong>自动判定:</strong> id76(平衡系数) ';
   if (task.checks[76].s === 'ok') html += '<span style="color:#52c41a;">✓合格 (' + balance + '%)</span>';
   else if (task.checks[76].s === 'ng') html += '<span style="color:#ff4d4f;">✕不合格 (' + balance + '%)</span>';
@@ -3866,74 +4343,139 @@ function renderAttach5Judge() {
   return html;
 }
 
-// ============ ATTACHMENT 6 - 钢丝绳张力 ============
+// ============ ATTACHMENT 6 - 钢丝绳张力 (v50 动态根数) ============
+function calcRopeTension(forces, count) {
+  var validCount = 0;
+  var sum = 0;
+  var maxV = 0;
+  var minV = Infinity;
+  
+  for (var i = 0; i < count; i++) {
+    var v = parseFloat(forces[i]);
+    if (!isNaN(v) && v > 0) {
+      validCount++;
+      sum += v;
+      if (v > maxV) maxV = v;
+      if (v < minV) minV = v;
+    }
+  }
+  
+  var avg = validCount > 0 ? sum / validCount : 0;
+  var devPercent = (validCount >= 2 && avg > 0) ? ((maxV - minV) / avg * 100) : 0;
+  
+  return {
+    validCount: validCount,
+    avg: avg,
+    maxV: maxV,
+    minV: minV,
+    devPercent: devPercent
+  };
+}
+
 function renderAttach6(container) {
-  var task = getCurrentTask();
-  if (!task) return;
-  var att6 = task.attachments.attach6 || {F1:'',F2:'',F3:'',F4:'',F5:'',F6:'',F7:'',F8:'',平均值:'',偏差:''};
+  var task = getCurrentTask(); if (!task) return;
+  var att6 = task.attachments.attach6 || {};
+  
+  // 兼容旧数据
+  if (!att6.ropeCount) att6.ropeCount = 6;
+  if (!att6.forces) {
+    // 从旧的F1-F8格式迁移
+    att6.forces = ['','','','','','','','','','','',''];
+    for (var i = 1; i <= 8; i++) {
+      if (att6['F' + i]) {
+        att6.forces[i-1] = att6['F' + i];
+      }
+    }
+  }
+  
+  var count = parseInt(att6.ropeCount) || 6;
+  if (count < 1) count = 1;
+  if (count > 12) count = 12;
+  
+  var result = calcRopeTension(att6.forces, count);
+  var isPass = result.validCount >= 2 && result.devPercent <= 5;
   
   var html = '<div class="att-card"><div class="att-card-title">🔧 钢丝绳张力测试记录</div>';
+  
+  // 钢丝绳根数设置
+  html += '<div style="margin-bottom:12px;padding:10px;background:#eef2ff;border-radius:8px;">';
+  html += '<div style="display:flex;align-items:center;gap:10px;">';
+  html += '<label style="font-size:12px;font-weight:600;color:#4a5568;">钢丝绳根数:</label>';
+  html += '<input type="number" min="1" max="12" value="' + count + '" oninput="updateAtt6RopeCount(this.value)" style="width:60px;border:1px solid #667eea;border-radius:4px;padding:6px;font-size:14px;text-align:center;font-weight:600;color:#667eea;">';
+  html += '<span style="font-size:11px;color:#999;">(1-12根)</span>';
+  html += '</div></div>';
+  
+  // 张力输入网格
   html += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;">';
-  for (var i = 1; i <= 8; i++) {
-    html += '<div><label style="font-size:11px;color:#666;">F' + i + '</label>';
-    html += '<input type="text" value="' + (att6['F'+i]||'') + '" placeholder="N" inputmode="decimal" onchange="updateAtt6(\'F' + i + '\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:6px;padding:8px;text-align:center;"></div>';
+  for (var i = 0; i < count; i++) {
+    var val = att6.forces[i] || '';
+    html += '<div><label style="font-size:11px;color:#666;">F' + (i+1) + ' (N)</label>';
+    html += '<input type="text" value="' + val + '" placeholder="-" inputmode="decimal" oninput="updateAtt6Force(' + i + ',this.value)" style="width:100%;border:1px solid #ddd;border-radius:6px;padding:8px;text-align:center;font-size:13px;"></div>';
   }
   html += '</div>';
   
   // 计算结果
-  var fVals = [1,2,3,4,5,6,7,8].map(function(i){return parseFloat(att6['F'+i]) || 0;});
-  var validVals = fVals.filter(function(v){return v > 0;});
-  var avg = validVals.length > 0 ? validVals.reduce(function(a,b){return a+b;},0) / validVals.length : 0;
-  var maxDev = 0;
-  if (validVals.length > 0 && avg > 0) {
-    maxDev = Math.max.apply(null, validVals.map(function(v){return Math.abs(v-avg)/avg*100;}));
-  }
-  
-  html += '<div style="padding:12px;background:#f0fff4;border-radius:8px;font-size:13px;">';
-  html += '<strong>计算结果:</strong><br>';
-  html += '有效数据: ' + validVals.length + '个, ';
-  html += '平均值: ' + avg.toFixed(2) + 'N<br>';
-  html += '最大偏差: <strong style="color:' + (maxDev <= 5 ? '#52c41a' : '#ff4d4f') + ';">' + maxDev.toFixed(2) + '%</strong> ';
-  html += '<span style="color:' + (maxDev <= 5 ? '#52c41a' : '#ff4d4f') + ';">' + (maxDev <= 5 ? '✓合格' : '✕不合格') + '</span>';
+  html += '<div style="padding:12px;background:#f0fff4;border-radius:8px;font-size:13px;line-height:1.8;">';
+  html += '<div style="font-weight:600;margin-bottom:6px;color:#333;">📊 计算结果</div>';
+  html += '有效数据: <strong>' + result.validCount + '</strong> 根<br>';
+  html += '张力平均值: <strong>' + (result.avg > 0 ? result.avg.toFixed(2) : '-') + '</strong> N<br>';
+  html += '最大值: <strong>' + (result.maxV > 0 ? result.maxV.toFixed(2) : '-') + '</strong> N, ';
+  html += '最小值: <strong>' + (result.minV < Infinity ? result.minV.toFixed(2) : '-') + '</strong> N<br>';
+  html += '张力偏差: <strong style="color:' + (result.validCount >= 2 ? (isPass ? '#52c41a' : '#ff4d4f') : '#999') + ';">' + (result.validCount >= 2 ? result.devPercent.toFixed(2) + '%' : '-') + '</strong> ';
+  html += '<span style="color:' + (result.validCount >= 2 ? (isPass ? '#52c41a' : '#ff4d4f') : '#999') + ';">';
+  html += result.validCount >= 2 ? (isPass ? '✓合格' : '✕不合格') : '(需≥2组有效数据)';
+  html += '</span>';
   html += '</div>';
   
   // 自动判定
-  html += renderAttach6Judge();
+  html += renderAttach6Judge(result, isPass);
   html += '</div>'; // 闭合att-card
   
   container.innerHTML = html;
 }
 
-function updateAtt6(key, val) {
-  var task = getCurrentTask(); if (task) task.attachments.attach6[key] = val;
+function updateAtt6Force(idx, val) {
+  var task = getCurrentTask(); if (!task) return;
+  var att6 = task.attachments.attach6;
+  if (!att6.forces) att6.forces = ['','','','','','','','','','','',''];
+  att6.forces[idx] = val;
   saveCurrentTask();
   renderAttachments();
 }
 
-function renderAttach6Judge() {
-  var task = getCurrentTask();
-  if (!task) return;
+function updateAtt6RopeCount(val) {
+  var task = getCurrentTask(); if (!task) return;
+  var att6 = task.attachments.attach6;
+  var n = parseInt(val) || 6;
+  if (n < 1) n = 1;
+  if (n > 12) n = 12;
+  att6.ropeCount = n;
+  if (!att6.forces) att6.forces = ['','','','','','','','','','','',''];
+  saveCurrentTask();
+  renderAttachments();
+}
+
+function renderAttach6Judge(result, isPass) {
+  var task = getCurrentTask(); if (!task) return '';
   var att6 = task.attachments.attach6 || {};
   
-  var fVals = [1,2,3,4,5,6,7,8].map(function(i){return parseFloat(att6['F'+i]) || 0;});
-  var validVals = fVals.filter(function(v){return v > 0;});
-  var avg = validVals.length > 0 ? validVals.reduce(function(a,b){return a+b;},0) / validVals.length : 0;
-  var maxDev = 0;
-  if (validVals.length > 0 && avg > 0) {
-    maxDev = Math.max.apply(null, validVals.map(function(v){return Math.abs(v-avg)/avg*100;}));
+  if (!result) {
+    var count = parseInt(att6.ropeCount) || 6;
+    result = calcRopeTension(att6.forces || [], count);
+    isPass = result.validCount >= 2 && result.devPercent <= 5;
   }
   
   if (!task.checks[143]) task.checks[143] = {};
-  if (validVals.length >= 2) {
-    if (maxDev <= 5) {
+  if (result.validCount >= 2) {
+    if (isPass) {
       task.checks[143].s = 'ok';
     } else {
       task.checks[143].s = 'ng';
-      task.checks[143].n = '钢丝绳张力偏差>' + maxDev.toFixed(1) + '%';
+      task.checks[143].n = '钢丝绳张力偏差>' + result.devPercent.toFixed(1) + '%';
     }
   }
   
-  var html = '<div class="auto-result' + (maxDev <= 5 && validVals.length >= 2 ? ' pass' : '') + '">';
+  var html = '<div class="auto-result' + (isPass && result.validCount >= 2 ? ' pass' : '') + '" style="margin-top:12px;">';
   html += '<strong>自动判定:</strong> id143(钢丝绳张力) ';
   if (task.checks[143].s === 'ok') html += '<span style="color:#52c41a;">✓合格 (偏差≤5%)</span>';
   else if (task.checks[143].s === 'ng') html += '<span style="color:#ff4d4f;">✕不合格</span>';
@@ -3942,37 +4484,131 @@ function renderAttach6Judge() {
   return html;
 }
 
-// ============ ATTACHMENT 7 - 噪声测试 ============
+// ============ ATTACHMENT 7 - 噪声测试 (v50 布局调整+无机房) ============
+function getNoiseStd(v) {
+  // 根据额定速度返回噪声标准
+  if (v <= 0) v = 1.6; // 默认值
+  var std = {
+    door: 65,         // 开关门噪声，各速度一样
+    car: v <= 2.5 ? 55 : 60,   // 轿厢内噪声
+    machine: v <= 2.5 ? 80 : 85, // 机房噪声
+    mrl: 65           // 无机房层门处
+  };
+  std.vCategory = v <= 2.5 ? 'v≤2.5m/s' : (v <= 6.0 ? '2.5<v≤6.0m/s' : 'v>6.0m/s');
+  return std;
+}
+
 function renderAttach7(container) {
-  var task = getCurrentTask();
-  if (!task) return;
+  var task = getCurrentTask(); if (!task) return;
   var att7 = task.attachments.attach7 || {};
+  
+  var v = getRatedSpeed();
+  var std = getNoiseStd(v);
   
   var html = '<div class="att-card"><div class="att-card-title">🔊 噪声测试记录 dB(A)</div>';
   
-  html += '<div style="font-weight:600;margin-bottom:8px;color:#4a5568;">开关门过程噪声</div>';
-  html += '<div class="att-row"><label>层站-开门</label><input type="text" value="' + (att7.开门层站||'') + '" placeholder="dB" inputmode="decimal" onchange="updateAtt7(\'开门层站\',this.value)"><span class="ok">≤65dB</span></div>';
-  html += '<div class="att-row"><label>层站-关门</label><input type="text" value="' + (att7.关门层站||'') + '" placeholder="dB" inputmode="decimal" onchange="updateAtt7(\'关门层站\',this.value)"><span class="ok">≤65dB</span></div>';
-  html += '<div class="att-row"><label>轿厢-开门</label><input type="text" value="' + (att7.开门轿厢||'') + '" placeholder="dB" inputmode="decimal" onchange="updateAtt7(\'开门轿厢\',this.value)"><span class="ok">≤65dB</span></div>';
-  html += '<div class="att-row"><label>轿厢-关门</label><input type="text" value="' + (att7.关门轿厢||'') + '" placeholder="dB" inputmode="decimal" onchange="updateAtt7(\'关门轿厢\',this.value)"><span class="ok">≤65dB</span></div>';
+  html += '<div style="font-size:11px;color:#667eea;font-weight:600;margin-bottom:10px;">额定速度: ' + (v || '--') + ' m/s (' + std.vCategory + ')</div>';
   
-  html += '<div style="font-weight:600;margin:16px 0 8px;color:#4a5568;">运行中轿厢内噪声</div>';
-  html += '<div class="att-row"><label>上行</label><input type="text" value="' + (att7.上行轿厢||'') + '" placeholder="dB" inputmode="decimal" onchange="updateAtt7(\'上行轿厢\',this.value)"><span class="ok">≤55dB</span></div>';
-  html += '<div class="att-row"><label>下行</label><input type="text" value="' + (att7.下行轿厢||'') + '" placeholder="dB" inputmode="decimal" onchange="updateAtt7(\'下行轿厢\',this.value)"><span class="ok">≤55dB</span></div>';
+  // ===== 开关门过程噪声 =====
+  html += '<div style="font-weight:600;margin-bottom:6px;color:#4a5568;font-size:13px;">开关门过程噪声</div>';
   
-  html += '<div style="font-weight:600;margin:16px 0 8px;color:#4a5568;">机房噪声</div>';
-  html += '<div class="att-row"><label>测点1</label><input type="text" value="' + (att7.机房1||'') + '" placeholder="dB" inputmode="decimal" onchange="updateAtt7(\'机房1\',this.value)"><span class="ok">≤80dB</span></div>';
-  html += '<div class="att-row"><label>测点2</label><input type="text" value="' + (att7.机房2||'') + '" placeholder="dB" inputmode="decimal" onchange="updateAtt7(\'机房2\',this.value)"><span class="ok">≤80dB</span></div>';
-  html += '<div class="att-row"><label>测点3</label><input type="text" value="' + (att7.机房3||'') + '" placeholder="dB" inputmode="decimal" onchange="updateAtt7(\'机房3\',this.value)"><span class="ok">≤80dB</span></div>';
+  var openLayer = parseFloat(att7.开门层站) || 0;
+  var closeLayer = parseFloat(att7.关门层站) || 0;
+  var openCar = parseFloat(att7.开门轿厢) || 0;
+  var closeCar = parseFloat(att7.关门轿厢) || 0;
   
-  html += '<div style="margin-top:16px;padding:10px;background:#fff3cd;border-radius:8px;font-size:12px;color:#856404;">';
-  html += '<strong>标准参考:</strong><br>';
-  html += 'v≤2.5m/s: 机房≤80dB, 轿厢内≤55dB, 开关门≤65dB<br>';
-  html += '2.5&lt;v≤6.0m/s: 机房≤85dB, 轿厢内≤60dB, 开关门≤65dB';
+  var doorMax = 0;
+  var doorVals = [openLayer, closeLayer, openCar, closeCar].filter(function(v){return v > 0;});
+  if (doorVals.length > 0) doorMax = Math.max.apply(null, doorVals);
+  
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:4px;">';
+  html += '<div style="padding:6px;background:#fafafa;border-radius:4px;"><div style="font-size:11px;color:#666;margin-bottom:2px;">层站-开门</div>';
+  html += '<input type="text" value="' + (att7.开门层站||'') + '" placeholder="dB" inputmode="decimal" oninput="updateAtt7(\'开门层站\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
+  html += '<div style="padding:6px;background:#fafafa;border-radius:4px;"><div style="font-size:11px;color:#666;margin-bottom:2px;">层站-关门</div>';
+  html += '<input type="text" value="' + (att7.关门层站||'') + '" placeholder="dB" inputmode="decimal" oninput="updateAtt7(\'关门层站\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
+  html += '</div>';
+  
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:4px;">';
+  html += '<div style="padding:6px;background:#fafafa;border-radius:4px;"><div style="font-size:11px;color:#666;margin-bottom:2px;">轿厢-开门</div>';
+  html += '<input type="text" value="' + (att7.开门轿厢||'') + '" placeholder="dB" inputmode="decimal" oninput="updateAtt7(\'开门轿厢\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
+  html += '<div style="padding:6px;background:#fafafa;border-radius:4px;"><div style="font-size:11px;color:#666;margin-bottom:2px;">轿厢-关门</div>';
+  html += '<input type="text" value="' + (att7.关门轿厢||'') + '" placeholder="dB" inputmode="decimal" oninput="updateAtt7(\'关门轿厢\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
+  html += '</div>';
+  
+  html += '<div style="padding:6px;background:#e6f7ff;border-radius:4px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;">';
+  html += '<span style="font-size:12px;font-weight:600;color:#1890ff;">最大值 (标准≤' + std.door + 'dB)</span>';
+  html += '<span style="font-size:14px;font-weight:700;color:' + (doorMax > 0 ? (doorMax <= std.door ? '#52c41a' : '#ff4d4f') : '#999') + ';">' + (doorMax > 0 ? doorMax.toFixed(1) : '-') + ' dB</span>';
+  html += '</div>';
+  
+  // ===== 运行中轿厢内噪声 =====
+  html += '<div style="font-weight:600;margin:12px 0 6px;color:#4a5568;font-size:13px;">运行中轿厢内噪声</div>';
+  
+  var upCar = parseFloat(att7.上行轿厢) || 0;
+  var downCar = parseFloat(att7.下行轿厢) || 0;
+  var carVals = [upCar, downCar].filter(function(v){return v > 0;});
+  var carMax = carVals.length > 0 ? Math.max.apply(null, carVals) : 0;
+  
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:4px;">';
+  html += '<div style="padding:6px;background:#fafafa;border-radius:4px;"><div style="font-size:11px;color:#666;margin-bottom:2px;">上行</div>';
+  html += '<input type="text" value="' + (att7.上行轿厢||'') + '" placeholder="dB" inputmode="decimal" oninput="updateAtt7(\'上行轿厢\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
+  html += '<div style="padding:6px;background:#fafafa;border-radius:4px;"><div style="font-size:11px;color:#666;margin-bottom:2px;">下行</div>';
+  html += '<input type="text" value="' + (att7.下行轿厢||'') + '" placeholder="dB" inputmode="decimal" oninput="updateAtt7(\'下行轿厢\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
+  html += '</div>';
+  
+  html += '<div style="padding:6px;background:#e6f7ff;border-radius:4px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;">';
+  html += '<span style="font-size:12px;font-weight:600;color:#1890ff;">最大值 (标准≤' + std.car + 'dB)</span>';
+  html += '<span style="font-size:14px;font-weight:700;color:' + (carMax > 0 ? (carMax <= std.car ? '#52c41a' : '#ff4d4f') : '#999') + ';">' + (carMax > 0 ? carMax.toFixed(1) : '-') + ' dB</span>';
+  html += '</div>';
+  
+  // ===== 机房噪声 =====
+  html += '<div style="font-weight:600;margin:12px 0 6px;color:#4a5568;font-size:13px;">机房噪声</div>';
+  
+  var m1 = parseFloat(att7.机房1) || 0;
+  var m2 = parseFloat(att7.机房2) || 0;
+  var m3 = parseFloat(att7.机房3) || 0;
+  var machineVals = [m1, m2, m3].filter(function(v){return v > 0;});
+  var machineAvg = machineVals.length > 0 ? (machineVals.reduce(function(a,b){return a+b;},0) / machineVals.length) : 0;
+  
+  html += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:4px;">';
+  html += '<div style="padding:6px;background:#fafafa;border-radius:4px;"><div style="font-size:11px;color:#666;margin-bottom:2px;">测点1</div>';
+  html += '<input type="text" value="' + (att7.机房1||'') + '" placeholder="dB" inputmode="decimal" oninput="updateAtt7(\'机房1\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
+  html += '<div style="padding:6px;background:#fafafa;border-radius:4px;"><div style="font-size:11px;color:#666;margin-bottom:2px;">测点2</div>';
+  html += '<input type="text" value="' + (att7.机房2||'') + '" placeholder="dB" inputmode="decimal" oninput="updateAtt7(\'机房2\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
+  html += '<div style="padding:6px;background:#fafafa;border-radius:4px;"><div style="font-size:11px;color:#666;margin-bottom:2px;">测点3</div>';
+  html += '<input type="text" value="' + (att7.机房3||'') + '" placeholder="dB" inputmode="decimal" oninput="updateAtt7(\'机房3\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
+  html += '</div>';
+  
+  html += '<div style="padding:6px;background:#fff7e6;border-radius:4px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;">';
+  html += '<span style="font-size:12px;font-weight:600;color:#d48806;">平均值 (标准≤' + std.machine + 'dB)</span>';
+  html += '<span style="font-size:14px;font-weight:700;color:' + (machineAvg > 0 ? (machineAvg <= std.machine ? '#52c41a' : '#ff4d4f') : '#999') + ';">' + (machineAvg > 0 ? machineAvg.toFixed(1) : '-') + ' dB</span>';
+  html += '</div>';
+  
+  // ===== 无机房噪声 =====
+  html += '<div style="font-weight:600;margin:12px 0 6px;color:#4a5568;font-size:13px;">无机房噪声</div>';
+  
+  var mrl = parseFloat(att7.无机房层门) || 0;
+  
+  html += '<div style="display:grid;grid-template-columns:1fr;gap:6px;margin-bottom:4px;">';
+  html += '<div style="padding:6px;background:#fafafa;border-radius:4px;"><div style="font-size:11px;color:#666;margin-bottom:2px;">最顶层层门处</div>';
+  html += '<input type="text" value="' + (att7.无机房层门||'') + '" placeholder="dB" inputmode="decimal" oninput="updateAtt7(\'无机房层门\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
+  html += '</div>';
+  
+  html += '<div style="padding:6px;background:#f9f0ff;border-radius:4px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">';
+  html += '<span style="font-size:12px;font-weight:600;color:#722ed1;">最大值 (标准≤' + std.mrl + 'dB)</span>';
+  html += '<span style="font-size:14px;font-weight:700;color:' + (mrl > 0 ? (mrl <= std.mrl ? '#52c41a' : '#ff4d4f') : '#999') + ';">' + (mrl > 0 ? mrl.toFixed(1) : '-') + ' dB</span>';
+  html += '</div>';
+  
+  // 标准参考
+  html += '<div style="margin-top:12px;padding:10px;background:#fff3cd;border-radius:8px;font-size:11px;color:#856404;line-height:1.6;">';
+  html += '<strong>标准参考 (' + std.vCategory + '):</strong><br>';
+  html += '• 开关门噪声: ≤' + std.door + 'dB (各速度等级相同)<br>';
+  html += '• 轿厢内噪声: ≤' + std.car + 'dB<br>';
+  html += '• 机房噪声: ≤' + std.machine + 'dB<br>';
+  html += '• 无机房电梯层门处: ≤' + std.mrl + 'dB';
   html += '</div>';
   
   // 自动判定
-  html += renderAttach7Judge();
+  html += renderAttach7Judge(std, doorMax, carMax, machineAvg, mrl);
   html += '</div>'; // 闭合att-card
   
   container.innerHTML = html;
@@ -3984,32 +4620,41 @@ function updateAtt7(key, val) {
   renderAttachments();
 }
 
-function renderAttach7Judge() {
-  var task = getCurrentTask();
-  if (!task) return;
+function renderAttach7Judge(std, doorMax, carMax, machineAvg, mrl) {
+  var task = getCurrentTask(); if (!task) return '';
   var att7 = task.attachments.attach7 || {};
   
-  // 简化判定：只要有超标数据就标记
-  var noiseVals = [
-    {k:'上行轿厢', limit:55},
-    {k:'下行轿厢', limit:55},
-    {k:'开门层站', limit:65},
-    {k:'关门层站', limit:65},
-    {k:'开门轿厢', limit:65},
-    {k:'关门轿厢', limit:65},
-    {k:'机房1', limit:80},
-    {k:'机房2', limit:80},
-    {k:'机房3', limit:80}
-  ];
+  if (!std) std = getNoiseStd(getRatedSpeed());
+  
+  if (doorMax === undefined) {
+    var ov = parseFloat(att7.开门层站)||0, cv = parseFloat(att7.关门层站)||0;
+    var oc = parseFloat(att7.开门轿厢)||0, cc = parseFloat(att7.关门轿厢)||0;
+    var dvs = [ov,cv,oc,cc].filter(function(x){return x>0;});
+    doorMax = dvs.length > 0 ? Math.max.apply(null, dvs) : 0;
+  }
+  if (carMax === undefined) {
+    var uc = parseFloat(att7.上行轿厢)||0, dc = parseFloat(att7.下行轿厢)||0;
+    var cvs = [uc,dc].filter(function(x){return x>0;});
+    carMax = cvs.length > 0 ? Math.max.apply(null, cvs) : 0;
+  }
+  if (machineAvg === undefined) {
+    var m1 = parseFloat(att7.机房1)||0, m2 = parseFloat(att7.机房2)||0, m3 = parseFloat(att7.机房3)||0;
+    var mvs = [m1,m2,m3].filter(function(x){return x>0;});
+    machineAvg = mvs.length > 0 ? (mvs.reduce(function(a,b){return a+b;},0)/mvs.length) : 0;
+  }
+  if (mrl === undefined) {
+    mrl = parseFloat(att7.无机房层门) || 0;
+  }
   
   var hasFail = false;
-  noiseVals.forEach(function(nv) {
-    var v = parseFloat(att7[nv.k]);
-    if (!isNaN(v) && v > nv.limit) hasFail = true;
-  });
+  var hasData = false;
+  
+  if (doorMax > 0) { hasData = true; if (doorMax > std.door) hasFail = true; }
+  if (carMax > 0) { hasData = true; if (carMax > std.car) hasFail = true; }
+  if (machineAvg > 0) { hasData = true; if (machineAvg > std.machine) hasFail = true; }
+  if (mrl > 0) { hasData = true; if (mrl > std.mrl) hasFail = true; }
   
   if (!task.checks[89]) task.checks[89] = {};
-  var hasData = noiseVals.some(function(nv){return att7[nv.k];});
   if (hasData) {
     if (hasFail) {
       task.checks[89].s = 'ng';
@@ -4019,7 +4664,7 @@ function renderAttach7Judge() {
     }
   }
   
-  var html = '<div class="auto-result' + (!hasFail && hasData ? ' pass' : '') + '">';
+  var html = '<div class="auto-result' + (!hasFail && hasData ? ' pass' : '') + '" style="margin-top:12px;">';
   html += '<strong>自动判定:</strong> id89(噪声测试) ';
   if (task.checks[89].s === 'ok') html += '<span style="color:#52c41a;">✓合格</span>';
   else if (task.checks[89].s === 'ng') html += '<span style="color:#ff4d4f;">✕不合格</span>';
