@@ -3063,6 +3063,26 @@ function syncChecksToMain(ids) {
   });
 }
 
+var _attachRenderTimer = null;
+function scheduleAttachRender() {
+  clearTimeout(_attachRenderTimer);
+  _attachRenderTimer = setTimeout(function() {
+    renderAttachments();
+    // 重绘平衡系数曲线
+    var task = getCurrentTask();
+    if (task && task.attachments && task.attachments.attach5 && document.getElementById('balanceChart')) {
+      var att5 = task.attachments.attach5;
+      var up = (att5.电流 && att5.电流.电流上行) || [];
+      var dn = (att5.电流 && att5.电流.电流下行) || [];
+      var bp = parseFloat(att5.平衡系数) || 0;
+      drawBalanceChart('balanceChart', up, dn, bp);
+    }
+  }, 200);
+}
+function cancelAttachRender() {
+  clearTimeout(_attachRenderTimer);
+}
+
 function renderAttachments() {
   var atts = ['附表1-门间隙', '附表2-缓冲距', '附表3-导轨铅垂度', '附表4-导轨面距', '附表5-平衡系数', '附表6-钢丝绳张力', '附表7-噪声测试'];
   var tabs = document.getElementById('attTabs');
@@ -3214,7 +3234,7 @@ function renderAttach1(container) {
         var val = cd[f.idx] || '';
         var s = '<div style="flex:1;min-width:0;"><div style="font-size:11px;color:#4a5568;margin-bottom:2px;">' + f.label + '</div>';
         s += '<div style="display:flex;align-items:center;gap:4px;">';
-        s += '<input type="text" value="' + val + '" placeholder="-" inputmode="decimal" onblur="updateCargateVal(' + cargateIdx + ',' + f.idx + ',this.value)" style="width:50px;border:1px solid #ddd;border-radius:4px;padding:4px 6px;font-size:13px;text-align:center;">';
+        s += '<input type="text" value="' + val + '" placeholder="-" inputmode="decimal" onfocus="cancelAttachRender()" onblur="updateCargateVal(' + cargateIdx + ',' + f.idx + ',this.value)" style="width:50px;border:1px solid #ddd;border-radius:4px;padding:4px 6px;font-size:13px;text-align:center;">';
         s += '<span style="font-size:12px;color:#999;">' + f.std + '</span></div></div>';
         return s;
       }
@@ -3238,7 +3258,7 @@ function updateCargateVal(cargateIdx, fieldIdx, val) {
   if (!att1.cargate[cargateIdx]) att1.cargate[cargateIdx] = Array(15).fill('');
   att1.cargate[cargateIdx][fieldIdx] = val;
   saveCurrentTask();
-  renderAttachments();
+  scheduleAttachRender();
 }
 
 function updateLaygateName(rowIdx, val) {
@@ -3426,7 +3446,7 @@ function renderAtt1LaygateInputs(data, rowIdx) {
       if (isNew) {
         s += '<input type="text" value="' + val + '" placeholder="-" inputmode="decimal" id="laygate_new_' + f.idx + '" style="width:50px;border:1px solid #ddd;border-radius:4px;padding:3px 5px;font-size:12px;text-align:center;">';
       } else {
-        s += '<input type="text" value="' + val + '" placeholder="-" inputmode="decimal" onblur="updateLaygateVal(' + rowIdx + ',' + f.idx + ',this.value)" style="width:50px;border:1px solid #ddd;border-radius:4px;padding:3px 5px;font-size:12px;text-align:center;">';
+        s += '<input type="text" value="' + val + '" placeholder="-" inputmode="decimal" onfocus="cancelAttachRender()" onblur="updateLaygateVal(' + rowIdx + ',' + f.idx + ',this.value)" style="width:50px;border:1px solid #ddd;border-radius:4px;padding:3px 5px;font-size:12px;text-align:center;">';
       }
       s += '<span style="font-size:9px;color:#999;">' + f.std + '</span></div></div>';
       return s;
@@ -3449,7 +3469,7 @@ function updateLaygateVal(rowIdx, idx, val) {
     task.attachments.attach1.laygate[rowIdx].data = Array(15).fill('');
   task.attachments.attach1.laygate[rowIdx].data[idx] = val;
   saveCurrentTask();
-  renderAttachments();
+  scheduleAttachRender();
 }
 
 // ============ ATTACHMENT 2 - 空间尺寸 (v50 全面改造) ============
@@ -3492,16 +3512,16 @@ function renderAttach2(container) {
   
   html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">';
   html += '<div><div style="font-size:11px;color:#666;margin-bottom:2px;">轿厢缓冲距 (mm)</div>';
-  html += '<input type="text" value="' + (att2.轿厢缓冲距||'') + '" placeholder="mm" inputmode="decimal" onblur="updateAtt2(\'轿厢缓冲距\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:6px;font-size:13px;text-align:center;"></div>';
+  html += '<input type="text" value="' + (att2.轿厢缓冲距||'') + '" placeholder="mm" inputmode="decimal" onfocus="cancelAttachRender()" onblur="updateAtt2(\'轿厢缓冲距\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:6px;font-size:13px;text-align:center;"></div>';
   html += '<div><div style="font-size:11px;color:#666;margin-bottom:2px;">对重缓冲距 (mm)</div>';
-  html += '<input type="text" value="' + (att2.对重缓冲距||'') + '" placeholder="mm" inputmode="decimal" onblur="updateAtt2(\'对重缓冲距\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:6px;font-size:13px;text-align:center;"></div>';
+  html += '<input type="text" value="' + (att2.对重缓冲距||'') + '" placeholder="mm" inputmode="decimal" onfocus="cancelAttachRender()" onblur="updateAtt2(\'对重缓冲距\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:6px;font-size:13px;text-align:center;"></div>';
   html += '</div>';
   
   html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">';
   html += '<div><div style="font-size:11px;color:#666;margin-bottom:2px;">轿厢缓冲器压缩行程 (mm)</div>';
-  html += '<input type="text" value="' + (att2.轿厢压缩行程||'') + '" placeholder="mm" inputmode="decimal" onblur="updateAtt2(\'轿厢压缩行程\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:6px;font-size:13px;text-align:center;"></div>';
+  html += '<input type="text" value="' + (att2.轿厢压缩行程||'') + '" placeholder="mm" inputmode="decimal" onfocus="cancelAttachRender()" onblur="updateAtt2(\'轿厢压缩行程\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:6px;font-size:13px;text-align:center;"></div>';
   html += '<div><div style="font-size:11px;color:#666;margin-bottom:2px;">对重缓冲器压缩行程 (mm)</div>';
-  html += '<input type="text" value="' + (att2.对重压缩行程||'') + '" placeholder="mm" inputmode="decimal" onblur="updateAtt2(\'对重压缩行程\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:6px;font-size:13px;text-align:center;"></div>';
+  html += '<input type="text" value="' + (att2.对重压缩行程||'') + '" placeholder="mm" inputmode="decimal" onfocus="cancelAttachRender()" onblur="updateAtt2(\'对重压缩行程\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:6px;font-size:13px;text-align:center;"></div>';
   html += '</div>';
   
   html += '<div style="padding:8px;background:#e6f7ff;border-radius:6px;font-size:12px;line-height:1.6;">';
@@ -3536,7 +3556,7 @@ function renderAttach2(container) {
     html += '<div style="font-size:12px;font-weight:600;color:#333;margin-bottom:4px;">' + item.label + '</div>';
     html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;align-items:center;">';
     html += '<div><div style="font-size:10px;color:#666;">上端站平层时(m)</div>';
-    html += '<input type="text" value="' + (att2.顶部空间[item.key]||'') + '" placeholder="m" inputmode="decimal" onblur="updateAtt2Top(\'' + item.key + '\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
+    html += '<input type="text" value="' + (att2.顶部空间[item.key]||'') + '" placeholder="m" inputmode="decimal" onfocus="cancelAttachRender()" onblur="updateAtt2Top(\'' + item.key + '\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
     html += '<div><div style="font-size:10px;color:#666;">检验结果(m)</div>';
     html += '<div style="padding:5px;background:#fff;border:1px solid #e0e0e0;border-radius:4px;text-align:center;font-size:12px;font-weight:600;">' + (result || '-') + '</div></div>';
     html += '<div><div style="font-size:10px;color:#666;">标准≥' + stdVal.toFixed(3) + 'm</div>';
@@ -3555,11 +3575,11 @@ function renderAttach2(container) {
   html += '<div style="font-size:12px;font-weight:600;color:#333;margin-bottom:4px;">⑤轿顶空间 (≥0.5m×0.6m×0.8m)</div>';
   html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px;">';
   html += '<div><div style="font-size:10px;color:#666;">长(m) ≥0.5</div>';
-  html += '<input type="text" value="' + (att2.顶部空间.s5L||'') + '" placeholder="m" inputmode="decimal" onblur="updateAtt2Top(\'s5L\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
+  html += '<input type="text" value="' + (att2.顶部空间.s5L||'') + '" placeholder="m" inputmode="decimal" onfocus="cancelAttachRender()" onblur="updateAtt2Top(\'s5L\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
   html += '<div><div style="font-size:10px;color:#666;">宽(m) ≥0.6</div>';
-  html += '<input type="text" value="' + (att2.顶部空间.s5W||'') + '" placeholder="m" inputmode="decimal" onblur="updateAtt2Top(\'s5W\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
+  html += '<input type="text" value="' + (att2.顶部空间.s5W||'') + '" placeholder="m" inputmode="decimal" onfocus="cancelAttachRender()" onblur="updateAtt2Top(\'s5W\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
   html += '<div><div style="font-size:10px;color:#666;">高(m) ≥0.8</div>';
-  html += '<input type="text" value="' + (att2.顶部空间.s5H||'') + '" placeholder="m" inputmode="decimal" onblur="updateAtt2Top(\'s5H\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
+  html += '<input type="text" value="' + (att2.顶部空间.s5H||'') + '" placeholder="m" inputmode="decimal" onfocus="cancelAttachRender()" onblur="updateAtt2Top(\'s5H\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
   html += '</div>';
   html += '<div style="text-align:right;font-size:12px;font-weight:600;color:' + (s5HasData ? (s5Ok ? '#52c41a' : '#ff4d4f') : '#999') + ';">' + (s5HasData ? (s5Ok ? '✓合格' : '✕不合格') : '未判定') + '</div>';
   html += '</div>';
@@ -3584,7 +3604,7 @@ function renderAttach2(container) {
   html += '<div style="font-size:12px;font-weight:600;color:#333;margin-bottom:4px;">①底坑底与轿厢最低部件距离 <span style="font-size:10px;font-weight:400;color:#999;">(水平距离' + (p3h > 0 ? (p3h <= 0.15 ? '≤0.15→≥0.1m' : '>0.15→≥0.5m') : '联动第③项') + ')</span></div>';
   html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;align-items:center;">';
   html += '<div><div style="font-size:10px;color:#666;">下端站平层时(m)</div>';
-  html += '<input type="text" value="' + (att2.底坑空间.p1||'') + '" placeholder="m" inputmode="decimal" onblur="updateAtt2Pit(\'p1\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
+  html += '<input type="text" value="' + (att2.底坑空间.p1||'') + '" placeholder="m" inputmode="decimal" onfocus="cancelAttachRender()" onblur="updateAtt2Pit(\'p1\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
   html += '<div><div style="font-size:10px;color:#666;">检验结果(m)</div>';
   html += '<div style="padding:5px;background:#fff;border:1px solid #e0e0e0;border-radius:4px;text-align:center;font-size:12px;font-weight:600;">' + (p1Result || '-') + '</div></div>';
   html += '<div><div style="font-size:10px;color:#666;">标准≥' + p1Std.toFixed(1) + 'm</div>';
@@ -3603,7 +3623,7 @@ function renderAttach2(container) {
   html += '<div style="font-size:12px;font-weight:600;color:#333;margin-bottom:4px;">②对重导轨进一步制导行程</div>';
   html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;align-items:center;">';
   html += '<div><div style="font-size:10px;color:#666;">下端站平层时(m)</div>';
-  html += '<input type="text" value="' + (att2.底坑空间.p2||'') + '" placeholder="m" inputmode="decimal" onblur="updateAtt2Pit(\'p2\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
+  html += '<input type="text" value="' + (att2.底坑空间.p2||'') + '" placeholder="m" inputmode="decimal" onfocus="cancelAttachRender()" onblur="updateAtt2Pit(\'p2\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
   html += '<div><div style="font-size:10px;color:#666;">检验结果(m)</div>';
   html += '<div style="padding:5px;background:#fff;border:1px solid #e0e0e0;border-radius:4px;text-align:center;font-size:12px;font-weight:600;">' + (p2Result || '-') + '</div></div>';
   html += '<div><div style="font-size:10px;color:#666;">标准≥' + p2Std.toFixed(3) + 'm</div>';
@@ -3662,7 +3682,7 @@ function renderAttach2(container) {
   html += '<div style="display:grid;grid-template-columns:120px 1fr;gap:6px;align-items:center;">';
   html += '<div style="font-size:11px;color:#666;">水平距离</div>';
   html += '<div style="display:flex;align-items:center;gap:4px;">';
-  html += '<input type="text" value="' + (att2.底坑空间.p3h||'') + '" placeholder="m" inputmode="decimal" onblur="updateAtt2Pit(\'p3h\',this.value)" style="width:80px;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;">';
+  html += '<input type="text" value="' + (att2.底坑空间.p3h||'') + '" placeholder="m" inputmode="decimal" onfocus="cancelAttachRender()" onblur="updateAtt2Pit(\'p3h\',this.value)" style="width:80px;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;">';
   html += '<span style="font-size:11px;color:#999;">m</span>';
   html += '</div></div>';
   html += '</div>';
@@ -3671,7 +3691,7 @@ function renderAttach2(container) {
   html += '<div style="font-size:11px;font-weight:600;color:#555;margin-bottom:4px;">③-1 护脚板垂直距离</div>';
   html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;align-items:center;">';
   html += '<div><div style="font-size:10px;color:#666;">下端站平层时(m)</div>';
-  html += '<input type="text" value="' + (att2.底坑空间.p3v1||'') + '" placeholder="m" inputmode="decimal" onblur="updateAtt2Pit(\'p3v1\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
+  html += '<input type="text" value="' + (att2.底坑空间.p3v1||'') + '" placeholder="m" inputmode="decimal" onfocus="cancelAttachRender()" onblur="updateAtt2Pit(\'p3v1\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
   html += '<div><div style="font-size:10px;color:#666;">检验结果(m)</div>';
   html += '<div style="padding:5px;background:#fff;border:1px solid #e0e0e0;border-radius:4px;text-align:center;font-size:12px;font-weight:600;">' + (p3v1Result || '-') + '</div></div>';
   html += '<div><div style="font-size:10px;color:#666;">标准：' + p3StdText + '</div>';
@@ -3682,7 +3702,7 @@ function renderAttach2(container) {
   html += '<div style="font-size:11px;font-weight:600;color:#555;margin-bottom:4px;">③-2 轿厢最低部件垂直距离</div>';
   html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;align-items:center;">';
   html += '<div><div style="font-size:10px;color:#666;">下端站平层时(m)</div>';
-  html += '<input type="text" value="' + (att2.底坑空间.p3v2||'') + '" placeholder="m" inputmode="decimal" onblur="updateAtt2Pit(\'p3v2\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
+  html += '<input type="text" value="' + (att2.底坑空间.p3v2||'') + '" placeholder="m" inputmode="decimal" onfocus="cancelAttachRender()" onblur="updateAtt2Pit(\'p3v2\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
   html += '<div><div style="font-size:10px;color:#666;">检验结果(m)</div>';
   html += '<div style="padding:5px;background:#fff;border:1px solid #e0e0e0;border-radius:4px;text-align:center;font-size:12px;font-weight:600;">' + (p3v2Result || '-') + '</div></div>';
   html += '<div><div style="font-size:10px;color:#666;">标准：' + p3StdText + '</div>';
@@ -3701,7 +3721,7 @@ function renderAttach2(container) {
   html += '<div style="font-size:12px;font-weight:600;color:#333;margin-bottom:4px;">④底坑固定最高部件与轿厢最低部件距离</div>';
   html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;align-items:center;">';
   html += '<div><div style="font-size:10px;color:#666;">下端站平层时(m)</div>';
-  html += '<input type="text" value="' + (att2.底坑空间.p4||'') + '" placeholder="m" inputmode="decimal" onblur="updateAtt2Pit(\'p4\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
+  html += '<input type="text" value="' + (att2.底坑空间.p4||'') + '" placeholder="m" inputmode="decimal" onfocus="cancelAttachRender()" onblur="updateAtt2Pit(\'p4\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
   html += '<div><div style="font-size:10px;color:#666;">检验结果(m)</div>';
   html += '<div style="padding:5px;background:#fff;border:1px solid #e0e0e0;border-radius:4px;text-align:center;font-size:12px;font-weight:600;">' + (p4Result || '-') + '</div></div>';
   html += '<div><div style="font-size:10px;color:#666;">标准≥0.3m</div>';
@@ -3719,11 +3739,11 @@ function renderAttach2(container) {
   html += '<div style="font-size:12px;font-weight:600;color:#333;margin-bottom:4px;">⑤底坑空间尺寸 (≥0.5m×0.6m×1.0m)</div>';
   html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px;">';
   html += '<div><div style="font-size:10px;color:#666;">长(m) ≥0.5</div>';
-  html += '<input type="text" value="' + (att2.底坑空间.p5L||'') + '" placeholder="m" inputmode="decimal" onblur="updateAtt2Pit(\'p5L\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
+  html += '<input type="text" value="' + (att2.底坑空间.p5L||'') + '" placeholder="m" inputmode="decimal" onfocus="cancelAttachRender()" onblur="updateAtt2Pit(\'p5L\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
   html += '<div><div style="font-size:10px;color:#666;">宽(m) ≥0.6</div>';
-  html += '<input type="text" value="' + (att2.底坑空间.p5W||'') + '" placeholder="m" inputmode="decimal" onblur="updateAtt2Pit(\'p5W\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
+  html += '<input type="text" value="' + (att2.底坑空间.p5W||'') + '" placeholder="m" inputmode="decimal" onfocus="cancelAttachRender()" onblur="updateAtt2Pit(\'p5W\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
   html += '<div><div style="font-size:10px;color:#666;">高(m) ≥1.0</div>';
-  html += '<input type="text" value="' + (att2.底坑空间.p5H||'') + '" placeholder="m" inputmode="decimal" onblur="updateAtt2Pit(\'p5H\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
+  html += '<input type="text" value="' + (att2.底坑空间.p5H||'') + '" placeholder="m" inputmode="decimal" onfocus="cancelAttachRender()" onblur="updateAtt2Pit(\'p5H\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
   html += '</div>';
   html += '<div style="text-align:right;font-size:12px;font-weight:600;color:' + (p5HasData ? (p5Ok ? '#52c41a' : '#ff4d4f') : '#999') + ';">' + (p5HasData ? (p5Ok ? '✓合格' : '✕不合格') : '未判定') + '</div>';
   html += '</div>';
@@ -3856,7 +3876,7 @@ function renderAttach2Judge() {
 function updateAtt2(key, val) {
   var task = getCurrentTask(); if (task) task.attachments.attach2[key] = val;
   saveCurrentTask();
-  renderAttachments();
+  scheduleAttachRender();
   syncChecksToMain([209, 210, 211]);
 }
 
@@ -3866,7 +3886,7 @@ function updateAtt2Top(key, val) {
   if (!att2.顶部空间) att2.顶部空间 = {};
   att2.顶部空间[key] = val;
   saveCurrentTask();
-  renderAttachments();
+  scheduleAttachRender();
   syncChecksToMain([209, 210, 211]);
 }
 
@@ -3876,7 +3896,7 @@ function updateAtt2Pit(key, val) {
   if (!att2.底坑空间) att2.底坑空间 = {};
   att2.底坑空间[key] = val;
   saveCurrentTask();
-  renderAttachments();
+  scheduleAttachRender();
   syncChecksToMain([209, 210, 211]);
 }
 
@@ -3938,10 +3958,10 @@ function renderAttach3(container) {
   att3.rows.forEach(function(row, ri) {
     html += '<div style="display:grid;grid-template-columns:50px repeat(4,1fr) 30px;gap:4px;margin-bottom:4px;align-items:center;">';
     html += '<div style="text-align:center;font-size:11px;color:#666;">测点' + (ri+1) + '</div>';
-    html += '<div><input type="text" value="' + (row.carL||'') + '" placeholder="mm" inputmode="decimal" onblur="updateAtt3(' + ri + ',\'carL\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:6px;font-size:12px;text-align:center;"></div>';
-    html += '<div><input type="text" value="' + (row.carR||'') + '" placeholder="mm" inputmode="decimal" onblur="updateAtt3(' + ri + ',\'carR\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:6px;font-size:12px;text-align:center;"></div>';
-    html += '<div><input type="text" value="' + (row.weightL||'') + '" placeholder="mm" inputmode="decimal" onblur="updateAtt3(' + ri + ',\'weightL\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:6px;font-size:12px;text-align:center;"></div>';
-    html += '<div><input type="text" value="' + (row.weightR||'') + '" placeholder="mm" inputmode="decimal" onblur="updateAtt3(' + ri + ',\'weightR\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:6px;font-size:12px;text-align:center;"></div>';
+    html += '<div><input type="text" value="' + (row.carL||'') + '" placeholder="mm" inputmode="decimal" onfocus="cancelAttachRender()" onblur="updateAtt3(' + ri + ',\'carL\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:6px;font-size:12px;text-align:center;"></div>';
+    html += '<div><input type="text" value="' + (row.carR||'') + '" placeholder="mm" inputmode="decimal" onfocus="cancelAttachRender()" onblur="updateAtt3(' + ri + ',\'carR\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:6px;font-size:12px;text-align:center;"></div>';
+    html += '<div><input type="text" value="' + (row.weightL||'') + '" placeholder="mm" inputmode="decimal" onfocus="cancelAttachRender()" onblur="updateAtt3(' + ri + ',\'weightL\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:6px;font-size:12px;text-align:center;"></div>';
+    html += '<div><input type="text" value="' + (row.weightR||'') + '" placeholder="mm" inputmode="decimal" onfocus="cancelAttachRender()" onblur="updateAtt3(' + ri + ',\'weightR\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:6px;font-size:12px;text-align:center;"></div>';
     html += '<div>' + (att3.rows.length > 1 ? '<button onclick="deleteAtt3Row(' + ri + ')" style="background:#fee;border:1px solid #fcc;color:#c0392b;border-radius:4px;padding:4px;font-size:11px;cursor:pointer;">✕</button>' : '') + '</div>';
     html += '</div>';
   });
@@ -4039,7 +4059,7 @@ function updateAtt3(rowIdx, key, val) {
   if (!att3.rows[rowIdx]) att3.rows[rowIdx] = {carL:'',carR:'',weightL:'',weightR:''};
   att3.rows[rowIdx][key] = val;
   saveCurrentTask();
-  renderAttachments();
+  scheduleAttachRender();
 }
 
 function updateAtt3Safety(val) {
@@ -4047,7 +4067,7 @@ function updateAtt3Safety(val) {
   var att3 = task.attachments.attach3;
   att3.hasWeightSafety = val;
   saveCurrentTask();
-  renderAttachments();
+  scheduleAttachRender();
 }
 
 function addAtt3Row() {
@@ -4117,8 +4137,8 @@ function renderAttach4(container) {
   html += '<div style="margin-bottom:12px;padding:10px;background:#eef2ff;border-radius:8px;">';
   html += '<div style="font-size:12px;font-weight:600;color:#4a5568;margin-bottom:8px;">📐 基准值（从配置单或图纸上获取）</div>';
   html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">';
-  html += '<div><div style="font-size:11px;color:#667eea;margin-bottom:4px;">轿厢导轨基准值 (mm)</div><input type="text" value="' + (att4.refCar||'') + '" placeholder="如: 1050" inputmode="decimal" onblur="updateAtt4Ref(\'refCar\',this.value)" style="width:100%;border:1.5px solid #667eea;border-radius:6px;padding:8px;font-size:14px;text-align:center;"></div>';
-  html += '<div><div style="font-size:11px;color:#764ba2;margin-bottom:4px;">对重导轨基准值 (mm)</div><input type="text" value="' + (att4.refWeight||'') + '" placeholder="如: 980" inputmode="decimal" onblur="updateAtt4Ref(\'refWeight\',this.value)" style="width:100%;border:1.5px solid #764ba2;border-radius:6px;padding:8px;font-size:14px;text-align:center;"></div>';
+  html += '<div><div style="font-size:11px;color:#667eea;margin-bottom:4px;">轿厢导轨基准值 (mm)</div><input type="text" value="' + (att4.refCar||'') + '" placeholder="如: 1050" inputmode="decimal" onfocus="cancelAttachRender()" onblur="updateAtt4Ref(\'refCar\',this.value)" style="width:100%;border:1.5px solid #667eea;border-radius:6px;padding:8px;font-size:14px;text-align:center;"></div>';
+  html += '<div><div style="font-size:11px;color:#764ba2;margin-bottom:4px;">对重导轨基准值 (mm)</div><input type="text" value="' + (att4.refWeight||'') + '" placeholder="如: 980" inputmode="decimal" onfocus="cancelAttachRender()" onblur="updateAtt4Ref(\'refWeight\',this.value)" style="width:100%;border:1.5px solid #764ba2;border-radius:6px;padding:8px;font-size:14px;text-align:center;"></div>';
   html += '</div></div>';
   
   // 表头
@@ -4132,8 +4152,8 @@ function renderAttach4(container) {
   att4.rows.forEach(function(row, ri) {
     html += '<div style="display:grid;grid-template-columns:50px 1fr 1fr 30px;gap:4px;margin-bottom:4px;align-items:center;">';
     html += '<div style="text-align:center;font-size:11px;color:#666;">测点' + (ri+1) + '</div>';
-    html += '<div><input type="text" value="' + (row.car||'') + '" placeholder="mm" inputmode="decimal" onblur="updateAtt4(' + ri + ',\'car\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:6px;font-size:12px;text-align:center;"></div>';
-    html += '<div><input type="text" value="' + (row.weight||'') + '" placeholder="mm" inputmode="decimal" onblur="updateAtt4(' + ri + ',\'weight\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:6px;font-size:12px;text-align:center;"></div>';
+    html += '<div><input type="text" value="' + (row.car||'') + '" placeholder="mm" inputmode="decimal" onfocus="cancelAttachRender()" onblur="updateAtt4(' + ri + ',\'car\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:6px;font-size:12px;text-align:center;"></div>';
+    html += '<div><input type="text" value="' + (row.weight||'') + '" placeholder="mm" inputmode="decimal" onfocus="cancelAttachRender()" onblur="updateAtt4(' + ri + ',\'weight\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:6px;font-size:12px;text-align:center;"></div>';
     html += '<div>' + (att4.rows.length > 1 ? '<button onclick="deleteAtt4Row(' + ri + ')" style="background:#fee;border:1px solid #fcc;color:#c0392b;border-radius:4px;padding:4px;font-size:11px;cursor:pointer;">✕</button>' : '') + '</div>';
     html += '</div>';
   });
@@ -4218,7 +4238,7 @@ function updateAtt4(rowIdx, key, val) {
   if (!att4.rows[rowIdx]) att4.rows[rowIdx] = {car:'',weight:''};
   att4.rows[rowIdx][key] = val;
   saveCurrentTask();
-  renderAttachments();
+  scheduleAttachRender();
 }
 
 function updateAtt4Ref(key, val) {
@@ -4226,7 +4246,7 @@ function updateAtt4Ref(key, val) {
   var att4 = task.attachments.attach4;
   att4[key] = val;
   saveCurrentTask();
-  renderAttachments();
+  scheduleAttachRender();
 }
 
 function addAtt4Row() {
@@ -4546,9 +4566,9 @@ function renderAttach5(container) {
   // 额定载重和砝码设置
   html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">';
   html += '<div><div style="font-size:11px;color:#666;margin-bottom:2px;">额定载重 (Kg)</div>';
-  html += '<input type="text" id="att5Load" value="' + (att5.载重||'') + '" placeholder="Kg" inputmode="decimal" onblur="updateAtt5(\'载重\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:8px;font-size:13px;text-align:center;"></div>';
+  html += '<input type="text" id="att5Load" value="' + (att5.载重||'') + '" placeholder="Kg" inputmode="decimal" onfocus="cancelAttachRender()" onblur="updateAtt5(\'载重\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:8px;font-size:13px;text-align:center;"></div>';
   html += '<div><div style="font-size:11px;color:#666;margin-bottom:2px;">砝码单块重量 (kg)</div>';
-  html += '<input type="text" value="' + (att5.砝码重量||'25') + '" placeholder="kg" inputmode="decimal" onblur="updateAtt5(\'砝码重量\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:8px;font-size:13px;text-align:center;"></div>';
+  html += '<input type="text" value="' + (att5.砝码重量||'25') + '" placeholder="kg" inputmode="decimal" onfocus="cancelAttachRender()" onblur="updateAtt5(\'砝码重量\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:8px;font-size:13px;text-align:center;"></div>';
   html += '</div>';
   
   // 各载荷点计算
@@ -4582,7 +4602,7 @@ function renderAttach5(container) {
     html += '<tr><td style="padding:6px;border:1px solid #ddd;font-weight:600;color:' + r.color + ';">' + r.l + '</td>';
     for (var i = 0; i < 5; i++) {
       var vals = att5.电流[r.k] || ['','','','',''];
-      html += '<td style="padding:4px;border:1px solid #ddd;"><input type="text" value="' + (vals[i]||'') + '" inputmode="decimal" onblur="updateAtt5Current(\'' + r.k + '\',' + i + ',this.value)" style="width:100%;border:none;text-align:center;font-size:12px;"></td>';
+      html += '<td style="padding:4px;border:1px solid #ddd;"><input type="text" value="' + (vals[i]||'') + '" inputmode="decimal" onfocus="cancelAttachRender()" onblur="updateAtt5Current(\'' + r.k + '\',' + i + ',this.value)" style="width:100%;border:none;text-align:center;font-size:12px;"></td>';
     }
     html += '</tr>';
   });
@@ -4629,7 +4649,7 @@ function renderAttach5(container) {
 function updateAtt5(key, val) {
   var task = getCurrentTask(); if (task) task.attachments.attach5[key] = val;
   saveCurrentTask();
-  renderAttachments();
+  scheduleAttachRender();
 }
 
 function updateAtt5Current(key, idx, val) {
@@ -4653,15 +4673,8 @@ function updateAtt5Current(key, idx, val) {
     }
   }
   saveCurrentTask();
-  renderAttachments();
+  scheduleAttachRender();
   syncChecksToMain([76]);
-  // 重渲后重新绘制图表（canvas重建了）
-  setTimeout(function(){
-    var upCurrents2 = att5.电流.电流上行 || ['','','','',''];
-    var downCurrents2 = att5.电流.电流下行 || ['','','','',''];
-    var bp2 = parseFloat(att5.平衡系数) || 0;
-    drawBalanceChart('balanceChart', upCurrents2, downCurrents2, bp2);
-  }, 50);
 }
 
 function calcAndDrawBalance() {
@@ -4783,7 +4796,7 @@ function renderAttach6(container) {
   html += '<div style="margin-bottom:12px;padding:10px;background:#eef2ff;border-radius:8px;">';
   html += '<div style="display:flex;align-items:center;gap:10px;">';
   html += '<label style="font-size:12px;font-weight:600;color:#4a5568;">钢丝绳根数:</label>';
-  html += '<input type="number" min="1" max="12" value="' + count + '" onblur="updateAtt6RopeCount(this.value)" style="width:60px;border:1px solid #667eea;border-radius:4px;padding:6px;font-size:14px;text-align:center;font-weight:600;color:#667eea;">';
+  html += '<input type="number" min="1" max="12" value="' + count + '" onfocus="cancelAttachRender()" onblur="updateAtt6RopeCount(this.value)" style="width:60px;border:1px solid #667eea;border-radius:4px;padding:6px;font-size:14px;text-align:center;font-weight:600;color:#667eea;">';
   html += '<span style="font-size:11px;color:#999;">(1-12根)</span>';
   html += '</div></div>';
   
@@ -4792,7 +4805,7 @@ function renderAttach6(container) {
   for (var i = 0; i < count; i++) {
     var val = att6.forces[i] || '';
     html += '<div><label style="font-size:11px;color:#666;">F' + (i+1) + ' (N)</label>';
-    html += '<input type="text" value="' + val + '" placeholder="-" inputmode="decimal" onblur="updateAtt6Force(' + i + ',this.value)" style="width:100%;border:1px solid #ddd;border-radius:6px;padding:8px;text-align:center;font-size:13px;"></div>';
+    html += '<input type="text" value="' + val + '" placeholder="-" inputmode="decimal" onfocus="cancelAttachRender()" onblur="updateAtt6Force(' + i + ',this.value)" style="width:100%;border:1px solid #ddd;border-radius:6px;padding:8px;text-align:center;font-size:13px;"></div>';
   }
   html += '</div>';
   
@@ -4822,7 +4835,7 @@ function updateAtt6Force(idx, val) {
   if (!att6.forces) att6.forces = ['','','','','','','','','','','',''];
   att6.forces[idx] = val;
   saveCurrentTask();
-  renderAttachments();
+  scheduleAttachRender();
 }
 
 function updateAtt6RopeCount(val) {
@@ -4834,7 +4847,7 @@ function updateAtt6RopeCount(val) {
   att6.ropeCount = n;
   if (!att6.forces) att6.forces = ['','','','','','','','','','','',''];
   saveCurrentTask();
-  renderAttachments();
+  scheduleAttachRender();
 }
 
 function renderAttach6Judge(result, isPass) {
@@ -4905,16 +4918,16 @@ function renderAttach7(container) {
   
   html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:4px;">';
   html += '<div style="padding:6px;background:#fafafa;border-radius:4px;"><div style="font-size:11px;color:#666;margin-bottom:2px;">层站-开门</div>';
-  html += '<input type="text" value="' + (att7.开门层站||'') + '" placeholder="dB" inputmode="decimal" onblur="updateAtt7(\'开门层站\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
+  html += '<input type="text" value="' + (att7.开门层站||'') + '" placeholder="dB" inputmode="decimal" onfocus="cancelAttachRender()" onblur="updateAtt7(\'开门层站\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
   html += '<div style="padding:6px;background:#fafafa;border-radius:4px;"><div style="font-size:11px;color:#666;margin-bottom:2px;">层站-关门</div>';
-  html += '<input type="text" value="' + (att7.关门层站||'') + '" placeholder="dB" inputmode="decimal" onblur="updateAtt7(\'关门层站\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
+  html += '<input type="text" value="' + (att7.关门层站||'') + '" placeholder="dB" inputmode="decimal" onfocus="cancelAttachRender()" onblur="updateAtt7(\'关门层站\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
   html += '</div>';
   
   html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:4px;">';
   html += '<div style="padding:6px;background:#fafafa;border-radius:4px;"><div style="font-size:11px;color:#666;margin-bottom:2px;">轿厢-开门</div>';
-  html += '<input type="text" value="' + (att7.开门轿厢||'') + '" placeholder="dB" inputmode="decimal" onblur="updateAtt7(\'开门轿厢\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
+  html += '<input type="text" value="' + (att7.开门轿厢||'') + '" placeholder="dB" inputmode="decimal" onfocus="cancelAttachRender()" onblur="updateAtt7(\'开门轿厢\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
   html += '<div style="padding:6px;background:#fafafa;border-radius:4px;"><div style="font-size:11px;color:#666;margin-bottom:2px;">轿厢-关门</div>';
-  html += '<input type="text" value="' + (att7.关门轿厢||'') + '" placeholder="dB" inputmode="decimal" onblur="updateAtt7(\'关门轿厢\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
+  html += '<input type="text" value="' + (att7.关门轿厢||'') + '" placeholder="dB" inputmode="decimal" onfocus="cancelAttachRender()" onblur="updateAtt7(\'关门轿厢\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
   html += '</div>';
   
   html += '<div style="padding:6px;background:#e6f7ff;border-radius:4px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;">';
@@ -4932,9 +4945,9 @@ function renderAttach7(container) {
   
   html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:4px;">';
   html += '<div style="padding:6px;background:#fafafa;border-radius:4px;"><div style="font-size:11px;color:#666;margin-bottom:2px;">上行</div>';
-  html += '<input type="text" value="' + (att7.上行轿厢||'') + '" placeholder="dB" inputmode="decimal" onblur="updateAtt7(\'上行轿厢\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
+  html += '<input type="text" value="' + (att7.上行轿厢||'') + '" placeholder="dB" inputmode="decimal" onfocus="cancelAttachRender()" onblur="updateAtt7(\'上行轿厢\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
   html += '<div style="padding:6px;background:#fafafa;border-radius:4px;"><div style="font-size:11px;color:#666;margin-bottom:2px;">下行</div>';
-  html += '<input type="text" value="' + (att7.下行轿厢||'') + '" placeholder="dB" inputmode="decimal" onblur="updateAtt7(\'下行轿厢\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
+  html += '<input type="text" value="' + (att7.下行轿厢||'') + '" placeholder="dB" inputmode="decimal" onfocus="cancelAttachRender()" onblur="updateAtt7(\'下行轿厢\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
   html += '</div>';
   
   html += '<div style="padding:6px;background:#e6f7ff;border-radius:4px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;">';
@@ -4953,11 +4966,11 @@ function renderAttach7(container) {
   
   html += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:4px;">';
   html += '<div style="padding:6px;background:#fafafa;border-radius:4px;"><div style="font-size:11px;color:#666;margin-bottom:2px;">测点1</div>';
-  html += '<input type="text" value="' + (att7.机房1||'') + '" placeholder="dB" inputmode="decimal" onblur="updateAtt7(\'机房1\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
+  html += '<input type="text" value="' + (att7.机房1||'') + '" placeholder="dB" inputmode="decimal" onfocus="cancelAttachRender()" onblur="updateAtt7(\'机房1\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
   html += '<div style="padding:6px;background:#fafafa;border-radius:4px;"><div style="font-size:11px;color:#666;margin-bottom:2px;">测点2</div>';
-  html += '<input type="text" value="' + (att7.机房2||'') + '" placeholder="dB" inputmode="decimal" onblur="updateAtt7(\'机房2\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
+  html += '<input type="text" value="' + (att7.机房2||'') + '" placeholder="dB" inputmode="decimal" onfocus="cancelAttachRender()" onblur="updateAtt7(\'机房2\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
   html += '<div style="padding:6px;background:#fafafa;border-radius:4px;"><div style="font-size:11px;color:#666;margin-bottom:2px;">测点3</div>';
-  html += '<input type="text" value="' + (att7.机房3||'') + '" placeholder="dB" inputmode="decimal" onblur="updateAtt7(\'机房3\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
+  html += '<input type="text" value="' + (att7.机房3||'') + '" placeholder="dB" inputmode="decimal" onfocus="cancelAttachRender()" onblur="updateAtt7(\'机房3\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
   html += '</div>';
   
   html += '<div style="padding:6px;background:#fff7e6;border-radius:4px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;">';
@@ -4972,7 +4985,7 @@ function renderAttach7(container) {
   
   html += '<div style="display:grid;grid-template-columns:1fr;gap:6px;margin-bottom:4px;">';
   html += '<div style="padding:6px;background:#fafafa;border-radius:4px;"><div style="font-size:11px;color:#666;margin-bottom:2px;">最顶层层门处</div>';
-  html += '<input type="text" value="' + (att7.无机房层门||'') + '" placeholder="dB" inputmode="decimal" onblur="updateAtt7(\'无机房层门\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
+  html += '<input type="text" value="' + (att7.无机房层门||'') + '" placeholder="dB" inputmode="decimal" onfocus="cancelAttachRender()" onblur="updateAtt7(\'无机房层门\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
   html += '</div>';
   
   html += '<div style="padding:6px;background:#f9f0ff;border-radius:4px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">';
@@ -4999,7 +5012,7 @@ function renderAttach7(container) {
 function updateAtt7(key, val) {
   var task = getCurrentTask(); if (task) task.attachments.attach7[key] = val;
   saveCurrentTask();
-  renderAttachments();
+  scheduleAttachRender();
 }
 
 function renderAttach7Judge(std, doorMax, carMax, machineAvg, mrl) {
