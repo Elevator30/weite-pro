@@ -1654,7 +1654,7 @@ function createTask() {
     attachments: {
       attach1: {cargate:[Array(15).fill(''),Array(15).fill('')], laygate:[]},
       attach2: {轿厢缓冲距:'',对重缓冲距:'',最大允许值:'',轿厢压缩行程:'',对重压缩行程:'',顶部空间:{s1:'',s2:'',s3:'',s4:'',s5L:'',s5W:'',s5H:''},底坑空间:{p1:'',p2:'',p3h:'',p3v1:'',p3v2:'',p4:'',p5L:'',p5W:'',p5H:''}},
-      attach3: {rows:[{carL:'',carR:'',weightL:'',weightR:''}], hasWeightSafety: 'yes'},
+      attach3: {rows:[{carL:'',carR:'',weightL:'',weightR:''}], hasWeightSafety: 'no'},
       attach4: {rows:[{car:'',weight:''}], refCar:'', refWeight:''},
       attach5: {载重:'',砝码重量:'25',电压:{},电流:{电流上行:['','','','',''], 电流下行:['','','','','']}, 平衡系数:''},
       attach6: {ropeCount: 6, forces: ['','','','','','','','','','','',''], 平均值:'',偏差:''},
@@ -3180,12 +3180,13 @@ function renderAttach1(container) {
       html += '</div>';
     }
   } else {
-    // 轿门模式 v50: 3行（去掉门地坎、轿门刀、层门锁滚轮、门扇与地坎）
+    // 轿门模式: 4行
     var cargateIdx = currentAtt1Door === 'cargate' ? 0 : 1;
     var cd = att1.cargate[cargateIdx] || Array(15).fill('');
     
     var rows = [
       {type:'pair', l:{label:'门扇与立柱/门楣间隙-左',std:'≤6mm',idx:2}, r:{label:'门扇与立柱/门楣间隙-右',std:'≤6mm',idx:3}},
+      {type:'pair', l:{label:'门扇与地坎间隙-左',std:'≤6mm',idx:14}, r:{label:'门扇与地坎间隙-右',std:'≤6mm',idx:1}},
       {type:'pair', l:{label:'门扇间间隙',std:'3-6mm',idx:7}, r:{label:'门扇间施力间隙',std:'旁开≤30/中分≤45',idx:6}},
       {type:'single', f:{label:'门锁啮合长度',std:'≥7mm',idx:9}}
     ];
@@ -3220,6 +3221,7 @@ function updateCargateVal(cargateIdx, fieldIdx, val) {
   if (!att1.cargate[cargateIdx]) att1.cargate[cargateIdx] = Array(15).fill('');
   att1.cargate[cargateIdx][fieldIdx] = val;
   saveCurrentTask();
+  renderAttachments();
 }
 
 function updateLaygateName(rowIdx, val) {
@@ -3239,7 +3241,143 @@ function deleteLaygateRow(rowIdx) {
 }
 
 function renderAttach1Judge() {
-  return '<div style="margin-top:12px;padding:10px;background:#f8fafc;border-radius:8px;font-size:12px;color:#718096;">自动判定: 门间隙数据待填写</div>';
+  var task = getCurrentTask(); if (!task) return '';
+  var att1 = task.attachments.attach1;
+  if (!att1) return '';
+  
+  // 确保主表检测项存在
+  if (!task.checks[113]) task.checks[113] = {};
+  if (!task.checks[114]) task.checks[114] = {};
+  if (!task.checks[115]) task.checks[115] = {};
+  
+  var hasData = false;
+  var doorGapOk = true;    // 门间隙 3-6mm (id114)
+  var doorLockOk = true;   // 门锁啮合长度 ≥7mm (id115)
+  var sillOk = true;       // 门地坎距离 ≤35mm (id113)
+  
+  var hasDoorGapData = false;
+  var hasDoorLockData = false;
+  var hasSillData = false;
+  
+  // 检查轿门数据
+  var cargateArr = att1.cargate || [];
+  cargateArr.forEach(function(cd) {
+    if (!cd || !Array.isArray(cd)) return;
+    // 门扇间间隙 idx:7 (标准3-6mm)
+    var v7 = parseFloat(cd[7]);
+    if (!isNaN(v7) && v7 > 0) {
+      hasDoorGapData = true;
+      hasData = true;
+      if (v7 < 3 || v7 > 6) doorGapOk = false;
+    }
+    // 门扇与立柱/门楣间隙 idx:2, idx:3 (标准≤6mm)
+    [2, 3].forEach(function(i) {
+      var v = parseFloat(cd[i]);
+      if (!isNaN(v) && v > 0) {
+        hasDoorGapData = true;
+        hasData = true;
+        if (v > 6) doorGapOk = false;
+      }
+    });
+    // 门扇与地坎间隙 idx:14, idx:1 (标准≤6mm)
+    [14, 1].forEach(function(i) {
+      var v = parseFloat(cd[i]);
+      if (!isNaN(v) && v > 0) {
+        hasDoorGapData = true;
+        hasData = true;
+        if (v > 6) doorGapOk = false;
+      }
+    });
+    // 门锁啮合长度 idx:9 (标准≥7mm)
+    var v9 = parseFloat(cd[9]);
+    if (!isNaN(v9) && v9 > 0) {
+      hasDoorLockData = true;
+      hasData = true;
+      if (v9 < 7) doorLockOk = false;
+    }
+  });
+  
+  // 检查层门数据
+  var laygateArr = att1.laygate || [];
+  laygateArr.forEach(function(lg) {
+    if (!lg || !lg.data) return;
+    var d = lg.data;
+    // 门地坎距离 idx:4, idx:5 (标准≤35mm)
+    [4, 5].forEach(function(i) {
+      var v = parseFloat(d[i]);
+      if (!isNaN(v) && v > 0) {
+        hasSillData = true;
+        hasData = true;
+        if (v > 35) sillOk = false;
+      }
+    });
+    // 门扇间间隙 idx:7 (标准3-6mm)
+    var v7 = parseFloat(d[7]);
+    if (!isNaN(v7) && v7 > 0) {
+      hasDoorGapData = true;
+      hasData = true;
+      if (v7 < 3 || v7 > 6) doorGapOk = false;
+    }
+    // 门扇与立柱/门楣间隙 idx:2, idx:3 (标准≤6mm)
+    [2, 3].forEach(function(i) {
+      var v = parseFloat(d[i]);
+      if (!isNaN(v) && v > 0) {
+        hasDoorGapData = true;
+        hasData = true;
+        if (v > 6) doorGapOk = false;
+      }
+    });
+    // 门扇与地坎间隙 idx:14, idx:1 (标准≤6mm)
+    [14, 1].forEach(function(i) {
+      var v = parseFloat(d[i]);
+      if (!isNaN(v) && v > 0) {
+        hasDoorGapData = true;
+        hasData = true;
+        if (v > 6) doorGapOk = false;
+      }
+    });
+    // 门锁啮合长度 idx:9 (标准≥7mm)
+    var v9 = parseFloat(d[9]);
+    if (!isNaN(v9) && v9 > 0) {
+      hasDoorLockData = true;
+      hasData = true;
+      if (v9 < 7) doorLockOk = false;
+    }
+  });
+  
+  // 回填到主表检测项
+  // id113: 门地坎距离
+  if (hasSillData) {
+    task.checks[113].s = sillOk ? 'ok' : 'ng';
+    if (!sillOk) task.checks[113].n = '门地坎距离超标';
+  }
+  // id114: 门间隙
+  if (hasDoorGapData) {
+    task.checks[114].s = doorGapOk ? 'ok' : 'ng';
+    if (!doorGapOk) task.checks[114].n = '门间隙不符合标准';
+  }
+  // id115: 门锁啮合长度
+  if (hasDoorLockData) {
+    task.checks[115].s = doorLockOk ? 'ok' : 'ng';
+    if (!doorLockOk) task.checks[115].n = '门锁啮合长度不足7mm';
+  }
+  
+  var allOk = hasData && sillOk && doorGapOk && doorLockOk;
+  
+  var html = '<div class="auto-result' + (allOk ? ' pass' : '') + '" style="margin-top:12px;">';
+  html += '<strong>自动判定:</strong><br>';
+  html += 'id113(门地坎距离) ';
+  if (hasSillData) html += sillOk ? '<span style="color:#52c41a;">✓合格</span>' : '<span style="color:#ff4d4f;">✕不合格</span>';
+  else html += '<span style="color:#999;">未判定</span>';
+  html += ' | id114(门间隙) ';
+  if (hasDoorGapData) html += doorGapOk ? '<span style="color:#52c41a;">✓合格</span>' : '<span style="color:#ff4d4f;">✕不合格</span>';
+  else html += '<span style="color:#999;">未判定</span>';
+  html += ' | id115(门锁啮合长度) ';
+  if (hasDoorLockData) html += doorLockOk ? '<span style="color:#52c41a;">✓合格</span>' : '<span style="color:#ff4d4f;">✕不合格</span>';
+  else html += '<span style="color:#999;">未判定</span>';
+  html += '<br><span style="font-size:11px;color:#999;">根据附表1数据自动判定，关联检测项: id113、id114、id115</span>';
+  html += '</div>';
+  return html;
 }
 
 function changeAtt1DoorType(type) {
@@ -3251,13 +3389,14 @@ function changeAtt1DoorType(type) {
 
 function renderAtt1LaygateInputs(data, rowIdx) {
   var isNew = (rowIdx === '_new');
-  // v50层门布局: 5行
+  // 层门布局: 6行
   var rows = [
+    {type:'pair', l:{label:'门地坎距离-左',std:'≤35mm',idx:4}, r:{label:'门地坎距离-右',std:'≤35mm',idx:5}},
     {type:'pair', l:{label:'门扇与立柱/门楣间隙-左',std:'≤6mm',idx:2}, r:{label:'门扇与立柱/门楣间隙-右',std:'≤6mm',idx:3}},
+    {type:'pair', l:{label:'门扇与地坎间隙-左',std:'≤6mm',idx:14}, r:{label:'门扇与地坎间隙-右',std:'≤6mm',idx:1}},
     {type:'pair', l:{label:'门扇间间隙',std:'3-6mm',idx:7}, r:{label:'门扇间施力间隙',std:'旁开≤30/中分≤45',idx:6}},
     {type:'single', f:{label:'门锁啮合长度',std:'≥7mm',idx:9}},
-    {type:'pair', l:{label:'轿门刀与层门地坎',std:'≥5mm',idx:10}, r:{label:'层门锁滚轮与轿厢地坎',std:'≥5mm',idx:12}},
-    {type:'pair', l:{label:'门扇与地坎间隙-左',std:'≤6mm',idx:14}, r:{label:'门扇与地坎间隙-右',std:'≤6mm',idx:1}}
+    {type:'pair', l:{label:'轿门刀与层门地坎',std:'≥5mm',idx:10}, r:{label:'层门锁滚轮与轿厢地坎',std:'≥5mm',idx:12}}
   ];
   
   var html = '';
@@ -3293,6 +3432,7 @@ function updateLaygateVal(rowIdx, idx, val) {
     task.attachments.attach1.laygate[rowIdx].data = Array(15).fill('');
   task.attachments.attach1.laygate[rowIdx].data[idx] = val;
   saveCurrentTask();
+  renderAttachments();
 }
 
 // ============ ATTACHMENT 2 - 空间尺寸 (v50 全面改造) ============
@@ -3573,7 +3713,7 @@ function renderAttach3(container) {
   var task = getCurrentTask(); if (!task) return;
   var att3 = task.attachments.attach3 || {};
   if (!att3.rows) att3.rows = [{carL:'',carR:'',weightL:'',weightR:''}];
-  if (att3.hasWeightSafety === undefined) att3.hasWeightSafety = 'yes';
+  if (att3.hasWeightSafety === undefined) att3.hasWeightSafety = 'no';
   
   // 实时计算最大偏差
   var maxDev = {
@@ -4112,7 +4252,26 @@ function drawBalanceChart(canvasId, upCurrents, downCurrents, balancePoint) {
   }
   
   // 标注交叉点
+  var hasRealIntersection = false;
   if (balancePoint && balancePoint > 0) {
+    // 检查是否有真实交点
+    var upValid = upVals.filter(function(v){return v > 0;});
+    var downValid = downVals.filter(function(v){return v > 0;});
+    if (upValid.length >= 2 && downValid.length >= 2) {
+      for (var ci = 0; ci < 4; ci++) {
+        var cy1 = upVals[ci], cy2 = upVals[ci+1];
+        var cz1 = downVals[ci], cz2 = downVals[ci+1];
+        if (cy1 > 0 && cy2 > 0 && cz1 > 0 && cz2 > 0) {
+          var cdiff1 = cy1 - cz1;
+          var cdiff2 = cy2 - cz2;
+          if (cdiff1 * cdiff2 <= 0 && Math.abs(cdiff1 - cdiff2) > 0.001) {
+            hasRealIntersection = true;
+            break;
+          }
+        }
+      }
+    }
+    
     var bx = xPos(balancePoint);
     // 估算交叉点电流值
     var crossCurrent = 0;
@@ -4125,7 +4284,7 @@ function drawBalanceChart(canvasId, upCurrents, downCurrents, balancePoint) {
     }
     if (crossCurrent > 0) {
       var by = yPos(crossCurrent);
-      ctx.strokeStyle = '#52c41a';
+      ctx.strokeStyle = hasRealIntersection ? '#52c41a' : '#faad14';
       ctx.setLineDash([3, 3]);
       ctx.lineWidth = 1;
       ctx.beginPath();
@@ -4135,7 +4294,7 @@ function drawBalanceChart(canvasId, upCurrents, downCurrents, balancePoint) {
       ctx.setLineDash([]);
       
       // 交叉点标记
-      ctx.fillStyle = '#52c41a';
+      ctx.fillStyle = hasRealIntersection ? '#52c41a' : '#faad14';
       ctx.beginPath();
       ctx.arc(bx, by, 5, 0, Math.PI * 2);
       ctx.fill();
@@ -4144,11 +4303,24 @@ function drawBalanceChart(canvasId, upCurrents, downCurrents, balancePoint) {
       ctx.stroke();
       
       // 标注文字
-      ctx.fillStyle = '#52c41a';
+      ctx.fillStyle = hasRealIntersection ? '#52c41a' : '#faad14';
       ctx.font = 'bold 11px Arial';
       ctx.textAlign = 'left';
-      ctx.fillText('交点: ' + balancePoint + '%', bx + 5, by - 5);
+      if (hasRealIntersection) {
+        ctx.fillText('交点: ' + balancePoint + '%', bx + 5, by - 5);
+      } else {
+        ctx.fillText('无交点(估算: ' + balancePoint + '%)', bx + 5, by - 5);
+      }
     }
+  }
+  
+  // 如果有数据但无真实交点，在图上标注"无交点"
+  var hasData = upVals.some(function(v){return v > 0;}) && downVals.some(function(v){return v > 0;});
+  if (hasData && !hasRealIntersection) {
+    ctx.fillStyle = '#faad14';
+    ctx.font = 'bold 12px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('⚠ 无真实交点', w/2, padT + 20);
   }
   
   // 图例
@@ -4255,13 +4427,19 @@ function renderAttach5(container) {
   
   container.innerHTML = html;
   
-  // 绘制图表
-  setTimeout(function() {
-    var upCurrents = att5.电流.电流上行 || ['','','','',''];
-    var downCurrents = att5.电流.电流下行 || ['','','','',''];
-    var bp = parseFloat(att5.平衡系数) || 0;
-    drawBalanceChart('balanceChart', upCurrents, downCurrents, bp);
-  }, 50);
+  // 绘制图表 - 确保DOM渲染完成后再绘制
+  function tryDraw() {
+    var canvas = document.getElementById('balanceChart');
+    if (canvas && canvas.getContext) {
+      var upCurrents = att5.电流.电流上行 || ['','','','',''];
+      var downCurrents = att5.电流.电流下行 || ['','','','',''];
+      var bp = parseFloat(att5.平衡系数) || 0;
+      drawBalanceChart('balanceChart', upCurrents, downCurrents, bp);
+    } else {
+      setTimeout(tryDraw, 50);
+    }
+  }
+  setTimeout(tryDraw, 100);
 }
 
 function updateAtt5(key, val) {
@@ -6660,7 +6838,7 @@ init();
       <div class="fr" style="margin-bottom:0;">
         <label>配置单</label>
         <input type="file" id="newConfig" accept=".xlsx,.xls" onchange="handleConfigUpload(this)" style="display:none">
-        <button onclick="document.getElementById('newConfig').click()" style="padding:8px 12px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;">选择Excel文件</button>
+        <button onclick="document.getElementById('newConfig').click()" style="padding:8px 12px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;">上传配置表</button>
       </div>
       <div id="configFileName" style="font-size:11px;color:#999;margin-top:4px;margin-left:88px;">先上传配置单，自动提取信息</div>
       <div style="background:#f0f7ff;border-radius:8px;padding:10px;margin:10px 0;border:1px solid #b3d8ff;">
