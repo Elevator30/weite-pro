@@ -3070,7 +3070,7 @@ function renderAttachments() {
     t.classList.toggle('active', i === currentAttIndex);
   });
   
-  var container = document.getElementById('attContent') || document.getElementById('attContainer');
+  var container = document.getElementById('attModalBody') || document.getElementById('attContent') || document.getElementById('attContainer');
   switch(currentAttIndex) {
     case 0: renderAttach1(container); break;
     case 1: renderAttach2(container); break;
@@ -3739,20 +3739,116 @@ function renderAttach2(container) {
 function renderAttach2Judge() {
   var task = getCurrentTask(); if (!task) return '';
   var att2 = task.attachments.attach2 || {};
+  var v = getRatedSpeed();
   
-  var ids = [209, 210, 211];
-  ids.forEach(function(id) {
-    if (!task.checks[id]) task.checks[id] = {};
+  var carBuf = parseFloat(att2.轿厢缓冲距) || 0;
+  var cwBuf = parseFloat(att2.对重缓冲距) || 0;
+  var carComp = parseFloat(att2.轿厢压缩行程) || 0;
+  var cwComp = parseFloat(att2.对重压缩行程) || 0;
+  var cwSubM = (cwBuf + cwComp) / 1000;
+  var carSubM = (carBuf + carComp) / 1000;
+  
+  if (!att2.顶部空间) att2.顶部空间 = {};
+  if (!att2.底坑空间) att2.底坑空间 = {};
+  
+  // 辅助：检查单个距离项，返回 true(合格)/false(不合格)/null(未判定)
+  function checkDist(measured, subM, stdVal) {
+    var m = parseFloat(measured);
+    if (!m || m <= 0) return null;
+    if (subM <= 0) return null;
+    return (m - subM) >= stdVal;
+  }
+  
+  var p3h = parseFloat(att2.底坑空间.p3h) || 0;
+  var p13Std = p3h > 0 ? (p3h <= 0.15 ? 0.1 : 0.5) : 0.5;
+  var guideStd = calcStdValue('0.1+0.035v2', v);
+  var s2Std = calcStdValue('1.0+0.035v2', v);
+  var s3Std = calcStdValue('0.3+0.035v2', v);
+  var s4Std = calcStdValue('0.1+0.035v2', v);
+  
+  // === 制导行程 id209：顶部s1 + 底部p2 ===
+  var guideItems = [
+    checkDist(att2.顶部空间.s1, cwSubM, guideStd),
+    checkDist(att2.底坑空间.p2, carSubM, guideStd)
+  ];
+  
+  // === 顶部空间 id210：s2 + s3 + s4 + s5 ===
+  var topItems = [
+    checkDist(att2.顶部空间.s2, cwSubM, s2Std),
+    checkDist(att2.顶部空间.s3, cwSubM, s3Std),
+    checkDist(att2.顶部空间.s4, cwSubM, s4Std)
+  ];
+  // s5轿顶空间（直接测量空间尺寸，不减压缩量）
+  var s5L = parseFloat(att2.顶部空间.s5L) || 0;
+  var s5W = parseFloat(att2.顶部空间.s5W) || 0;
+  var s5H = parseFloat(att2.顶部空间.s5H) || 0;
+  if (s5L > 0 && s5W > 0 && s5H > 0) {
+    topItems.push(s5L >= 0.5 && s5W >= 0.6 && s5H >= 0.8);
+  }
+  
+  // === 底坑空间 id211：p1 + p3v1 + p3v2 + p4 + p5 ===
+  var pitItems = [
+    checkDist(att2.底坑空间.p1, carSubM, p13Std),
+    checkDist(att2.底坑空间.p3v1, carSubM, p13Std),
+    checkDist(att2.底坑空间.p3v2, carSubM, p13Std),
+    checkDist(att2.底坑空间.p4, carSubM, 0.3)
+  ];
+  // p5底坑空间尺寸（直接测量）
+  var p5L = parseFloat(att2.底坑空间.p5L) || 0;
+  var p5W = parseFloat(att2.底坑空间.p5W) || 0;
+  var p5H = parseFloat(att2.底坑空间.p5H) || 0;
+  if (p5L > 0 && p5W > 0 && p5H > 0) {
+    pitItems.push(p5L >= 0.5 && p5W >= 0.6 && p5H >= 1.0);
+  }
+  
+  // 汇总：已填项有一个不合格则整体不合格，全合格则合格，全未填则未判定
+  function summarize(items) {
     var hasData = false;
-    if (id === 209) hasData = att2.顶部空间 && (att2.顶部空间.s1 || att2.顶部空间.s2);
-    if (id === 210) hasData = att2.顶部空间 && (att2.顶部空间.s3 || att2.顶部空间.s4 || att2.顶部空间.s5L);
-    if (id === 211) hasData = att2.底坑空间 && (att2.底坑空间.p1 || att2.底坑空间.p2);
-    if (hasData) task.checks[id].s = 'ok';
+    var allOk = true;
+    for (var i = 0; i < items.length; i++) {
+      if (items[i] !== null) {
+        hasData = true;
+        if (!items[i]) { allOk = false; break; }
+      }
+    }
+    if (!hasData) return null;
+    return allOk ? 'ok' : 'ng';
+  }
+  
+  var guideStatus = summarize(guideItems);
+  var topStatus = summarize(topItems);
+  var pitStatus = summarize(pitItems);
+  
+  // 更新到主表检查项
+  var idMap = [
+    { id: 209, status: guideStatus, name: '制导行程' },
+    { id: 210, status: topStatus, name: '顶部空间' },
+    { id: 211, status: pitStatus, name: '底坑空间' }
+  ];
+  
+  idMap.forEach(function(item) {
+    if (!task.checks[item.id]) task.checks[item.id] = {};
+    if (item.status) {
+      task.checks[item.id].s = item.status;
+      task.checks[item.id].v = item.status === 'ok' ? '符合' : '不符合';
+      if (item.status === 'ng') {
+        task.checks[item.id].n = item.name + '存在不合格项';
+      }
+    }
   });
   
+  // 显示HTML
+  function statusText(s) {
+    if (s === 'ok') return '<span style="color:#52c41a;">✓合格</span>';
+    if (s === 'ng') return '<span style="color:#ff4d4f;">✕不合格</span>';
+    return '<span style="color:#999;">未判定</span>';
+  }
+  
   var html = '<div class="auto-result">';
-  html += '<strong>空间数据:</strong> 顶部/底部空间数据已记录到附表2<br>';
-  html += 'id209(制导行程)、id210(顶部空间)、id211(底坑空间)根据附表2数据自动判定';
+  html += '<strong>自动判定:</strong><br>';
+  html += 'id209(制导行程): ' + statusText(guideStatus) + '<br>';
+  html += 'id210(顶部空间): ' + statusText(topStatus) + '<br>';
+  html += 'id211(底坑空间): ' + statusText(pitStatus);
   html += '</div>';
   return html;
 }
