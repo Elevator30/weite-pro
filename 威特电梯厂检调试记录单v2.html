@@ -3046,6 +3046,23 @@ function confirmNg() {
 // ============ ATTACHMENTS ============
 var currentAttIndex = 0;
 
+
+// 同步副表计算结果到主表检查项显示
+function syncChecksToMain(ids) {
+  var task = getCurrentTask();
+  if (!task) return;
+  ids.forEach(function(id) {
+    var row = document.getElementById('ckRow_' + id);
+    if (row && task.checks[id]) {
+      if (task.checks[id].s === 'ng') {
+        row.classList.add('ng-row');
+      } else {
+        row.classList.remove('ng-row');
+      }
+    }
+  });
+}
+
 function renderAttachments() {
   var atts = ['附表1-门间隙', '附表2-缓冲距', '附表3-导轨铅垂度', '附表4-导轨面距', '附表5-平衡系数', '附表6-钢丝绳张力', '附表7-噪声测试'];
   var tabs = document.getElementById('attTabs');
@@ -3593,17 +3610,85 @@ function renderAttach2(container) {
   html += '<div style="padding:5px;background:#fff;border-radius:4px;text-align:center;font-size:12px;font-weight:600;color:' + p2Color + ';">' + (p2Ok === null ? '未判定' : (p2Ok ? '✓合格' : '✕不合格')) + '</div></div>';
   html += '</div></div>';
   
-  // ③水平距离及相关尺寸
+  // ③水平距离（护脚板与井道壁）+ 子项
+  var p3Std = 0.5;
+  var p3StdText = '联动水平距离';
+  if (p3h > 0) {
+    if (p3h <= 0.15) {
+      p3Std = 0.1;
+      p3StdText = '≥0.1m（水平≤0.15时）';
+    } else {
+      p3Std = 0.5;
+      p3StdText = '≥0.5m（水平>0.15时）';
+    }
+  }
+  var p3v1Val = parseFloat(att2.底坑空间.p3v1) || 0;
+  var p3v1HasData = p3v1Val > 0 && carBuf + carComp > 0;
+  var p3v1Result = '';
+  var p3v1Ok = null;
+  var p3v1Color = '#999';
+  var p3v1Status = '未判定';
+  if (p3v1HasData) {
+    p3v1Result = (p3v1Val - carSubM).toFixed(3);
+    p3v1Ok = parseFloat(p3v1Result) >= p3Std;
+    if (p3v1Ok) {
+      p3v1Color = '#52c41a';
+      p3v1Status = '✓合格';
+    } else {
+      p3v1Color = '#ff4d4f';
+      p3v1Status = '✕不合格';
+    }
+  }
+  var p3v2Val = parseFloat(att2.底坑空间.p3v2) || 0;
+  var p3v2HasData = p3v2Val > 0 && carBuf + carComp > 0;
+  var p3v2Result = '';
+  var p3v2Ok = null;
+  var p3v2Color = '#999';
+  var p3v2Status = '未判定';
+  if (p3v2HasData) {
+    p3v2Result = (p3v2Val - carSubM).toFixed(3);
+    p3v2Ok = parseFloat(p3v2Result) >= p3Std;
+    if (p3v2Ok) {
+      p3v2Color = '#52c41a';
+      p3v2Status = '✓合格';
+    } else {
+      p3v2Color = '#ff4d4f';
+      p3v2Status = '✕不合格';
+    }
+  }
   html += '<div style="margin-bottom:8px;padding:8px;background:#fafafa;border-radius:6px;">';
-  html += '<div style="font-size:12px;font-weight:600;color:#333;margin-bottom:4px;">③水平距离及相关尺寸</div>';
-  html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">';
-  html += '<div><div style="font-size:10px;color:#666;">水平距离(护脚板与井道壁)(m)</div>';
-  html += '<input type="text" value="' + (att2.底坑空间.p3h||'') + '" placeholder="m" inputmode="decimal" oninput="updateAtt2Pit(\'p3h\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
-  html += '<div><div style="font-size:10px;color:#666;">垂直滑动门/护脚板垂直距离(m)</div>';
-  html += '<input type="text" value="' + (att2.底坑空间.p3v1||'') + '" placeholder="m" inputmode="decimal" oninput="updateAtt2Pit(\'p3v1\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
-  html += '<div><div style="font-size:10px;color:#666;">轿厢最低部件垂直距离(m)</div>';
-  html += '<input type="text" value="' + (att2.底坑空间.p3v2||'') + '" placeholder="m" inputmode="decimal" oninput="updateAtt2Pit(\'p3v2\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
+  html += '<div style="font-size:12px;font-weight:600;color:#333;margin-bottom:6px;">③ 水平距离（护脚板与井道壁）</div>';
+  html += '<div style="margin-bottom:8px;padding-left:12px;">';
+  html += '<div style="display:grid;grid-template-columns:120px 1fr;gap:6px;align-items:center;">';
+  html += '<div style="font-size:11px;color:#666;">水平距离</div>';
+  html += '<div style="display:flex;align-items:center;gap:4px;">';
+  html += '<input type="text" value="' + (att2.底坑空间.p3h||'') + '" placeholder="m" inputmode="decimal" oninput="updateAtt2Pit(\'p3h\',this.value)" style="width:80px;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;">';
+  html += '<span style="font-size:11px;color:#999;">m</span>';
   html += '</div></div>';
+  html += '</div>';
+  // ③-1 护脚板垂直距离
+  html += '<div style="margin-bottom:6px;padding-left:12px;border-left:2px solid #e0e0e0;">';
+  html += '<div style="font-size:11px;font-weight:600;color:#555;margin-bottom:4px;">③-1 护脚板垂直距离</div>';
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;align-items:center;">';
+  html += '<div><div style="font-size:10px;color:#666;">下端站平层时(m)</div>';
+  html += '<input type="text" value="' + (att2.底坑空间.p3v1||'') + '" placeholder="m" inputmode="decimal" oninput="updateAtt2Pit(\'p3v1\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
+  html += '<div><div style="font-size:10px;color:#666;">检验结果(m)</div>';
+  html += '<div style="padding:5px;background:#fff;border:1px solid #e0e0e0;border-radius:4px;text-align:center;font-size:12px;font-weight:600;">' + (p3v1Result || '-') + '</div></div>';
+  html += '<div><div style="font-size:10px;color:#666;">标准：' + p3StdText + '</div>';
+  html += '<div style="padding:5px;background:#fff;border-radius:4px;text-align:center;font-size:12px;font-weight:600;color:' + p3v1Color + ';">' + p3v1Status + '</div></div>';
+  html += '</div></div>';
+  // ③-2 轿厢最低部件垂直距离
+  html += '<div style="padding-left:12px;border-left:2px solid #e0e0e0;">';
+  html += '<div style="font-size:11px;font-weight:600;color:#555;margin-bottom:4px;">③-2 轿厢最低部件垂直距离</div>';
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;align-items:center;">';
+  html += '<div><div style="font-size:10px;color:#666;">下端站平层时(m)</div>';
+  html += '<input type="text" value="' + (att2.底坑空间.p3v2||'') + '" placeholder="m" inputmode="decimal" oninput="updateAtt2Pit(\'p3v2\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
+  html += '<div><div style="font-size:10px;color:#666;">检验结果(m)</div>';
+  html += '<div style="padding:5px;background:#fff;border:1px solid #e0e0e0;border-radius:4px;text-align:center;font-size:12px;font-weight:600;">' + (p3v2Result || '-') + '</div></div>';
+  html += '<div><div style="font-size:10px;color:#666;">标准：' + p3StdText + '</div>';
+  html += '<div style="padding:5px;background:#fff;border-radius:4px;text-align:center;font-size:12px;font-weight:600;color:' + p3v2Color + ';">' + p3v2Status + '</div></div>';
+  html += '</div></div>';
+  html += '</div>';
   
   // ④底坑固定最高部件与轿厢最低部件距离
   var p4Val = parseFloat(att2.底坑空间.p4) || 0;
@@ -3676,6 +3761,7 @@ function updateAtt2(key, val) {
   var task = getCurrentTask(); if (task) task.attachments.attach2[key] = val;
   saveCurrentTask();
   renderAttachments();
+  syncChecksToMain([209, 210, 211]);
 }
 
 function updateAtt2Top(key, val) {
@@ -3685,6 +3771,7 @@ function updateAtt2Top(key, val) {
   att2.顶部空间[key] = val;
   saveCurrentTask();
   renderAttachments();
+  syncChecksToMain([209, 210, 211]);
 }
 
 function updateAtt2Pit(key, val) {
@@ -3694,6 +3781,7 @@ function updateAtt2Pit(key, val) {
   att2.底坑空间[key] = val;
   saveCurrentTask();
   renderAttachments();
+  syncChecksToMain([209, 210, 211]);
 }
 
 // ============ ATTACHMENT 3 - 导轨铅垂度 (v50 自动计算+安全钳) ============
@@ -4453,14 +4541,12 @@ function updateAtt5Current(key, idx, val) {
   var att5 = task.attachments.attach5;
   if (!att5.电流[key]) att5.电流[key] = ['','','','',''];
   att5.电流[key][idx] = val;
-  
   // 实时计算平衡系数
   var upCurrents = att5.电流.电流上行 || ['','','','',''];
   var downCurrents = att5.电流.电流下行 || ['','','','',''];
   var result = calcBalanceFactor(upCurrents, downCurrents);
   if (result.found) {
     att5.平衡系数 = result.value.toString();
-    // 自动回填到id 76
     if (!task.checks[76]) task.checks[76] = {};
     task.checks[76].v = result.value + '%';
     if (result.value >= 40 && result.value <= 50) {
@@ -4470,9 +4556,16 @@ function updateAtt5Current(key, idx, val) {
       task.checks[76].n = '平衡系数不在40%-50%范围内';
     }
   }
-  
   saveCurrentTask();
   renderAttachments();
+  syncChecksToMain([76]);
+  // 重渲后重新绘制图表（canvas重建了）
+  setTimeout(function(){
+    var upCurrents2 = att5.电流.电流上行 || ['','','','',''];
+    var downCurrents2 = att5.电流.电流下行 || ['','','','',''];
+    var bp2 = parseFloat(att5.平衡系数) || 0;
+    drawBalanceChart('balanceChart', upCurrents2, downCurrents2, bp2);
+  }, 50);
 }
 
 function calcAndDrawBalance() {
