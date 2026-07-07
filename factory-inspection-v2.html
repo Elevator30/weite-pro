@@ -8,7 +8,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="威特厂检记录">
 <meta name="theme-color" content="#667eea">
-<title>威特电梯厂检调试记录单V2 v50</title>
+<title>威特电梯厂检调试记录单V2 v50.9</title>
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%231a3a6b'/%3E%3Ctext x='50' y='42' font-family='Arial' font-size='28' font-weight='900' text-anchor='middle' fill='white'%3EVEITE%3C/text%3E%3Ctext x='50' y='72' font-family='serif' font-size='16' font-weight='800' text-anchor='middle' fill='%23e63946'%3E电梯%3C/text%3E%3C/svg%3E">
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
@@ -18,6 +18,7 @@
 </head>
 <body>
 <!-- v50.1 -->
+<!-- v50.9: buildCheckItemsHTML and buildSingleAttachHTML switched to pure table layout, removed all flex/float for html2canvas compatibility -->
 <script>
 // PWA manifest & service worker
 (function(){
@@ -6353,18 +6354,26 @@ function buildCheckItemsHTML(task, project, dateStr, pageNum) {
 
   var h = '<div style="font-family:\'PingFang SC\',\'Heiti SC\',sans-serif;font-size:9px;position:relative;">';
   // 页眉
-  h += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">';
-  h += '<img src="' + logoBase64 + '" style="height:24px;width:auto;">';
-  h += '<span style="font-size:14px;font-weight:bold;">厂检调试记录单</span>';
-  h += '<span>产品编号：' + escHtml(task.prodNo||'') + '</span>';
-  h += '</div>';
+  // 页眉 - table三列布局（左logo/中标题/右产品编号）
+  h += '<table style="width:100%;border-collapse:collapse;table-layout:fixed;margin-bottom:4px;">';
+  h += '<colgroup><col style="width:20%"><col style="width:60%"><col style="width:20%"></colgroup>';
+  h += '<tr>';
+  h += '<td style="padding:0;text-align:left;vertical-align:middle;"><img src="' + logoBase64 + '" style="height:24px;width:auto;"></td>';
+  h += '<td style="padding:0;text-align:center;vertical-align:middle;font-size:14px;font-weight:bold;">厂检调试记录单</td>';
+  h += '<td style="padding:0;text-align:right;vertical-align:middle;font-size:9px;">产品编号：' + escHtml(task.prodNo||'') + '</td>';
+  h += '</tr>';
+  h += '</table>';
 
   // 三栏布局
-  h += '<div style="display:flex;width:100%;gap:4px;">';
-  h += '<div style="flex:1;min-width:0;">' + buildColumn(pageConfig.col1) + '</div>';
-  h += '<div style="flex:1;min-width:0;">' + buildColumn(pageConfig.col2) + '</div>';
-  h += '<div style="flex:1;min-width:0;">' + buildColumn(pageConfig.col3) + '</div>';
-  h += '</div>';
+  // 三栏布局 - table三列
+  h += '<table style="width:100%;border-collapse:collapse;table-layout:fixed;">';
+  h += '<colgroup><col style="width:33.33%"><col style="width:33.33%"><col style="width:33.34%"></colgroup>';
+  h += '<tr>';
+  h += '<td style="padding:0 2px 0 0;vertical-align:top;">' + buildColumn(pageConfig.col1) + '</td>';
+  h += '<td style="padding:0 2px;vertical-align:top;">' + buildColumn(pageConfig.col2) + '</td>';
+  h += '<td style="padding:0 0 0 2px;vertical-align:top;">' + buildColumn(pageConfig.col3) + '</td>';
+  h += '</tr>';
+  h += '</table>';
 
   // 结论说明 + 页脚
   h += '<div style="margin-top:4px;font-size:7px;color:#666;">结论选项中，符合打"√"，不符合打"×"，不适用打"/"，或写入测量值。</div>';
@@ -6660,11 +6669,15 @@ function buildSingleAttachHTML(task, dateStr, attNum) {
     var h = '';
     h += '<div style="position:relative;width:100%;height:100%;padding:10px 15px;box-sizing:border-box;font-family:Arial,sans-serif;font-size:8px;line-height:1.3;">';
     // 顶部：logo + 标题 + 产品编号
-    h += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;border-bottom:1px solid #000;padding-bottom:3px;">';
-    h += '<img src="' + logoBase64 + '" style="height:18px;width:auto;">';
-    h += '<div style="text-align:center;flex:1;font-weight:bold;font-size:11px;">厂检调试记录单</div>';
-    h += '<div style="text-align:right;font-size:7px;">产品编号：' + esc(task.productNo || '') + '</div>';
-    h += '</div>';
+    // 顶部 - table三列布局
+    h += '<table style="width:100%;border-collapse:collapse;table-layout:fixed;margin-bottom:4px;border-bottom:1px solid #000;padding-bottom:3px;">';
+    h += '<colgroup><col style="width:20%"><col style="width:60%"><col style="width:20%"></colgroup>';
+    h += '<tr>';
+    h += '<td style="padding:0;text-align:left;vertical-align:middle;"><img src="' + logoBase64 + '" style="height:18px;width:auto;"></td>';
+    h += '<td style="padding:0;text-align:center;vertical-align:middle;font-weight:bold;font-size:11px;">厂检调试记录单</td>';
+    h += '<td style="padding:0;text-align:right;vertical-align:middle;font-size:7px;">产品编号：' + esc(task.productNo || '') + '</td>';
+    h += '</tr>';
+    h += '</table>';
     // 子标题
     h += '<div style="text-align:center;font-weight:bold;font-size:9px;margin-bottom:6px;">' + title + '</div>';
     return h;
@@ -6921,9 +6934,11 @@ function buildSingleAttachHTML(task, dateStr, attNum) {
   else if (attNum === 4) {
     h += buildAttachHeader('附表4  导轨顶面距离测量&nbsp;&nbsp;单位（mm）', '附表4');
     // 左右两表并排
-    h += '<div style="display:flex;gap:10px;width:100%;">';
-    // 左：轿厢
-    h += '<div style="flex:1;">';
+    // 左右两表并排 - table两列布局
+    h += '<table style="width:100%;border-collapse:collapse;table-layout:fixed;">';
+    h += '<colgroup><col style="width:50%"><col style="width:50%"></colgroup>';
+    h += '<tr>';
+    h += '<td style="padding:0 5px 0 0;vertical-align:top;">';
     h += '<table style="width:100%;border-collapse:collapse;table-layout:fixed;font-size:7px;text-align:center;">';
     h += '<colgroup><col style="width:20%"><col style="width:40%"><col style="width:40%"></colgroup>';
     h += '<tr style="font-weight:bold;background:#f0f0f0;">';
@@ -6949,9 +6964,8 @@ function buildSingleAttachHTML(task, dateStr, attNum) {
     h += '<td style="border:1px solid #000;padding:1px;" colspan="2">&nbsp;</td>';
     h += '</tr>';
     h += '</table>';
-    h += '</div>';
-    // 右：对重
-    h += '<div style="flex:1;">';
+    h += '</td>';
+    h += '<td style="padding:0 0 0 5px;vertical-align:top;">';
     h += '<table style="width:100%;border-collapse:collapse;table-layout:fixed;font-size:7px;text-align:center;">';
     h += '<colgroup><col style="width:20%"><col style="width:40%"><col style="width:40%"></colgroup>';
     h += '<tr style="font-weight:bold;background:#f0f0f0;">';
@@ -6974,8 +6988,9 @@ function buildSingleAttachHTML(task, dateStr, attNum) {
     h += '<td style="border:1px solid #000;padding:1px;" colspan="2">&nbsp;</td>';
     h += '</tr>';
     h += '</table>';
-    h += '</div>';
-    h += '</div>';
+    h += '</td>';
+    h += '</tr>';
+    h += '</table>';
     h += '<div style="text-align:right;margin-top:6px;font-size:7px;">— 附表4 —</div>';
     h += '</div>'; // 闭合最外层div
   }
