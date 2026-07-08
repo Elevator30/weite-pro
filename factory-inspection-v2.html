@@ -6233,7 +6233,7 @@ function buildCheckItemsHTML(task, project, dateStr, pageNum) {
   var rowH = 15;         // 数据行行高
   var titleW = 26;       // 竖排标题列宽（长标题可分两列竖排）
   var seqW = 20;         // 序号列宽
-  var resultW = 28;      // 结论列宽
+  var resultW = 24;      // 结论列宽
   var headerH = 22;      // 表头行高
   var fontSize = 8;      // 统一字号
   var strokeW = 0.5;     // 统一框线粗细
@@ -6336,7 +6336,7 @@ function buildCheckItemsHTML(task, project, dateStr, pageNum) {
     var chars = text.split('');
     var lines = [];
     var current = '';
-    var charW = fs * 1.05; // 每个字符大概宽度（中文约1倍字号）
+    var charW = fs * 1.0; // 每个字符大概宽度（中文约1倍字号）
     for (var i = 0; i < chars.length; i++) {
       var ch = chars[i];
       var testLine = current + ch;
