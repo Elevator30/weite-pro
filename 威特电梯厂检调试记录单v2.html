@@ -6456,10 +6456,8 @@ function buildCheckItemsHTML(task, project, dateStr, pageNum) {
       var titleColW = titleW / (titleCols + 0.5); // 列间距
       svg += verticalText(info.label, titleCenterX, titleStartY, fontSize, letterSpacing, titleCols, titleColW);
 
-      // 技术资料分类：内容列中间加竖线（分两列）
-      if (info.splitContent) {
-        svg += '<line x1="' + splitX + '" y1="' + groupTop + '" x2="' + splitX + '" y2="' + (groupTop + groupH) + '" stroke="#000" stroke-width="' + strokeW + '"/>';
-      }
+      // 技术资料分类：内容列不分隔，左边名称右边编号，中间无竖线
+
 
       // 数据行横线 + 每个检查项内容
       for (var i = 0; i < info.ids.length; i++) {

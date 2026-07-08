@@ -6239,7 +6239,7 @@ function buildCheckItemsHTML(task, project, dateStr, pageNum) {
   var strokeW = 0.5;     // 统一框线粗细
   var colGap = 0;        // 栏间距（0=紧贴）
   var splitRatio = 0.55; // 技术资料分类内容列分割比例
-  var totalW = 750;      // SVG总宽度（左对齐，利用左侧多余空白避免右边被切）
+  var totalW = 700;      // SVG总宽度（A4打印适配，避免右边裁切）
 
   // 页面配置（两页三栏）
   var pageConfig;
@@ -6336,7 +6336,7 @@ function buildCheckItemsHTML(task, project, dateStr, pageNum) {
     var chars = text.split('');
     var lines = [];
     var current = '';
-    var charW = fs * 0.9; // 每个字符大概宽度
+    var charW = fs * 1.0; // 每个字符大概宽度（中文约1倍字号）
     for (var i = 0; i < chars.length; i++) {
       var ch = chars[i];
       var testLine = current + ch;
@@ -6456,10 +6456,8 @@ function buildCheckItemsHTML(task, project, dateStr, pageNum) {
       var titleColW = titleW / (titleCols + 0.5); // 列间距
       svg += verticalText(info.label, titleCenterX, titleStartY, fontSize, letterSpacing, titleCols, titleColW);
 
-      // 技术资料分类：内容列中间加竖线（分两列）
-      if (info.splitContent) {
-        svg += '<line x1="' + splitX + '" y1="' + groupTop + '" x2="' + splitX + '" y2="' + (groupTop + groupH) + '" stroke="#000" stroke-width="' + strokeW + '"/>';
-      }
+      // 技术资料分类：内容列不分隔，左边名称右边编号，中间无竖线
+
 
       // 数据行横线 + 每个检查项内容
       for (var i = 0; i < info.ids.length; i++) {
@@ -6520,7 +6518,7 @@ function buildCheckItemsHTML(task, project, dateStr, pageNum) {
         // 结论
         var resultVal = getResult(id, info.splitContent);
         if (resultVal) {
-          svg += '<text x="' + (contentRight + resultW / 2) + '" y="' + itemMidY + '" font-size="' + fontSize + '" text-anchor="middle" dominant-baseline="middle" fill="#000">' + resultVal + '</text>';
+          svg += '<text x="' + (contentRight + resultW - 3) + '" y="' + itemMidY + '" font-size="' + fontSize + '" text-anchor="end" dominant-baseline="middle" fill="#000">' + resultVal + '</text>';
         }
       }
     }
