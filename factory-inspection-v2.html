@@ -71,6 +71,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
 .task-btns button{flex:1;padding:8px 0;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;}
 .btn-view{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;}
 .btn-del{background:#fff5f5;color:#c0392b;border:1.5px solid #fed7d7!important;}
+.print-dropdown{position:relative;flex:1;}
+.print-dropdown-menu{position:absolute;top:100%;left:0;right:0;background:#fff;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.15);z-index:100;overflow:hidden;margin-top:4px;display:none;}
+.print-dropdown-menu.show{display:block;}
+.print-dropdown-menu div{padding:10px 12px;font-size:12px;cursor:pointer;white-space:nowrap;}
+.print-dropdown-menu div:hover{background:#f7fafc;}
 /* Region card grid */
 .region-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:12px;}
 .region-card{background:#fff;border-radius:14px;padding:20px 16px;border:1.5px solid #e2e8f0;cursor:pointer;position:relative;box-shadow:0 2px 8px rgba(0,0,0,.06);transition:all .15s;}
@@ -361,9 +366,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
       <div onclick="saveCurrentTask();goPage('taskList');closeHeaderMenu('check')">📋 返回列表</div>
       <div onclick="showNewCheck();closeHeaderMenu('check')">➕ 新建</div>
       <div onclick="openInspectorSigSetting();closeHeaderMenu('check')">✍️ 检验人员签名</div>
-      <div onclick="saveCurrentTask();exportNoticePDF();closeHeaderMenu('check')">🖨 导出意见通知书</div>
       <div onclick="saveCurrentTask();exportNoticeExcel();closeHeaderMenu('check')">📊 导出通知书Excel</div>
-      <div onclick="saveCurrentTask();exportCheckPDF();closeHeaderMenu('check')">📄 导出检查表</div>
       <div onclick="exportTasksJSON();closeHeaderMenu('check')">📤 导出JSON</div>
       <div onclick="importTasksJSON();closeHeaderMenu('check')">📥 导入JSON</div>
       <div onclick="exportTasksExcel();closeHeaderMenu('check')">📊 导出Excel</div>
@@ -1024,6 +1027,7 @@ function setRegionSelects(provinceSelId, citySelId, districtSelId, addrStr) {
 }
 var currentProjectIndex = -1;
 var currentTaskIndex = -1;
+var editingProjectIndex = -1;
 var currentRegionIndex = -1;
 var currentZoneIndex = 0;
 var currentNgItemId = -1;
@@ -1393,6 +1397,7 @@ function renderProjectList() {
       '<div class="task-meta">安装单位: ' + (proj.installer||'未填写') + '</div>' +
       '<div class="task-btns">' +
         '<button class="btn-view" onclick="event.stopPropagation();openProject(' + i + ')">进入</button>' +
+        '<button class="btn-view" onclick="event.stopPropagation();showEditProject(' + i + ')">编辑</button>' +
         '<button class="btn-del" onclick="event.stopPropagation();deleteProject(' + i + ')">删除</button>' +
       '</div>' +
     '</div>';
@@ -1449,6 +1454,9 @@ function getMostRecentProjectIndex(direction) {
 }
 
 function showNewProject() {
+  editingProjectIndex = -1;
+  var titleEl = document.getElementById('moNewProjectTitle');
+  if (titleEl) titleEl.textContent = '新建项目';
   openMoModal('moNewProject');
   var nameEl = document.getElementById('newProjName');
   if (nameEl) nameEl.value = '';
@@ -1461,6 +1469,61 @@ function showNewProject() {
   var remarkEl = document.getElementById('newProjRemark');
   if (remarkEl) remarkEl.value = '';
   initProvinceSelect('newProjProvince', 'newProjCity', 'newProjDistrict');
+}
+
+function showEditProject(index) {
+  editingProjectIndex = index;
+  var titleEl = document.getElementById('moNewProjectTitle');
+  if (titleEl) titleEl.textContent = '编辑项目';
+  var proj = projects[index];
+  if (!proj) return;
+  openMoModal('moNewProject');
+  document.getElementById('newProjName').value = proj.name || '';
+  document.getElementById('newProjInstaller').value = proj.installer || '';
+  document.getElementById('newProjManager').value = proj.projectManagerName || '';
+  document.getElementById('newProjRemark').value = proj.remark || '';
+  initProvinceSelect('newProjProvince', 'newProjCity', 'newProjDistrict');
+  setRegionSelects('newProjProvince', 'newProjCity', 'newProjDistrict', proj.installAddr || '');
+  // 提取详细地址（省市区之后的部分）
+  var detail = '';
+  var addr = proj.installAddr || '';
+  var pVal = document.getElementById('newProjProvince').value || '';
+  var cVal = document.getElementById('newProjCity').value || '';
+  var dVal = document.getElementById('newProjDistrict').value || '';
+  var prefix = pVal + cVal + dVal;
+  if (addr.indexOf(prefix) === 0) {
+    detail = addr.substring(prefix.length);
+  }
+  document.getElementById('newProjAddrDetail').value = detail;
+}
+
+function confirmProject() {
+  if (editingProjectIndex >= 0) {
+    saveEditProject();
+  } else {
+    createProject();
+  }
+}
+
+function saveEditProject() {
+  var index = editingProjectIndex;
+  if (index < 0 || index >= projects.length) return;
+  var name = document.getElementById('newProjName').value.trim();
+  if (!name) { showToast('项目名称必填！'); return; }
+  
+  var installAddr = getFullAddress('newProjProvince', 'newProjCity', 'newProjDistrict', 'newProjAddrDetail');
+  
+  projects[index].name = name;
+  projects[index].installer = document.getElementById('newProjInstaller').value.trim();
+  projects[index].projectManagerName = document.getElementById('newProjManager').value.trim();
+  projects[index].installAddr = installAddr;
+  projects[index].remark = document.getElementById('newProjRemark').value.trim();
+  
+  saveProjects();
+  closeMoModal('moNewProject');
+  editingProjectIndex = -1;
+  renderProjectList();
+  showToast('项目修改成功');
 }
 
 function createProject() {
@@ -1534,11 +1597,51 @@ function renderTaskList() {
       '</div>' +
       '<div class="task-btns">' +
         '<button class="btn-view" onclick="event.stopPropagation();openTask(' + i + ')">查看</button>' +
+        '<div class="print-dropdown">' +
+          '<button class="btn-view" onclick="event.stopPropagation();togglePrintMenu(' + i + ')">打印</button>' +
+          '<div class="print-dropdown-menu" id="printMenu_' + i + '" onclick="event.stopPropagation();">' +
+            '<div onclick="printNotice(' + i + ')">📋 打印通知单</div>' +
+            '<div onclick="printCheckSheet(' + i + ')">📝 打印检查表</div>' +
+            '<div onclick="printFubiao(' + i + ')">📊 打印副表</div>' +
+          '</div>' +
+        '</div>' +
         '<button class="btn-del" onclick="event.stopPropagation();deleteTask(' + i + ')">删除</button>' +
       '</div>' +
     '</div>';
   });
   container.innerHTML = html;
+}
+
+function togglePrintMenu(index) {
+  var menu = document.getElementById('printMenu_' + index);
+  if (!menu) return;
+  var isOpen = menu.classList.contains('show');
+  closeAllPrintMenus();
+  if (!isOpen) menu.classList.add('show');
+}
+
+function closeAllPrintMenus() {
+  var menus = document.querySelectorAll('.print-dropdown-menu');
+  for (var i = 0; i < menus.length; i++) {
+    menus[i].classList.remove('show');
+  }
+}
+
+function printNotice(index) {
+  currentTaskIndex = index;
+  closeAllPrintMenus();
+  exportNoticePDF();
+}
+
+function printCheckSheet(index) {
+  currentTaskIndex = index;
+  closeAllPrintMenus();
+  exportCheckPDF();
+}
+
+function printFubiao(index) {
+  closeAllPrintMenus();
+  window.open('print-fubiao.html?proj=' + currentProjectIndex + '&task=' + index, '_blank');
 }
 
 function backToProjectList() {
@@ -5126,6 +5229,16 @@ document.addEventListener('click', function(e) {
       dropdown.classList.remove('show');
     }
   });
+  // 关闭打印下拉菜单
+  var printBtns = document.querySelectorAll('.print-dropdown button');
+  var printMenus = document.querySelectorAll('.print-dropdown-menu');
+  var clickedPrintBtn = false;
+  printBtns.forEach(function(btn) { if (btn.contains(e.target)) clickedPrintBtn = true; });
+  printMenus.forEach(function(menu) {
+    if (!menu.contains(e.target) && !clickedPrintBtn) {
+      menu.classList.remove('show');
+    }
+  });
 });
 
 // ============ SIGNATURES ============
@@ -7964,7 +8077,7 @@ init();
 <!-- New Project Modal -->
 <div class="mo" id="moNewProject">
   <div class="mi">
-    <div class="mh"><h3>新建项目</h3><button onclick="closeMoModal('moNewProject')">×</button></div>
+    <div class="mh"><h3 id="moNewProjectTitle">新建项目</h3><button onclick="closeMoModal('moNewProject')">×</button></div>
     <div class="mb">
       <div class="fr"><label>项目名称 *</label><input type="text" id="newProjName" placeholder="必填，如：XX小区项目"></div>
       <div class="fr"><label>安装单位/人员</label><input type="text" id="newProjInstaller" placeholder="选填"></div>
@@ -7983,7 +8096,7 @@ init();
     </div>
     <div class="mc">
       <button class="mc-cancel" onclick="closeMoModal('moNewProject')">取消</button>
-      <button class="mc-confirm" onclick="createProject()">确认</button>
+      <button class="mc-confirm" onclick="confirmProject()">确认</button>
     </div>
   </div>
 </div>
