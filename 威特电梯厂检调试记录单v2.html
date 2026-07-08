@@ -5763,7 +5763,7 @@ function exportCheckPDF() {
   var projName = (proj && proj.name || '未命名').replace(/[\\/:*?"<>|]/g, '');
   var checkDateStr = task.checkDate || dateStr;
   var dateForFilename = checkDateStr.replace(/[年月日/\-]/g, '');
-  var filename = dateForFilename + '_' + projName + '_检查表.pdf';
+  var filename = dateForFilename + '_' + projName + '_厂检记录单.pdf';
 
   if (typeof html2canvas === 'undefined') { showToast('html2canvas库未加载，请刷新页面'); return; }
   var JsPDF = (typeof jsPDF !== 'undefined') ? jsPDF : (window.jspdf && window.jspdf.jsPDF);
@@ -5771,18 +5771,11 @@ function exportCheckPDF() {
 
   showToast('正在准备检查表...');
 
-  // 渲染：检查表1+2(横版)，附表1-7(每张单独一页竖版)
-  // 注意：每张附表单独一页A4竖版，共9页
+  // 渲染：主记录表两页（横版）
+  // 附表已从记录单移除，单独做页面
   var sections = [
-    {html: buildCheckItemsHTML(task, proj, dateStr, 1), label: '检查表1', orientation: 'landscape'},
-    {html: buildCheckItemsHTML(task, proj, dateStr, 2), label: '检查表2', orientation: 'landscape'},
-    {html: buildSingleAttachHTML(task, dateStr, 1), label: '附表1', orientation: 'portrait'},
-    {html: buildSingleAttachHTML(task, dateStr, 2), label: '附表2', orientation: 'portrait'},
-    {html: buildSingleAttachHTML(task, dateStr, 3), label: '附表3', orientation: 'portrait'},
-    {html: buildSingleAttachHTML(task, dateStr, 4), label: '附表4', orientation: 'portrait'},
-    {html: buildSingleAttachHTML(task, dateStr, 5), label: '附表5', orientation: 'portrait'},
-    {html: buildSingleAttachHTML(task, dateStr, 6), label: '附表6', orientation: 'portrait'},
-    {html: buildSingleAttachHTML(task, dateStr, 7), label: '附表7', orientation: 'portrait'}
+    {html: buildCheckItemsHTML(task, proj, dateStr, 1), label: '记录表1', orientation: 'landscape'},
+    {html: buildCheckItemsHTML(task, proj, dateStr, 2), label: '记录表2', orientation: 'landscape'}
   ];
 
   var canvases = [];
