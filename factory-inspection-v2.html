@@ -130,7 +130,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
 .att-tab.active{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border-color:transparent;}
 .att-content{padding:12px;}
 /* Attachment cards */
-.att-card{background:#fff;border-radius:12px;padding:14px;margin-bottom:12px;border:1.5px solid #e2e8f0;}
+.att-card{background:#fff;border-radius:12px;padding:14px;margin-bottom:12px;border:1.5px solid #e2e8f0;;overflow:hidden}
 .att-card-title{font-size:13px;font-weight:700;color:#fff;padding:8px 12px;background:linear-gradient(135deg,#667eea,#764ba2);border-radius:8px 8px 0 0;margin:-14px -14px 12px;}
 .att-row{display:flex;align-items:center;margin-bottom:10px;gap:8px;}
 .att-row label{flex:1;font-size:12px;color:#4a5568;min-width:0;}
@@ -220,7 +220,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
 .ck-badge{display:inline-block;background:#e6f3ff;border:1px solid #91caff;border-radius:4px;padding:1px 6px;font-size:12px;color:#1677ff;margin-left:4px;}
 /* Radio group - 3 choices */
 .radio-group{display:flex;gap:6px;margin-top:4px;}
-.radio-btn{flex:1;padding:8px 0;border:1.5px solid #e2e8f0;border-radius:8px;text-align:center;font-size:12px;font-weight:600;cursor:pointer;background:#fff;transition:all .12s;color:#718096;}
+.radio-btn{flex:1;padding:0 4px;min-height:34px;height:34px;line-height:30px;border:1.5px solid #e2e8f0;border-radius:8px;text-align:center;font-size:12px;font-weight:600;cursor:pointer;background:#fff;transition:all .12s;color:#718096;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;}
 .radio-btn:active{transform:scale(.96);}
 .radio-btn.r-ok{border-color:#28a745;background:#d4edda;color:#155724;}
 .radio-btn.r-ng{border-color:#dc3545;background:#f8d7da;color:#721c24;}
@@ -2471,9 +2471,15 @@ function addNote() {
   setTimeout(function() {
     var noteTextareas = document.querySelectorAll('#notesSection textarea');
     if (noteTextareas && noteTextareas.length > 0) {
-      noteTextareas[noteTextareas.length - 1].focus();
+      var ta = noteTextareas[noteTextareas.length - 1];
+      ta.focus();
+      // 光标定位到末尾
+      if (ta.setSelectionRange) {
+        var len = ta.value.length;
+        ta.setSelectionRange(len, len);
+      }
     }
-  }, 60);
+  }, 150);
 }
 
 function updateNote(idx, val) {
@@ -2561,6 +2567,38 @@ function renderSignZoneContent(container) {
   var pmSigData = task.signatures.pmSig || '';
   var installerSigData = task.signatures.installerSig || '';
   html += '<div style="background:#f8fff8;border-radius:12px;padding:14px;margin-bottom:12px;border:1px solid #e2e8f0;">';
+    // 检验人员签名（全局级，只读预览）
+  var _gSig = null;
+  try { var _sd = localStorage.getItem(INSPECTOR_SIG_KEY); if (_sd) _gSig = JSON.parse(_sd); } catch(e) {}
+  html += '<div style="background:#f0f4ff;border-radius:10px;padding:12px;margin-bottom:12px;border:1px solid #c7d2fe;">';
+  html += '<div style="font-size:13px;font-weight:600;margin-bottom:8px;color:#4338ca;">✍️ 检验人员签名（全局）</div>';
+  if (_gSig && _gSig.sig) {
+    html += '<div style="display:flex;align-items:center;gap:10px;">';
+    html += '<div style="font-size:12px;color:#4b5563;font-weight:600;white-space:nowrap;">' + (_gSig.name || '检验员') + '：</div>';
+    html += '<div style="flex:1;border:1px solid #e2e8f0;border-radius:6px;background:#fff;padding:6px;min-height:45px;display:flex;align-items:center;justify-content:center;">';
+    html += '<img src="' + _gSig.sig + '" style="max-height:40px;max-width:100%;">';
+    html += '</div></div>';
+  } else {
+    html += '<div style="color:#9ca3af;font-size:12px;text-align:center;padding:8px;">尚未设置检验人员签名<br><span style="font-size:11px;">顶部菜单 → 厂检签字</span></div>';
+  }
+  html += '</div>';
+  
+  // 甲方签名（项目级，只读预览）
+  var _cp = getCurrentProject();
+  var _cs = (_cp && _cp.clientSignature) ? _cp.clientSignature : null;
+  html += '<div style="background:#f0fff4;border-radius:10px;padding:12px;margin-bottom:12px;border:1px solid #9ae6b4;">';
+  html += '<div style="font-size:13px;font-weight:600;margin-bottom:8px;color:#276749;">✍️ 甲方签名（项目级）</div>';
+  if (_cs && _cs.sig) {
+    html += '<div style="display:flex;align-items:center;gap:10px;">';
+    html += '<div style="font-size:12px;color:#4b5563;font-weight:600;white-space:nowrap;">' + (_cs.name || '甲方') + '：</div>';
+    html += '<div style="flex:1;border:1px solid #e2e8f0;border-radius:6px;background:#fff;padding:6px;min-height:45px;display:flex;align-items:center;justify-content:center;">';
+    html += '<img src="' + _cs.sig + '" style="max-height:40px;max-width:100%;">';
+    html += '</div></div>';
+  } else {
+    html += '<div style="color:#9ca3af;font-size:12px;text-align:center;padding:8px;">尚未设置甲方签名<br><span style="font-size:11px;">电梯列表顶部 → 甲方签字</span></div>';
+  }
+  html += '</div>';
+  
   html += '<div style="font-size:13px;font-weight:600;margin-bottom:8px;">相关人员签名</div>';
   // 安装人员姓名输入
   html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">';
@@ -3462,11 +3500,11 @@ function renderAttach1(container) {
   html += '<label style="flex-shrink:0;font-size:13px;font-weight:600;color:#333;">门类型</label>';
   // 中分门/旁开门按钮（紧凑样式，高度和下拉框一致）
   html += '<div style="flex:0 0 auto;display:flex;gap:4px;">';
-  html += '<div onclick="setAtt1DoorStructure(&#39;center&#39;)" style="padding:0 12px;height:36px;display:flex;align-items:center;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:all 0.2s;border:1.5px solid ' + (doorStruct === 'center' ? '#667eea' : '#e2e8f0') + ';background:' + (doorStruct === 'center' ? 'linear-gradient(135deg,#667eea,#764ba2)' : '#fff') + ';color:' + (doorStruct === 'center' ? '#fff' : '#718096') + ';box-sizing:border-box;">中分门</div>';
-  html += '<div onclick="setAtt1DoorStructure(&#39;side&#39;)" style="padding:0 12px;height:36px;display:flex;align-items:center;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:all 0.2s;border:1.5px solid ' + (doorStruct === 'side' ? '#667eea' : '#e2e8f0') + ';background:' + (doorStruct === 'side' ? 'linear-gradient(135deg,#667eea,#764ba2)' : '#fff') + ';color:' + (doorStruct === 'side' ? '#fff' : '#718096') + ';box-sizing:border-box;">旁开门</div>';
+  html += '<div onclick="setAtt1DoorStructure(&#39;center&#39;)" style="padding:0 12px;height:30px;padding:0 8px;display:inline-flex;align-items:center;border-radius:5px;cursor:pointer;font-size:12px;font-weight:600;transition:all 0.15s;border:1.5px solid ' + (doorStruct === 'center' ? '#667eea' : '#e2e8f0') + ';background:' + (doorStruct === 'center' ? 'linear-gradient(135deg,#667eea,#764ba2)' : '#fff') + ';color:' + (doorStruct === 'center' ? '#fff' : '#718096') + ';box-sizing:border-box;">中分门</div>';
+  html += '<div onclick="setAtt1DoorStructure(&#39;side&#39;)" style="padding:0 12px;height:30px;padding:0 8px;display:inline-flex;align-items:center;border-radius:5px;cursor:pointer;font-size:12px;font-weight:600;transition:all 0.15s;border:1.5px solid ' + (doorStruct === 'side' ? '#667eea' : '#e2e8f0') + ';background:' + (doorStruct === 'side' ? 'linear-gradient(135deg,#667eea,#764ba2)' : '#fff') + ';color:' + (doorStruct === 'side' ? '#fff' : '#718096') + ';box-sizing:border-box;">旁开门</div>';
   html += '</div>';
   // 门类型下拉框（和按钮同高）
-  html += '<select id="att1DoorType" onchange="changeAtt1DoorType(this.value)" style="flex:1;height:36px;border:1px solid #ddd;border-radius:6px;padding:0 8px;font-size:13px;min-width:0;box-sizing:border-box;">';
+  html += '<select id="att1DoorType" onchange="changeAtt1DoorType(this.value)" style="flex:1;height:30px;border:1px solid #ddd;border-radius:5px;padding:0 8px;font-size:12px;min-width:0;box-sizing:border-box;">';
   html += '<option value="cargate"' + (currentAtt1Door === 'cargate' ? ' selected' : '') + '>轿门-前门</option>';
   html += '<option value="cargated"' + (currentAtt1Door === 'cargated' ? ' selected' : '') + '>轿门-后门</option>';
   html += '<option value="laygate"' + (currentAtt1Door === 'laygate' ? ' selected' : '') + '>层门</option>';
@@ -3931,7 +3969,7 @@ function renderAttach2(container) {
     html += '</div></div>';
   });
   
-  // ⑤轿顶空间 - 三个输入
+  // ⑤轿顶空间 - 三个输入 + 检验结果
   var s5L = parseFloat(att2.顶部空间.s5L) || 0;
   var s5W = parseFloat(att2.顶部空间.s5W) || 0;
   var s5H = parseFloat(att2.顶部空间.s5H) || 0;
@@ -3939,7 +3977,7 @@ function renderAttach2(container) {
   var s5Ok = s5HasData && (s5L >= 0.5 && s5W >= 0.6 && s5H >= 0.8);
   
   html += '<div style="margin-bottom:8px;padding:8px;background:#fafafa;border-radius:6px;">';
-  html += '<div style="font-size:12px;font-weight:600;color:#333;margin-bottom:4px;">⑤轿顶空间 (≥0.5m×0.6m×0.8m)</div>';
+  html += '<div style="font-size:12px;font-weight:600;color:#333;margin-bottom:6px;">⑤轿顶空间 (≥0.5m×0.6m×0.8m)</div>';
   html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px;">';
   html += '<div><div style="font-size:10px;color:#666;">长(m) ≥0.5</div>';
   html += '<input type="text" value="' + (att2.顶部空间.s5L||'') + '" placeholder="m" inputmode="decimal" onfocus="cancelAttachRender()" onblur="updateAtt2Top(\'s5L\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
@@ -3948,7 +3986,16 @@ function renderAttach2(container) {
   html += '<div><div style="font-size:10px;color:#666;">高(m) ≥0.8</div>';
   html += '<input type="text" value="' + (att2.顶部空间.s5H||'') + '" placeholder="m" inputmode="decimal" onfocus="cancelAttachRender()" onblur="updateAtt2Top(\'s5H\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
   html += '</div>';
-  html += '<div style="text-align:right;font-size:12px;font-weight:600;color:' + (s5HasData ? (s5Ok ? '#52c41a' : '#ff4d4f') : '#999') + ';">' + (s5HasData ? (s5Ok ? '✓合格' : '✕不合格') : '未判定') + '</div>';
+  // 检验结果行
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;align-items:center;">';
+  html += '<div><div style="font-size:10px;color:#666;">空间尺寸</div>';
+  var s5SizeStr = s5HasData ? (s5L.toFixed(2)+'×'+s5W.toFixed(2)+'×'+s5H.toFixed(2)) : '-';
+  html += '<div style="padding:5px;background:#fff;border:1px solid #e0e0e0;border-radius:4px;text-align:center;font-size:11px;font-weight:600;">' + s5SizeStr + '</div></div>';
+  html += '<div><div style="font-size:10px;color:#666;">检验结果</div>';
+  html += '<div style="padding:5px;background:#fff;border:1px solid #e0e0e0;border-radius:4px;text-align:center;font-size:12px;font-weight:600;color:' + (s5HasData ? (s5Ok ? '#52c41a' : '#ff4d4f') : '#999') + ';">' + (s5HasData ? (s5Ok ? '合格' : '不合格') : '-') + '</div></div>';
+  html += '<div><div style="font-size:10px;color:#666;">标准判定</div>';
+  html += '<div style="padding:5px;background:#fff;border-radius:4px;text-align:center;font-size:12px;font-weight:600;color:' + (s5HasData ? (s5Ok ? '#52c41a' : '#ff4d4f') : '#999') + ';">' + (s5HasData ? (s5Ok ? '✓达标' : '✕不达标') : '未判定') + '</div></div>';
+  html += '</div>';
   html += '</div>';
   html += '</div>';
   
@@ -4111,6 +4158,17 @@ function renderAttach2(container) {
   html += '<input type="text" value="' + (att2.底坑空间.p5W||'') + '" placeholder="m" inputmode="decimal" onfocus="cancelAttachRender()" onblur="updateAtt2Pit(\'p5W\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
   html += '<div><div style="font-size:10px;color:#666;">高(m) ≥1.0</div>';
   html += '<input type="text" value="' + (att2.底坑空间.p5H||'') + '" placeholder="m" inputmode="decimal" onfocus="cancelAttachRender()" onblur="updateAtt2Pit(\'p5H\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
+  html += '</div>';
+
+  // 检验结果行（与其他项风格一致）
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;align-items:center;margin-bottom:4px;">';
+  html += '<div><div style="font-size:10px;color:#666;">空间尺寸</div>';
+  var p5SizeStr = p5HasData ? (p5L.toFixed(2)+'×'+p5W.toFixed(2)+'×'+p5H.toFixed(2)) : '-';
+  html += '<div style="padding:5px;background:#fff;border:1px solid #e0e0e0;border-radius:4px;text-align:center;font-size:11px;font-weight:600;">' + p5SizeStr + '</div></div>';
+  html += '<div><div style="font-size:10px;color:#666;">检验结果</div>';
+  html += '<div style="padding:5px;background:#fff;border:1px solid #e0e0e0;border-radius:4px;text-align:center;font-size:12px;font-weight:600;color:' + (p5HasData ? (p5Ok ? '#52c41a' : '#ff4d4f') : '#999') + ';">' + (p5HasData ? (p5Ok ? '合格' : '不合格') : '-') + '</div></div>';
+  html += '<div><div style="font-size:10px;color:#666;">标准判定</div>';
+  html += '<div style="padding:5px;background:#fff;border-radius:4px;text-align:center;font-size:12px;font-weight:600;color:' + (p5HasData ? (p5Ok ? '#52c41a' : '#ff4d4f') : '#999') + ';">' + (p5HasData ? (p5Ok ? '✓达标' : '✕不达标') : '未判定') + '</div></div>';
   html += '</div>';
   html += '<div style="text-align:right;font-size:12px;font-weight:600;color:' + (p5HasData ? (p5Ok ? '#52c41a' : '#ff4d4f') : '#999') + ';">' + (p5HasData ? (p5Ok ? '✓合格' : '✕不合格') : '未判定') + '</div>';
   html += '</div>';
@@ -4493,9 +4551,14 @@ function renderAttach4(container) {
   if (!att4.rows) att4.rows = [{car:'',weight:''}];
   if (!att4.refCar) att4.refCar = '';
   if (!att4.refWeight) att4.refWeight = '';
+  // 默认基准值（轿厢导轨1500mm，对重导轨1000mm，用户未填时使用）
+  var defaultRefCar = 1500;
+  var defaultRefWeight = 1000;
+  var _refCar = att4.refCar ? parseFloat(att4.refCar) : defaultRefCar;
+  var _refWeight = att4.refWeight ? parseFloat(att4.refWeight) : defaultRefWeight;
   
-  var carResult = calcFaceDistMaxDev(att4.rows, att4.refCar, 'car');
-  var weightResult = calcFaceDistMaxDev(att4.rows, att4.refWeight, 'weight');
+  var carResult = calcFaceDistMaxDev(att4.rows, _refCar, 'car');
+  var weightResult = calcFaceDistMaxDev(att4.rows, _refWeight, 'weight');
   
   var carStd = 2;
   var weightStd = 3;
@@ -4509,8 +4572,8 @@ function renderAttach4(container) {
   html += '<div style="margin-bottom:12px;padding:10px;background:#eef2ff;border-radius:8px;">';
   html += '<div style="font-size:12px;font-weight:600;color:#4a5568;margin-bottom:8px;">📐 基准值（从配置单或图纸上获取）</div>';
   html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">';
-  html += '<div><div style="font-size:11px;color:#667eea;margin-bottom:4px;">轿厢导轨基准值 (mm)</div><input type="text" value="' + (att4.refCar||'') + '" placeholder="如: 1050" inputmode="decimal" onfocus="cancelAttachRender()" onblur="updateAtt4Ref(\'refCar\',this.value)" style="width:100%;border:1.5px solid #667eea;border-radius:6px;padding:8px;font-size:14px;text-align:center;"></div>';
-  html += '<div><div style="font-size:11px;color:#764ba2;margin-bottom:4px;">对重导轨基准值 (mm)</div><input type="text" value="' + (att4.refWeight||'') + '" placeholder="如: 980" inputmode="decimal" onfocus="cancelAttachRender()" onblur="updateAtt4Ref(\'refWeight\',this.value)" style="width:100%;border:1.5px solid #764ba2;border-radius:6px;padding:8px;font-size:14px;text-align:center;"></div>';
+  html += '<div><div style="font-size:11px;color:#667eea;margin-bottom:4px;">轿厢导轨基准值 (mm)</div><input type="text" value="' + (att4.refCar||'') + '" placeholder="默认1500mm" inputmode="decimal" onfocus="cancelAttachRender()" onblur="updateAtt4Ref(\'refCar\',this.value)" style="width:100%;border:1.5px solid #667eea;border-radius:6px;padding:8px;font-size:14px;text-align:center;"></div>';
+  html += '<div><div style="font-size:11px;color:#764ba2;margin-bottom:4px;">对重导轨基准值 (mm)</div><input type="text" value="' + (att4.refWeight||'') + '" placeholder="默认1000mm" inputmode="decimal" onfocus="cancelAttachRender()" onblur="updateAtt4Ref(\'refWeight\',this.value)" style="width:100%;border:1.5px solid #764ba2;border-radius:6px;padding:8px;font-size:14px;text-align:center;"></div>';
   html += '</div></div>';
   
   // 表头
@@ -4575,8 +4638,8 @@ function renderAttach4Judge(carResult, weightResult, carStd, weightStd) {
   var task = getCurrentTask(); if (!task) return '';
   var att4 = task.attachments.attach4 || {};
   
-  if (!carResult) carResult = calcFaceDistMaxDev(att4.rows || [], att4.refCar || '', 'car');
-  if (!weightResult) weightResult = calcFaceDistMaxDev(att4.rows || [], att4.refWeight || '', 'weight');
+  if (!carResult) carResult = calcFaceDistMaxDev(att4.rows || [], att4.refCar || defaultRefCar, 'car');
+  if (!weightResult) weightResult = calcFaceDistMaxDev(att4.rows || [], att4.refWeight || defaultRefWeight, 'weight');
   if (!carStd) carStd = 2;
   if (!weightStd) weightStd = 3;
   
@@ -5626,7 +5689,7 @@ function toggleSubGroup(zoneIdx, groupIdx) {
       var groupEl = document.getElementById('subGroup_' + zoneIdx + '_' + groupIdx);
       if (groupEl) {
         var rect = groupEl.getBoundingClientRect();
-        var headerOffset = 100; // 顶部导航栏高度
+        var headerOffset = 160; // 顶部导航栏+tab栏+进度条高度
         var scrollTop = window.pageYOffset || document.documentElement.scrollTop;
         var targetTop = scrollTop + rect.top - headerOffset;
         window.scrollTo({top: targetTop, behavior: 'smooth'});

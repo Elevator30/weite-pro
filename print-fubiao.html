@@ -754,14 +754,17 @@ function fillFb1(att1) {
     fillFb1Row('cargate2', '轿门2', Array(15).fill('/'));
   }
   
-  // 填充层门，最多16行（表格共18个数据行-2个轿门=16个层门）
-  var maxLaygate = Math.min(laygate.length, 16);
-  for (var i = 0; i < maxLaygate; i++) {
-    var lg = laygate[i];
-    var dataArr = lg.data || [];
-    var hasData = dataArr.some(function(v){ return v && v.trim(); });
-    var floorName = hasData ? (lg.name || ((i+1) + '层')) : '';
-    fillFb1Row('laygate' + (i+1), floorName, dataArr);
+  // 填充层门，共16行（无数据的楼层清空楼层号和数据）
+  for (var i = 0; i < 16; i++) {
+    if (i < laygate.length) {
+      var lg = laygate[i];
+      var dataArr = lg.data || [];
+      var hasData = dataArr.some(function(v){ return v && v.trim(); });
+      var floorName = hasData ? (lg.name || ((i+1) + '层')) : '';
+      fillFb1Row('laygate' + (i+1), floorName, dataArr);
+    } else {
+      fillFb1Row('laygate' + (i+1), '', []);
+    }
   }
 }
 
@@ -772,14 +775,20 @@ function fillFb1Row(rowKey, name, data) {
   var cells = row.querySelectorAll('td');
   if (cells.length < 12) return;
   
-  // 判断第一个td是不是空的（垂直文本列），位置名称应该在哪
-  var nameIdx = 0;
-  if (cells.length >= 13 && !cells[0].textContent.trim()) {
-    nameIdx = 1;
+  // 位置列索引确定：
+  // 13个td：第1个对应第1列（被vertical-text rowspan覆盖），第2个才是位置列
+  // 12个td：第1个就是位置列
+  var nameIdx = (cells.length >= 13) ? 1 : 0;
+  
+  // 清空第1列（被rowspan覆盖的列），防止内容错位
+  if (cells.length >= 13) {
+    cells[0].textContent = '';
   }
+  
+  // 设置位置名称
   cells[nameIdx].textContent = name;
   
-  // 共11个数据列
+  // 共11个数据列，从位置列后面开始
   var dataStartIdx = nameIdx + 1;
   for (var j = 0; j < 11; j++) {
     var dataIdx = FB1_COL_MAP[j];
