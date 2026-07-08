@@ -1297,13 +1297,17 @@ function getCurrentTask() {
 }
 
 function saveProjects() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
+  } catch(e) {
+    console.error('保存数据失败', e);
+  }
 }
 
 function loadProjects() {
-  var stored = localStorage.getItem(STORAGE_KEY);
-  if (stored) {
-    try {
+  try {
+    var stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
       var data = JSON.parse(stored);
       // 判断是旧格式(数组)还是新格式
       if (Array.isArray(data)) {
@@ -1312,10 +1316,10 @@ function loadProjects() {
         return;
       }
       projects = data;
-    } catch(e) {
-      console.error('加载数据失败', e);
-      projects = [];
     }
+  } catch(e) {
+    console.error('加载数据失败', e);
+    projects = [];
   }
 }
 
@@ -1345,8 +1349,17 @@ function migrateOldTasks(oldTasks) {
 
 // ============ INIT ============
 function init() {
-  loadProjects();
-  renderProjectList();
+  try {
+    loadProjects();
+  } catch(e) {
+    console.error('初始化加载失败', e);
+    projects = [];
+  }
+  try {
+    renderProjectList();
+  } catch(e) {
+    console.error('渲染项目列表失败', e);
+  }
 }
 
 function goPage(pageName) {
