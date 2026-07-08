@@ -6206,7 +6206,7 @@ function buildCheckItemsHTML(task, project, dateStr, pageNum) {
   var strokeW = 0.5;     // 统一框线粗细
   var colGap = 0;        // 栏间距（0=紧贴）
   var splitRatio = 0.55; // 技术资料分类内容列分割比例
-  var totalW = 750;      // SVG总宽度（A4打印安全宽度，左右边距对称）
+  var totalW = 750;      // SVG总宽度（左对齐，利用左侧多余空白避免右边被切）
 
   // 页面配置（两页三栏）
   var pageConfig;
@@ -6463,7 +6463,7 @@ function buildCheckItemsHTML(task, project, dateStr, pageNum) {
           svg += '<text x="' + contX + '" y="' + (textStartY + li * lineHeight) + '" font-size="' + fontSize + '" text-anchor="start" dominant-baseline="middle" fill="#000">' + escHtml(lines[li]) + '</text>';
         }
 
-        // 技术资料右边列：显示设备编号（优先读checks.v，为空则从配置表自动取）
+        // 技术资料编号：右对齐，利用整列宽度，长编号往左延伸不溢出结论列
         if (info.splitContent) {
           var checkData = task.checks && task.checks[id];
           var plateNo = (checkData && checkData.v) ? escHtml(checkData.v) : '';
@@ -6478,8 +6478,9 @@ function buildCheckItemsHTML(task, project, dateStr, pageNum) {
             }
           }
           if (plateNo) {
-            var rightColCenterX = splitX + (contentRight - splitX) / 2;
-            svg += '<text x="' + rightColCenterX + '" y="' + itemMidY + '" font-size="' + fontSize + '" text-anchor="middle" dominant-baseline="middle" fill="#000">' + plateNo + '</text>';
+            // 编号右对齐，右边留2px边距，长了往左延伸（项目名侧有充足空间）
+            var plateRightX = contentRight - 2;
+            svg += '<text x="' + plateRightX + '" y="' + itemMidY + '" font-size="' + fontSize + '" text-anchor="end" dominant-baseline="middle" fill="#000">' + plateNo + '</text>';
           }
         }
 
