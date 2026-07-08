@@ -138,22 +138,35 @@ th { font-weight: bold; background: #fff; }
 .fb5-table .col-k { width: 6.7%; }
 .fb5-table .col-l { width: 6.7%; }
 
+/* 附表5容器 - flex布局让曲线图占满剩余空间 */
+.fb5-wrapper {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
 /* 平衡系数曲线图容器 */
 .balance-chart-container {
   width: 100%;
+  flex: 1;
   margin-top: 6px;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 0;
 }
 .balance-chart-container svg {
   width: 100%;
-  height: auto;
-  max-height: 130mm;
+  flex: 1;
+  min-height: 0;
 }
 .balance-result-text {
   font-size: 10px;
   font-weight: bold;
   margin-top: 4px;
   text-align: center;
+  flex-shrink: 0;
 }
 
 /* ========== 附表6 样式 ========== */
@@ -596,7 +609,7 @@ th { font-weight: bold; background: #fff; }
     </div>
     <div class="col-right">
       <!-- 附表5 -->
-      <div style="height:100%;">
+      <div class="fb5-wrapper">
         <div class="fb-title">附表5 电梯平衡系数检验记录</div>
         <table class="fb5-table">
           <colgroup>
@@ -653,8 +666,7 @@ th { font-weight: bold; background: #fff; }
   </div>
 </div>
 
-
-
+<script>
 // ============ 数据读取 ============
 var STORAGE_KEY = 'WEITE_CHECK_V4';
 
@@ -1135,7 +1147,16 @@ function drawBalanceChartSVG(att5) {
   svgContent += '<line x1="' + legendX + '" y1="' + (legendY + 16) + '" x2="' + (legendX + 20) + '" y2="' + (legendY + 16) + '" stroke="#3498db" stroke-width="1.5"/>';
   svgContent += '<text x="' + (legendX + 24) + '" y="' + (legendY + 19) + '" font-size="9" fill="#333">下行电流</text>';
   
-  svg.innerHTML = svgContent;
+  // 使用DOMParser确保SVG元素正确渲染（带命名空间）
+  var parser = new DOMParser();
+  var svgDoc = parser.parseFromString(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" preserveAspectRatio="xMidYMid meet" id="balanceChart">' +
+    svgContent +
+    '</svg>',
+    'image/svg+xml'
+  );
+  var newSvg = svgDoc.documentElement;
+  svg.parentNode.replaceChild(newSvg, svg);
 }
 
 // ============ 附表6 填充 ============
