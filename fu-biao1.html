@@ -10,28 +10,27 @@ body { font-family: "SimSun", "宋体", serif; font-size: 11px; line-height: 1.3
 .page { width: 297mm; min-height: 210mm; padding: 12mm 10mm; margin: 0 auto; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
 h1 { text-align: center; font-size: 15px; font-weight: bold; margin-bottom: 8px; }
 table { width: 100%; border-collapse: collapse; font-size: 10px; table-layout: fixed; }
-th, td { border: 1px solid #333; padding: 3px 4px; text-align: center; vertical-align: middle; word-break: break-all; font-weight: normal; }
-th { font-weight: bold; }
+th, td { border: 1px solid #333; padding: 3px 4px; text-align: center; vertical-align: middle; word-break: break-all; }
+th { font-weight: bold; background: #fff; }
 .align-left { text-align: left; }
-.vertical-text { writing-mode: vertical-rl; text-orientation: upright; letter-spacing: 2px; }
+.vertical-text { writing-mode: vertical-rl; text-orientation: upright; letter-spacing: 2px; font-weight: bold; }
 
-/* 13列宽 */
-.col1 { width: 7%; }   /* 检验项目/判断标准/检验位置 */
-.col2 { width: 5%; }   /* 位置 */
-.col3 { width: 5.5%; } /* 门地坎-左 */
-.col4 { width: 5.5%; } /* 门地坎-右 */
-.col5 { width: 7%; }   /* 门扇间间隙 */
-.col6 { width: 7%; }   /* 立柱门楣-左 */
-.col7 { width: 7%; }   /* 立柱门楣-右 */
-.col8 { width: 7%; }   /* 地坎间隙-左 */
-.col9 { width: 7%; }   /* 地坎间隙-右 */
-.col10 { width: 8%; }  /* 施力间隙 */
-.col11 { width: 7%; }  /* 门锁啮合 */
-.col12 { width: 8%; }  /* 门刀间隙 */
-.col13 { width: 8%; }  /* 滚轮间隙 */
+.col1 { width: 6%; }
+.col2 { width: 5.5%; }
+.col3 { width: 5.5%; }
+.col4 { width: 5.5%; }
+.col5 { width: 7%; }
+.col6 { width: 7%; }
+.col7 { width: 7%; }
+.col8 { width: 7%; }
+.col9 { width: 7%; }
+.col10 { width: 8%; }
+.col11 { width: 7%; }
+.col12 { width: 8%; }
+.col13 { width: 8%; }
 
 .data-row td { height: 22px; }
-.sub-header th { font-weight: normal; font-size: 10px; }
+.sub-header td { font-weight: normal; font-size: 10px; }
 
 @media print {
   body { background: #fff; padding: 0; }
@@ -52,76 +51,73 @@ th { font-weight: bold; }
       <col class="col5"><col class="col6"><col class="col7"><col class="col8"><col class="col9">
       <col class="col10"><col class="col11"><col class="col12"><col class="col13">
     </colgroup>
-    <thead>
-      <!-- 第1行：大分类 -->
-      <tr>
-        <th colspan="2" rowspan="3">检验项目编号与内容</th>
-        <th colspan="2">A1.2.7.1</th>
-        <th colspan="6">A1.2.7.2门间隙</th>
-        <th rowspan="3">A1.2.7.8(2)<br>门锁啮合长度</th>
-        <th colspan="2">A1.2.7.10</th>
-      </tr>
-      <!-- 第2行：中分类 -->
-      <tr>
-        <th colspan="2" rowspan="2">门地坎距离</th>
-        <th colspan="5">A1.2.7.2(1)</th>
-        <th rowspan="2">A1.2.7.2(2)<br>门扇间施力间隙</th>
-        <th rowspan="2">轿门门刀与层门地坎间隙</th>
-        <th rowspan="2">层门门锁滚轮与轿厢地坎间隙</th>
-      </tr>
-      <!-- 第3行：小分类 -->
-      <tr>
-        <th>门扇间间隙</th>
-        <th colspan="2">门扇与立柱、门楣间隙</th>
-        <th colspan="2">门扇与地坎间隙</th>
-      </tr>
-      <!-- 第4行：判断标准上 -->
-      <tr>
-        <th colspan="2" rowspan="2">判断标准</th>
-        <th colspan="2" rowspan="2">≤35<br>左右偏差小于1/1000</th>
-        <th colspan="5" rowspan="2">乘客电梯：3-6<br>载货电梯：3-10<br>左右偏差不超过1mm</th>
-        <th>旁开门:≤30</th>
-        <th rowspan="2">≥7</th>
-        <th colspan="2" rowspan="2">≥5</th>
-      </tr>
-      <!-- 第5行：判断标准下 -->
-      <tr>
-        <th>中分门:≤45</th>
-      </tr>
-      <!-- 第6行：子表头 -->
-      <tr class="sub-header">
-        <th rowspan="18" class="vertical-text">检验位置及测量数据</th>
-        <th>位置</th>
-        <th>左</th><th>右</th>
-        <th></th>
-        <th>左</th><th>右</th>
-        <th>左</th><th>右</th>
-        <th></th>
-        <th></th>
-        <th></th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr class="data-row"><td>轿门1</td><td>/</td><td>/</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>/</td><td>/</td></tr>
-      <tr class="data-row"><td>轿门2</td><td>/</td><td>/</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>/</td><td>/</td></tr>
-      <tr class="data-row"><td>1层</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-      <tr class="data-row"><td>2层</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-      <tr class="data-row"><td>3层</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-      <tr class="data-row"><td>4层</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-      <tr class="data-row"><td>5层</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-      <tr class="data-row"><td>6层</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-      <tr class="data-row"><td>7层</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-      <tr class="data-row"><td>8层</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-      <tr class="data-row"><td>9层</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-      <tr class="data-row"><td>10层</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-      <tr class="data-row"><td>11层</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-      <tr class="data-row"><td>12层</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-      <tr class="data-row"><td>13层</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-      <tr class="data-row"><td>14层</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-      <tr class="data-row"><td>15层</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-      <tr class="data-row"><td>16层</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-    </tbody>
+    <!-- 第1行：大分类 -->
+    <tr>
+      <th colspan="2" rowspan="3">检验项目编号与内容</th>
+      <th colspan="2">A1.2.7.1</th>
+      <th colspan="6">A1.2.7.2门间隙</th>
+      <th rowspan="3">A1.2.7.8(2)<br>门锁啮合长度</th>
+      <th colspan="2">A1.2.7.10</th>
+    </tr>
+    <!-- 第2行：中分类 -->
+    <tr>
+      <th colspan="2" rowspan="2">门地坎距离</th>
+      <th colspan="5">A1.2.7.2(1)</th>
+      <th rowspan="2">A1.2.7.2(2)<br>门扇间施力间隙</th>
+      <th rowspan="2">轿门门刀与层门地坎间隙</th>
+      <th rowspan="2">层门门锁滚轮与轿厢地坎间隙</th>
+    </tr>
+    <!-- 第3行：小分类 -->
+    <tr>
+      <th>门扇间间隙</th>
+      <th colspan="2">门扇与立柱、门楣间隙</th>
+      <th colspan="2">门扇与地坎间隙</th>
+    </tr>
+    <!-- 第4行：判断标准上 -->
+    <tr>
+      <th colspan="2" rowspan="2">判断标准</th>
+      <th colspan="2" rowspan="2">≤35<br>左右偏差小于1/1000</th>
+      <th colspan="5" rowspan="2">乘客电梯：3-6<br>载货电梯：3-10<br>左右偏差不超过1mm</th>
+      <th>旁开门:≤30</th>
+      <th rowspan="2">≥7</th>
+      <th colspan="2" rowspan="2">≥5</th>
+    </tr>
+    <!-- 第5行：判断标准下 -->
+    <tr>
+      <th>中分门:≤45</th>
+    </tr>
+    <!-- 第6行：子表头 -->
+    <tr class="sub-header">
+      <th rowspan="18" class="vertical-text">检验位置及测量数据</th>
+      <th>位置</th>
+      <th>左</th><th>右</th>
+      <th></th>
+      <th>左</th><th>右</th>
+      <th>左</th><th>右</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+    <!-- 数据行 18行 -->
+    <tr class="data-row"><td>轿门1</td><td>/</td><td>/</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>/</td><td>/</td></tr>
+    <tr class="data-row"><td>轿门2</td><td>/</td><td>/</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>/</td><td>/</td></tr>
+    <tr class="data-row"><td>1层</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+    <tr class="data-row"><td>2层</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+    <tr class="data-row"><td>3层</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+    <tr class="data-row"><td>4层</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+    <tr class="data-row"><td>5层</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+    <tr class="data-row"><td>6层</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+    <tr class="data-row"><td>7层</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+    <tr class="data-row"><td>8层</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+    <tr class="data-row"><td>9层</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+    <tr class="data-row"><td>10层</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+    <tr class="data-row"><td>11层</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+    <tr class="data-row"><td>12层</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+    <tr class="data-row"><td>13层</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+    <tr class="data-row"><td>14层</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+    <tr class="data-row"><td>15层</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+    <tr class="data-row"><td>16层</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
   </table>
 </div>
 
