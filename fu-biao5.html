@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>附表5 电梯平衡系数检验记录</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: "SimSun", "宋体", serif; font-size: 9px; line-height: 1.3; color: #000; background: #f5f5f5; padding: 10px; }
+.page { width: 210mm; min-height: 297mm; padding: 10mm 8mm; margin: 0 auto; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+h1 { text-align: left; font-size: 12px; font-weight: bold; margin-bottom: 6px; width: 110mm; margin-left: auto; margin-right: auto; }
+table { width: 110mm; border-collapse: collapse; font-size: 8px; table-layout: fixed; margin: 0 auto; }
+th, td { border: 1px solid #333; padding: 2px 2px; text-align: center; vertical-align: middle; word-break: break-all; }
+th { font-weight: bold; background: #fff; }
+
+/* 12列: A B C D E F G H I J K L */
+.col-a { width: 10mm; }
+.col-b { width: 12mm; }
+.col-c { width: 8.8mm; }
+.col-d { width: 8.8mm; }
+.col-e { width: 8.8mm; }
+.col-f { width: 8.8mm; }
+.col-g { width: 8.8mm; }
+.col-h { width: 8.8mm; }
+.col-i { width: 8.8mm; }
+.col-j { width: 8.8mm; }
+.col-k { width: 8.8mm; }
+.col-l { width: 8.8mm; }
+
+.data-row td { height: 22px; }
+.big-blank td { height: 180px; }
+
+@media print {
+  body { background: #fff; padding: 0; }
+  .page { box-shadow: none; margin: 0; width: 100%; min-height: auto; padding: 8mm; }
+  @page { size: A4 portrait; margin: 0; }
+}
+</style>
+</head>
+<body>
+
+<div class="page">
+  <h1>附表5 电梯平衡系数检验记录</h1>
+  
+  <table>
+    <colgroup>
+      <col class="col-a"><col class="col-b"><col class="col-c"><col class="col-d">
+      <col class="col-e"><col class="col-f"><col class="col-g"><col class="col-h">
+      <col class="col-i"><col class="col-j"><col class="col-k"><col class="col-l">
+    </colgroup>
+
+    <!-- 行2-3：载重量表头 -->
+    <tr>
+      <th rowspan="2">载重量</th>
+      <th>重量（Kg）</th>
+      <th colspan="2"></th>
+      <th colspan="2"></th>
+      <th colspan="2"></th>
+      <th colspan="2"></th>
+      <th colspan="2"></th>
+    </tr>
+    <tr>
+      <th>额载百分比（﹪）</th>
+      <th colspan="2">0.3</th>
+      <th colspan="2">0.4</th>
+      <th colspan="2">0.45</th>
+      <th colspan="2">0.5</th>
+      <th colspan="2">0.6</th>
+    </tr>
+    <!-- 行4：运行方向 -->
+    <tr>
+      <th colspan="2">运 行 方 向</th>
+      <th>上行</th>
+      <th>下行</th>
+      <th>上行</th>
+      <th>下行</th>
+      <th>上行</th>
+      <th>下行</th>
+      <th>上行</th>
+      <th>下行</th>
+      <th>上行</th>
+      <th>下行</th>
+    </tr>
+    <!-- 行5：电流 -->
+    <tr class="data-row">
+      <th colspan="2">电 流（A）</th>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+    </tr>
+    <!-- 行6：测试结果 -->
+    <tr class="data-row">
+      <th colspan="2">测试结果</th>
+      <td colspan="10">平衡系数：</td>
+    </tr>
+    <!-- 行7起：大空白区 -->
+    <tr class="big-blank">
+      <td colspan="12"></td>
+    </tr>
+  </table>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>附表6 钢丝绳张力测试记录</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: "SimSun", "宋体", serif; font-size: 9px; line-height: 1.3; color: #000; background: #f5f5f5; padding: 10px; }
+.page { width: 210mm; min-height: 297mm; padding: 10mm 8mm; margin: 0 auto; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+h1 { text-align: left; font-size: 12px; font-weight: bold; margin-bottom: 6px; width: 108mm; margin-left: auto; margin-right: auto; }
+table { width: 108mm; border-collapse: collapse; font-size: 8px; table-layout: fixed; margin: 0 auto; }
+th, td { border: 1px solid #333; padding: 2px 2px; text-align: center; vertical-align: middle; word-break: break-all; }
+th { font-weight: bold; background: #fff; }
+
+/* 9列: A B C D E F G H I */
+.col-a { width: 14mm; }
+.col-b { width: 11.75mm; }
+.col-c { width: 11.75mm; }
+.col-d { width: 11.75mm; }
+.col-e { width: 11.75mm; }
+.col-f { width: 11.75mm; }
+.col-g { width: 11.75mm; }
+.col-h { width: 11.75mm; }
+.col-i { width: 11.75mm; }
+
+.data-row td { height: 22px; }
+.result-row td { height: 26px; text-align: left; padding-left: 6px; }
+
+@media print {
+  body { background: #fff; padding: 0; }
+  .page { box-shadow: none; margin: 0; width: 100%; min-height: auto; padding: 8mm; }
+  @page { size: A4 portrait; margin: 0; }
+}
+</style>
+</head>
+<body>
+
+<div class="page">
+  <h1>附表6 钢丝绳张力测试记录</h1>
+  
+  <table>
+    <colgroup>
+      <col class="col-a"><col class="col-b"><col class="col-c"><col class="col-d">
+      <col class="col-e"><col class="col-f"><col class="col-g"><col class="col-h">
+      <col class="col-i">
+    </colgroup>
+
+    <!-- 行2：钢丝绳序号 -->
+    <tr>
+      <th>钢丝绳序号</th>
+      <th>F1</th>
+      <th>F2</th>
+      <th>F3</th>
+      <th>F4</th>
+      <th>F5</th>
+      <th>F6</th>
+      <th>F7</th>
+      <th>F8</th>
+    </tr>
+    <!-- 行3：张力值 -->
+    <tr class="data-row">
+      <th>张力值</th>
+      <td>N</td>
+      <td>N</td>
+      <td>N</td>
+      <td>N</td>
+      <td>N</td>
+      <td>N</td>
+      <td>N</td>
+      <td>N</td>
+    </tr>
+    <!-- 行4：张力平均值 -->
+    <tr class="result-row">
+      <th>张力平均值</th>
+      <td colspan="8">（最大值－最小值）/张力平均值</td>
+    </tr>
+    <!-- 行5：张力偏差计算 -->
+    <tr class="result-row">
+      <th>张力偏差计算</th>
+      <td colspan="8">张力值偏差：&nbsp;&nbsp;&nbsp;&nbsp;/&nbsp;&nbsp;&nbsp;&nbsp;</td>
+    </tr>
+    <!-- 行6：张力判定 -->
+    <tr class="result-row">
+      <th>张力判定</th>
+      <td colspan="8">张力偏差计算值：</td>
+    </tr>
+  </table>
+</div>
+
+</body>
+</html>
