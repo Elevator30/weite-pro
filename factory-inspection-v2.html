@@ -6336,7 +6336,7 @@ function buildCheckItemsHTML(task, project, dateStr, pageNum) {
     var chars = text.split('');
     var lines = [];
     var current = '';
-    var charW = fs * 1.0; // 每个字符大概宽度（中文约1倍字号）
+    var charW = fs * 1.05; // 每个字符大概宽度（中文约1倍字号）
     for (var i = 0; i < chars.length; i++) {
       var ch = chars[i];
       var testLine = current + ch;
