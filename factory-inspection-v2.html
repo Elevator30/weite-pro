@@ -11,7 +11,9 @@
 <title>威特电梯厂检调试记录单V2 v54</title>
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%231a3a6b'/%3E%3Ctext x='50' y='42' font-family='Arial' font-size='28' font-weight='900' text-anchor='middle' fill='white'%3EVEITE%3C/text%3E%3Ctext x='50' y='72' font-family='serif' font-size='16' font-weight='800' text-anchor='middle' fill='%23e63946'%3E电梯%3C/text%3E%3C/svg%3E">
-
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script>if(window.jspdf && window.jspdf.jsPDF){var jsPDF=window.jspdf.jsPDF;}else{console.error("jsPDF CDN加载失败");}</script>
 <script async src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
@@ -5566,16 +5568,14 @@ function exportNoticePDF() {
   var dateForFilename = checkDateStr.replace(/[年月日/\-]/g, '');
   var filename = dateForFilename + '_' + projName + '_整改通知.pdf';
 
-  // 确保PDF库已加载
+  // 确保PDF库已加载（CDN优先，失败则加载本地文件）
   if (typeof html2canvas === 'undefined' || typeof jsPDF === 'undefined') {
     showToast('正在加载PDF库，请稍候...');
     loadPdfLibs(function(){
-      // 加载完成后重试
       if (typeof html2canvas === 'undefined' || typeof jsPDF === 'undefined') {
-        showToast('PDF库加载失败，请检查网络后重试');
+        showToast('PDF库加载失败，请检查网络');
         return;
       }
-      // 重新调用导出函数
       exportCheckToPdf();
     });
     return;
@@ -5793,7 +5793,7 @@ function exportCheckPDF() {
     showToast('正在加载PDF库，请稍候...');
     loadPdfLibs(function(){
       if (typeof html2canvas === 'undefined' || typeof jsPDF === 'undefined') {
-        showToast('PDF库加载失败，请检查网络后重试');
+        showToast('PDF库加载失败，请检查网络');
         return;
       }
       exportCheckToExcelWithPdf();
@@ -7911,36 +7911,52 @@ function renderNoticeList() {
 
 // 页面初始化
 
-// 动态加载PDF相关库，不阻塞首页渲染
+// PDF库动态加载（CDN加载失败时用本地文件兜底）
+var _pdfLibsLoading = false;
 var _pdfLibsReady = false;
-function loadPdfLibs(callback){
-  if(_pdfLibsReady){ callback && callback(); return; }
-  var loaded = 0;
-  var total = 2;
-  function check(){
-    loaded++;
-    if(loaded >= total){
-      _pdfLibsReady = true;
-      if(window.jspdf && window.jspdf.jsPDF){ window.jsPDF = window.jspdf.jsPDF; }
-      callback && callback();
+var _pdfLibsCallbacks = [];
+function loadPdfLibs(callback) {
+  if (_pdfLibsReady) { callback && callback(); return; }
+  if (callback) _pdfLibsCallbacks.push(callback);
+  if (_pdfLibsLoading) return;
+  _pdfLibsLoading = true;
+  
+  function checkDone() {
+    _pdfLibsReady = true;
+    _pdfLibsLoading = false;
+    if(window.jspdf && window.jspdf.jsPDF){ window.jsPDF = window.jspdf.jsPDF; }
+    for (var i = 0; i < _pdfLibsCallbacks.length; i++) {
+      try { _pdfLibsCallbacks[i](); } catch(e) {}
     }
+    _pdfLibsCallbacks = [];
   }
-  var s1 = document.createElement('script');
-  s1.src = 'jspdf.min.js';
-  s1.onload = check;
-  s1.onerror = function(){ console.error('jsPDF加载失败'); check(); };
-  document.head.appendChild(s1);
-  var s2 = document.createElement('script');
-  s2.src = 'html2canvas.min.js';
-  s2.onload = check;
-  s2.onerror = function(){ console.error('html2canvas加载失败'); check(); };
-  document.head.appendChild(s2);
-}
-// 页面加载完成后后台预加载PDF库
-if(document.readyState === 'loading'){
-  document.addEventListener('DOMContentLoaded', function(){ setTimeout(loadPdfLibs, 100); });
-} else {
-  setTimeout(loadPdfLibs, 100);
+  
+  var loaded = 0;
+  var needHc = (typeof html2canvas === 'undefined');
+  var needJspdf = (typeof jsPDF === 'undefined' && !(window.jspdf && window.jspdf.jsPDF));
+  var total = (needHc ? 1 : 0) + (needJspdf ? 1 : 0);
+  
+  if (total === 0) { checkDone(); return; }
+  
+  function onOne() {
+    loaded++;
+    if (loaded >= total) checkDone();
+  }
+  
+  if (needHc) {
+    var s1 = document.createElement('script');
+    s1.src = 'html2canvas.min.js';
+    s1.onload = onOne;
+    s1.onerror = function(){ console.error('html2canvas本地加载失败'); onOne(); };
+    document.head.appendChild(s1);
+  }
+  if (needJspdf) {
+    var s2 = document.createElement('script');
+    s2.src = 'jspdf.min.js';
+    s2.onload = onOne;
+    s2.onerror = function(){ console.error('jsPDF本地加载失败'); onOne(); };
+    document.head.appendChild(s2);
+  }
 }
 
 init();
@@ -8005,7 +8021,6 @@ init();
     </div>
   </div>
 </div>
-
 
 </body>
 </html>
