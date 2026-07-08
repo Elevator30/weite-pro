@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>副表统一打印 - 威特电梯厂检调试记录单</title>
+<title>威特电梯厂检调试记录单V2 v55 - 统一打印</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: "SimSun", "宋体", serif; font-size: 9px; line-height: 1.2; color: #000; background: #f5f5f5; padding: 10px; }
@@ -193,18 +193,181 @@ th { font-weight: bold; background: #fff; }
 .fb7-table .data-row td { height: 18px; }
 .fb7-table tr:not(.data-row) th, .fb7-table tr:not(.data-row) td { height: 20px; }
 
+/* ===== 竖版页面（通知单） ===== */
+.page-portrait {
+  width: 210mm;
+  min-height: 297mm;
+  padding: 15mm 18mm;
+  page: page-portrait;
+}
+
+/* ===== 横版页面（记录单、副表） ===== */
+.page-landscape {
+  width: 297mm;
+  min-height: 210mm;
+  padding: 10mm;
+  page: page-landscape;
+}
+
+/* ===== 通知单样式 ===== */
+.notice-container {
+  font-family: 'PingFang SC', 'Heiti SC', 'Microsoft YaHei', sans-serif;
+  font-size: 9px;
+  line-height: 1.3;
+}
+.notice-title-bar {
+  position: relative;
+  text-align: center;
+  margin-bottom: 2px;
+}
+.notice-title-bar .title {
+  font-size: 13px;
+  font-weight: bold;
+}
+.notice-file-no {
+  text-align: right;
+  font-size: 9px;
+  margin-bottom: 4px;
+}
+.notice-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 9px;
+}
+.notice-table td {
+  border: 1px solid #000;
+  padding: 1px 3px;
+  text-align: center;
+  height: 28px;
+  vertical-align: middle;
+}
+.notice-ng-cell {
+  padding: 2px 3px !important;
+  vertical-align: top !important;
+  text-align: left !important;
+  height: auto !important;
+  border-bottom: none !important;
+}
+.notice-footer-cell {
+  padding: 2px 3px !important;
+  height: 53px !important;
+  text-align: left !important;
+  vertical-align: top !important;
+}
+.notice-sig-cell {
+  position: relative;
+  text-align: center;
+  height: 32px !important;
+  padding: 4px 3px !important;
+}
+.notice-sig-cell img {
+  max-height: 28px;
+  max-width: 160px;
+  vertical-align: middle;
+}
+.notice-remark-cell {
+  padding: 2px 3px !important;
+  color: #666;
+  height: 50px !important;
+  text-align: left !important;
+  font-size: 8px;
+  line-height: 1.5;
+}
+
+/* ===== 记录单样式 ===== */
+.record-container {
+  font-family: 'PingFang SC', 'Heiti SC', 'Microsoft YaHei', sans-serif;
+  font-size: 9px;
+  position: relative;
+  height: 190mm;
+  display: flex;
+  flex-direction: column;
+}
+.record-header {
+  text-align: center;
+  margin-bottom: 6px;
+}
+.record-header .title {
+  font-size: 14px;
+  font-weight: bold;
+}
+.record-header .subtitle {
+  font-size: 11px;
+}
+.record-prod-no {
+  font-size: 9px;
+  float: right;
+}
+.record-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 8px;
+  table-layout: fixed;
+}
+.record-table th, .record-table td {
+  border: 1px solid #000;
+  padding: 1px 2px;
+  text-align: center;
+  vertical-align: middle;
+}
+.record-table th {
+  font-weight: bold;
+  background: #f0f0f0;
+}
+.record-table .cat-cell {
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  letter-spacing: 2px;
+  font-weight: bold;
+  padding: 2px 0;
+}
+.record-footer-note {
+  margin-top: 4px;
+  font-size: 7px;
+  color: #666;
+}
+.record-page-num {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 8px;
+}
+
 /* 打印样式 */
 @media print {
   body { background: #fff; padding: 0; }
-  .page { box-shadow: none; margin: 0; width: 100%; min-height: auto; padding: 0; }
-  @page { size: A4 landscape; margin: 10mm; }
+  .page { box-shadow: none; margin: 0; }
+  @page page-portrait { size: A4 portrait; margin: 0; }
+  @page page-landscape { size: A4 landscape; margin: 0; }
 }
 </style>
 </head>
 <body>
 
-<!-- 第1页 -->
-<div class="page" id="page1">
+<!-- 第1页：检查通知单（竖版A4） -->
+<div class="page page-portrait" id="notice-page-1">
+  <div class="notice-container" id="noticeContainer1"></div>
+</div>
+
+<!-- 第2页：检查通知单第二页（如内容溢出） -->
+<div class="page page-portrait" id="notice-page-2" style="display:none;">
+  <div class="notice-container" id="noticeContainer2"></div>
+</div>
+
+<!-- 第3页：检查记录单第一页（横版A4） -->
+<div class="page page-landscape" id="record-page-1">
+  <div class="record-container" id="recordContainer1"></div>
+</div>
+
+<!-- 第4页：检查记录单第二页（横版A4） -->
+<div class="page page-landscape" id="record-page-2">
+  <div class="record-container" id="recordContainer2"></div>
+</div>
+
+<!-- 第5页：副表第1页（横版A4） -->
+<div class="page page-landscape" id="page1">
   <div class="two-col">
     <div class="col-left">
       <!-- 附表1 -->
@@ -434,8 +597,8 @@ th { font-weight: bold; background: #fff; }
   </div>
 </div>
 
-<!-- 第2页 -->
-<div class="page" id="page2">
+<!-- 第6页：副表第2页（横版A4） -->
+<div class="page page-landscape" id="page2">
   <div class="two-col">
     <div class="col-left triple">
       <!-- 附表4 -->
@@ -695,13 +858,648 @@ function getCurrentTask() {
   return proj.tasks[taskIdx];
 }
 
+function getCurrentProject() {
+  var projects = getProjects();
+  if (projects.length === 0) return null;
+  var params = new URLSearchParams(window.location.search);
+  var projIdx = parseInt(params.get('proj'));
+  if (isNaN(projIdx) || projIdx < 0 || projIdx >= projects.length) projIdx = 0;
+  return projects[projIdx];
+}
+
+function getProjectInfo(task, proj) {
+  proj = proj || getCurrentProject() || {};
+  task = task || {};
+  return {
+    projName: proj.name || task.projectName || '',
+    installer: proj.installer || task.installerName || '',
+    manager: proj.projectManagerName || task.projectManagerName || '',
+    installAddr: proj.installAddr || task.installAddr || ''
+  };
+}
+
+// ============ 工具函数 ============
+function escHtml(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function formatDateDot(dateStr) {
+  if (!dateStr) return '';
+  var d = new Date(dateStr);
+  if (isNaN(d.getTime())) return dateStr;
+  return d.getFullYear() + '.' + (d.getMonth()+1) + '.' + d.getDate();
+}
+
+// ============ 检查项数据 ============
+var hiddenCheckIds = [113,114,115,116,117,209,210,211,138,76,143,89];
+
+var checkItems = [
+  {id:1,category:'技术资料',name:'整梯',std:'一致'},
+  {id:2,category:'技术资料',name:'控制柜',std:'一致'},
+  {id:3,category:'技术资料',name:'驱动主机',std:'一致'},
+  {id:4,category:'技术资料',name:'限速器',std:'一致'},
+  {id:5,category:'技术资料',name:'上行超速保护装置',std:'一致'},
+  {id:6,category:'技术资料',name:'轿厢意外移动保护装置',std:'一致'},
+  {id:7,category:'技术资料',name:'含有电子元件的安全电路',std:'一致'},
+  {id:8,category:'技术资料',name:'轿门锁',std:'一致'},
+  {id:9,category:'技术资料',name:'层门锁',std:'一致'},
+  {id:10,category:'技术资料',name:'层门',std:'一致'},
+  {id:11,category:'技术资料',name:'安全钳',std:'一致'},
+  {id:12,category:'技术资料',name:'缓冲器',std:'一致'},
+  {id:13,category:'机房空间',name:'通往机器空间的通道符合要求，梯子高度≤4m',std:'符合'},
+  {id:14,category:'机房空间',name:'通道门附近的通道有永久性电气照明',std:'符合'},
+  {id:15,category:'机房空间',name:'机房通道门的开启及锁住符合要求，且尺寸不小于0.6*1.8m',std:'符合'},
+  {id:16,category:'机房空间',name:'机房通道门设有符合要求的警示标志',std:'符合'},
+  {id:17,category:'机房空间',name:'机器空间应专用',std:'符合'},
+  {id:18,category:'机房空间',name:'活动区域的净高度不小于1.8米',std:'≥1.8m'},
+  {id:19,category:'机房空间',name:'机房楼梯/梯子符合要求，并设有护栏',std:'符合'},
+  {id:20,category:'机房空间',name:'控制柜前操作空间≥0.7*0.5*2.0m',std:'符合'},
+  {id:21,category:'机房空间',name:'运动部件维修空间≥0.5*0.6*2.0m',std:'符合'},
+  {id:22,category:'机房电气',name:'主开关的位置及功能',std:'有效'},
+  {id:23,category:'机房电气',name:'三相电源：□正式电、□临时电；电压：___V',std:'符合',isInput:true,hasPowerType:true},
+  {id:24,category:'机房电气',name:'接地保护导体与连接',std:'可靠'},
+  {id:25,category:'机房电气',name:'绝缘电阻：动力/照明电路≥0.5MΩ；安全电路≥0.25MΩ',std:'≥0.5MΩ/≥0.25MΩ',isInput:true},
+  {id:26,category:'机房电气',name:'控制柜等外露导电部件接地电阻≤4Ω',std:'≤4Ω',isInput:true},
+  {id:27,category:'机房电气',name:'控制柜固定牢固',std:'牢固'},
+  {id:28,category:'机房电气',name:'主开关不易接近时控制柜的断电（隔离）开关',std:'有效'},
+  {id:29,category:'机房电气',name:'控制柜内线路整齐可靠',std:'整齐'},
+  {id:30,category:'机房电气',name:'多台电梯共用机房时，各主开关易于识别',std:'符合'},
+  {id:31,category:'机房电气',name:'应急救援程序说明',std:'齐全'},
+  {id:32,category:'机房电气',name:'平层标志、平衡系数标志',std:'齐全'},
+  {id:33,category:'机房电气',name:'电梯运行方向标注',std:'正确'},
+  {id:34,category:'机房电气',name:'盘车轮、松闸扳手',std:'齐全'},
+  {id:35,category:'机房电气',name:'机房内钢丝绳孔应有高度不小于50mm圈框',std:'≥50mm'},
+  {id:36,category:'机房电气',name:'机房内设有符合要求的照明及插座',std:'符合'},
+  {id:37,category:'功能检查',name:'紧急电动运行',std:'有效'},
+  {id:38,category:'功能检查',name:'紧急和测试操作屏',std:'有效'},
+  {id:39,category:'功能检查',name:'松闸装置：□手动 □电动',std:'有效',isInput:true},
+  {id:40,category:'功能检查',name:'限速器动态测试及复位',std:'合格'},
+  {id:41,category:'功能检查',name:'群控/并联',std:'正常'},
+  {id:42,category:'功能检查',name:'轿厢显示',std:'正常'},
+  {id:43,category:'功能检查',name:'轿厢楼层指令',std:'正常'},
+  {id:44,category:'功能检查',name:'关门延时按钮',std:'正常'},
+  {id:45,category:'功能检查',name:'开关门按钮功能',std:'正常'},
+  {id:46,category:'功能检查',name:'紧急报警装置（对讲系统）',std:'有效'},
+  {id:47,category:'功能检查',name:'警铃',std:'有效'},
+  {id:48,category:'功能检查',name:'应急照明',std:'有效'},
+  {id:49,category:'功能检查',name:'司机运行',std:'正常'},
+  {id:50,category:'功能检查',name:'直驶运行',std:'正常'},
+  {id:51,category:'功能检查',name:'独立运行',std:'正常'},
+  {id:52,category:'功能检查',name:'轿厢风扇开关功能',std:'正常'},
+  {id:53,category:'功能检查',name:'轿厢照明开关功能',std:'正常'},
+  {id:54,category:'功能检查',name:'轿厢节能功能',std:'正常'},
+  {id:55,category:'功能检查',name:'轿厢语音播报功能',std:'正常'},
+  {id:56,category:'功能检查',name:'语音报站（到站钟）',std:'正常'},
+  {id:57,category:'功能检查',name:'门在开启保护装置（光幕、安全触板）',std:'有效'},
+  {id:58,category:'功能检查',name:'轿厢IC卡功能（出口层按钮）',std:'正常'},
+  {id:59,category:'功能检查',name:'残障功能：残疾人操纵箱，扶手',std:'符合'},
+  {id:60,category:'功能检查',name:'满载功能（直达）',std:'有效'},
+  {id:61,category:'功能检查',name:'超载功能（声音和显示）',std:'有效'},
+  {id:62,category:'功能检查',name:'锁梯功能',std:'有效'},
+  {id:63,category:'功能检查',name:'厅外召唤操作',std:'正常'},
+  {id:64,category:'功能检查',name:'厅外召唤显示',std:'正常'},
+  {id:65,category:'功能检查',name:'消防员运行',std:'有效'},
+  {id:66,category:'功能检查',name:'消防反馈',std:'有效'},
+  {id:67,category:'功能检查',name:'提前开门功能',std:'有效'},
+  {id:68,category:'功能检查',name:'开门再平层功能',std:'有效'},
+  {id:69,category:'安全开关',name:'限速器',std:'有效'},
+  {id:70,category:'安全开关',name:'夹绳器',std:'有效'},
+  {id:71,category:'安全开关',name:'盘车轮',std:'有效'},
+  {id:72,category:'安全开关',name:'安全钳',std:'有效'},
+  {id:73,category:'安全开关',name:'涨紧轮',std:'有效'},
+  {id:74,category:'安全开关',name:'缓冲器',std:'有效'},
+  {id:75,category:'试验',name:'应急救援试验',std:'合格'},
+  {id:76,category:'试验',name:'平衡系数测试(附表5)',std:'40%-50%'},
+  {id:77,category:'试验',name:'轿厢超载保护装置试验',std:'合格'},
+  {id:78,category:'试验',name:'轿厢限速器-安全钳联动试验',std:'合格'},
+  {id:79,category:'试验',name:'对重限速器-安全钳联动试验',std:'合格'},
+  {id:80,category:'试验',name:'缓冲器试验',std:'合格'},
+  {id:81,category:'试验',name:'轿厢上行超速保护装置试验',std:'合格'},
+  {id:82,category:'试验',name:'轿厢意外移动保护装置测试',std:'合格'},
+  {id:83,category:'试验',name:'空载曳引能力检查①：轿厢提升情况',std:'合格'},
+  {id:84,category:'试验',name:'空载曳引能力检查②：上行制动工况',std:'合格'},
+  {id:85,category:'试验',name:'有载工况曳引能力试验：1.25倍额载下行',std:'合格'},
+  {id:86,category:'试验',name:'制动性能试验①：分组制动试验',std:'合格'},
+  {id:87,category:'试验',name:'制动性能试验②：1.25倍额载下行',std:'合格'},
+  {id:88,category:'试验',name:'制动性能试验③：封星',std:'合格'},
+  {id:89,category:'试验',name:'乘客电梯噪声测试(附表7)',std:'≤55dB'},
+  {id:90,category:'试验',name:'速度运行试验，V=额定速度的92%~105%',std:'92%-105%'},
+  {id:91,category:'试验',name:'断相、错相保护功能',std:'有效'},
+  {id:92,category:'试验',name:'接地故障检查',std:'合格'},
+  {id:93,category:'试验',name:'旁路功能测试（含声光报警器）',std:'有效'},
+  {id:94,category:'试验',name:'门回路短接检测测试',std:'有效'},
+  {id:95,category:'试验',name:'ARD自动应急救援功能',std:'有效'},
+  {id:96,category:'试验',name:'制动力分组状态检测功能测试',std:'有效'},
+  {id:97,category:'试验',name:'抱闸行程开关检测',std:'有效'},
+  {id:98,category:'试验',name:'限位功能检查：□上行 □下行',std:'有效'},
+  {id:99,category:'试验',name:'极限功能检查：□上行 □下行',std:'有效'},
+  {id:100,category:'驱动主机',name:'承重梁固定（平行及水平）',std:'牢固'},
+  {id:101,category:'驱动主机',name:'主开关不易接近时主机的断电（隔离）开关',std:'有效'},
+  {id:102,category:'驱动主机',name:'驱动主机附近1m内的主开关或停止装置',std:'有效'},
+  {id:103,category:'驱动主机',name:'主机垂直度',std:'符合'},
+  {id:104,category:'驱动主机',name:'导向轮垂直度、水平度',std:'符合'},
+  {id:105,category:'驱动主机',name:'驱动主机防护罩',std:'齐全'},
+  {id:106,category:'驱动主机',name:'主机挡绳杆安装及间隙',std:'符合'},
+  {id:107,category:'驱动主机',name:'导向轮挡绳安装及间隙',std:'符合'},
+  {id:108,category:'驱动主机',name:'主机固定、减震胶点焊',std:'牢固'},
+  {id:109,category:'驱动主机',name:'导向轮固定、长孔垫片点焊',std:'牢固'},
+  {id:110,category:'驱动主机',name:'导向轮底座、长孔垫片点焊',std:'牢固'},
+  {id:111,category:'驱动主机',name:'编码器线屏蔽管',std:'符合'},
+  {id:112,category:'驱动主机',name:'机房焊接部位防锈处理',std:'合格'},
+  {id:113,category:'轿顶设备',name:'门地坎距离(附表1)',std:'≤35mm'},
+  {id:114,category:'轿顶设备',name:'门间隙(附表1)',std:'3-6mm'},
+  {id:115,category:'轿顶设备',name:'门锁啮合长度(附表1)',std:'≥7mm'},
+  {id:116,category:'轿顶设备',name:'轿门门刀与层门地坎间隙(附表1)',std:'≥5mm'},
+  {id:117,category:'轿顶设备',name:'层门门锁滚轮与轿厢地坎间隙(附表1)',std:'≥5mm'},
+  {id:118,category:'轿顶设备',name:'门刀垂直度',std:'符合'},
+  {id:119,category:'轿顶设备',name:'门刀距门球左右距离',std:'符合'},
+  {id:120,category:'轿顶设备',name:'门刀与门球啮合深度',std:'符合'},
+  {id:121,category:'轿顶设备',name:'轿门机械锁紧装置',std:'有效'},
+  {id:122,category:'轿顶设备',name:'轿门开门限制装置',std:'有效'},
+  {id:123,category:'轿顶设备',name:'轿门紧急开启装置',std:'有效'},
+  {id:124,category:'层门轿门',name:'玻璃门防拖曳措施',std:'有效'},
+  {id:125,category:'层门轿门',name:'门的运行与导向',std:'正常'},
+  {id:126,category:'层门轿门',name:'层门导向装置有效',std:'有效'},
+  {id:127,category:'层门轿门',name:'层门保持装置啮合深度符合',std:'符合'},
+  {id:128,category:'层门轿门',name:'自动关闭层门装置',std:'有效'},
+  {id:129,category:'层门轿门',name:'重锤方管固定、钢丝绳防脱',std:'牢固'},
+  {id:130,category:'层门轿门',name:'重锤防坠落措施完好',std:'完好'},
+  {id:131,category:'层门轿门',name:'层门紧急开锁装置',std:'有效'},
+  {id:132,category:'层门轿门',name:'层门与轿门的闭合验证',std:'有效'},
+  {id:133,category:'层门轿门',name:'门上坎、地坎、门套固定符合',std:'牢固'},
+  {id:134,category:'层门轿门',name:'层门上坎、地坎焊接防锈处理',std:'合格'},
+  {id:135,category:'层门轿门',name:'层门护脚板安装',std:'符合'},
+  {id:136,category:'层门轿门',name:'通向地坑的层门紧急开锁装置',std:'有效'},
+  {id:137,category:'层门轿门',name:'轿门与层门门框垂直度小于1/1000',std:'<1/1000'},
+  {id:138,category:'导轨支架',name:'导轨顶面距离(附表4)',std:'0~+2mm'},
+  {id:139,category:'导轨支架',name:'导轨接头台阶间隙符合要求',std:'符合'},
+  {id:140,category:'导轨支架',name:'导轨工作面铅垂度(附表3)',std:'≤1.2mm/5m'},
+  {id:141,category:'导轨支架',name:'导轨支架固定可靠',std:'牢固'},
+  {id:142,category:'导轨支架',name:'导轨支架焊接防锈处理',std:'合格'},
+  {id:143,category:'悬挂补偿',name:'钢丝绳张力(附表6)',std:'≤5%'},
+  {id:144,category:'悬挂补偿',name:'钢丝绳无磨损/损坏达到报废条件现象',std:'完好'},
+  {id:145,category:'悬挂补偿',name:'悬挂装置的端部固定符合要求',std:'牢固'},
+  {id:146,category:'悬挂补偿',name:'钢丝绳绳头二次保护',std:'有效'},
+  {id:147,category:'悬挂补偿',name:'钢丝绳顺序',std:'正确'},
+  {id:148,category:'悬挂补偿',name:'补偿链导向装置安装',std:'符合'},
+  {id:149,category:'悬挂补偿',name:'补偿链二次保护',std:'有效'},
+  {id:150,category:'悬挂补偿',name:'补偿链离地间隙符合要求',std:'符合'},
+  {id:151,category:'悬挂补偿',name:'电梯运行时补偿链无刮擦等异常响声',std:'无异常'},
+  {id:152,category:'轿顶设备',name:'轿顶检修运行装置',std:'有效'},
+  {id:153,category:'轿顶设备',name:'轿顶入口1m内的停止装置',std:'有效'},
+  {id:154,category:'轿顶设备',name:'轿顶/轿底 轮垂直度、平行度',std:'符合'},
+  {id:155,category:'轿顶设备',name:'轿顶/轿底 轮挡绳杆间隙',std:'符合'},
+  {id:156,category:'轿顶设备',name:'轿顶防护罩',std:'齐全'},
+  {id:157,category:'轿顶设备',name:'导靴间隙',std:'符合'},
+  {id:158,category:'轿顶设备',name:'平层感应器安装距离',std:'符合'},
+  {id:159,category:'轿顶设备',name:'感应器与隔磁板距离居中，啮合深度符合',std:'符合'},
+  {id:160,category:'轿顶设备',name:'无机房轿顶锁紧装置功能及安全开关',std:'有效'},
+  {id:161,category:'轿顶设备',name:'上梁与立柱固定螺栓紧固',std:'牢固'},
+  {id:162,category:'轿顶设备',name:'导靴与上梁固定螺栓紧固',std:'牢固'},
+  {id:163,category:'轿顶设备',name:'开门机支架固定可靠（包含侧支架）',std:'牢固'},
+  {id:164,category:'轿顶设备',name:'开门机与层门装置水平度不大于1.5/1000',std:'≤1.5/1000'},
+  {id:165,category:'轿顶设备',name:'轿顶限位支架安装与固定',std:'牢固'},
+  {id:166,category:'轿顶设备',name:'限速器钢丝绳绳头固定可靠',std:'牢固'},
+  {id:167,category:'轿顶护栏',name:'护栏的组成（扶手、中间栏杆、踢脚板）',std:'齐全'},
+  {id:168,category:'轿顶护栏',name:'扶手外缘与井道壁自由距离：___米',std:'符合',isInput:true},
+  {id:169,category:'轿顶护栏',name:'扶手高度：___米',std:'≥1.1m',isInput:true},
+  {id:170,category:'轿顶护栏',name:'护栏距离轿顶边缘：___米',std:'符合',isInput:true},
+  {id:171,category:'轿顶护栏',name:'扶手外边缘到井道部件的水平距离：___米',std:'符合',isInput:true},
+  {id:172,category:'轿厢对重',name:'轿厢与对重距离大于50mm',std:'>50mm'},
+  {id:173,category:'轿厢对重',name:'对重轮防护罩',std:'齐全'},
+  {id:174,category:'轿厢对重',name:'对重轮防托槽装置间隙符合',std:'符合'},
+  {id:175,category:'轿厢对重',name:'对重块识别数量标识符合',std:'符合'},
+  {id:176,category:'轿厢对重',name:'对重块固定可靠，无晃动',std:'牢固'},
+  {id:177,category:'轿厢对重',name:'非金属材质对重块标识符合',std:'符合'},
+  {id:178,category:'轿厢对重',name:'对重架螺栓紧固',std:'牢固'},
+  {id:179,category:'轿厢对重',name:'对重导向螺栓紧固',std:'牢固'},
+  {id:180,category:'轿底部件',name:'轿底轮垂直度、平行度',std:'符合'},
+  {id:181,category:'轿底部件',name:'轿底焊接部位油漆',std:'完好'},
+  {id:182,category:'轿底部件',name:'轿底限位胶安装',std:'符合'},
+  {id:183,category:'轿底部件',name:'轿底减震垫安装',std:'符合'},
+  {id:184,category:'轿底部件',name:'减震胶两侧螺栓安装',std:'牢固'},
+  {id:185,category:'轿底部件',name:'轿壁螺栓紧固',std:'牢固'},
+  {id:186,category:'轿底部件',name:'斜拉杆紧固',std:'牢固'},
+  {id:187,category:'轿底部件',name:'安全钳间隙',std:'符合'},
+  {id:188,category:'轿底部件',name:'安全钳固定螺栓紧固',std:'牢固'},
+  {id:189,category:'轿底部件',name:'导靴与下梁固定螺栓紧固',std:'牢固'},
+  {id:190,category:'轿底部件',name:'轿厢护脚板安装与固定',std:'牢固'},
+  {id:191,category:'限速器',name:'限速器固定可靠，方便拆装',std:'牢固'},
+  {id:192,category:'限速器',name:'限速器运行方向',std:'正确'},
+  {id:193,category:'限速器',name:'限速器安装垂直度',std:'符合'},
+  {id:194,category:'限速器',name:'限速器运行无异响',std:'正常'},
+  {id:195,category:'限速器',name:'限速器钢丝绳无磨损/损坏达到报废条件现象',std:'完好'},
+  {id:196,category:'限速器',name:'夹绳器固定可靠，方便拆装',std:'牢固'},
+  {id:197,category:'限速器',name:'夹绳器夹板安装垂直，与钢丝绳间隙正常',std:'符合'},
+  {id:198,category:'限速器',name:'双向夹绳器的动作方向与限速器动作方向一致',std:'一致'},
+  {id:199,category:'限速器',name:'夹绳器调试完成后应点焊或加定位销',std:'完成'},
+  {id:200,category:'井道部件',name:'井道电缆固定',std:'牢固'},
+  {id:201,category:'井道部件',name:'随行电缆的固定',std:'牢固'},
+  {id:202,category:'井道部件',name:'井道封闭措施',std:'符合'},
+  {id:203,category:'井道部件',name:'井道内设有足够亮度的照明',std:'符合'},
+  {id:204,category:'井道部件',name:'轿厢入口与井道壁距离≤0.15米或□轿门锁',std:'≤0.15m',isInput:true},
+  {id:205,category:'井道部件',name:'井道安全门的设置、尺寸及开启锁住',std:'符合'},
+  {id:206,category:'井道部件',name:'对重运行路径下方的防护-对重安全钳',std:'有效'},
+  {id:207,category:'井道部件',name:'对重运行区域的防护-对重护栏',std:'有效'},
+  {id:208,category:'井道部件',name:'井道中多台电梯的运动部件防护措施',std:'有效'},
+  {id:209,category:'井道部件',name:'制导行程(附表2)',std:'符合'},
+  {id:210,category:'井道部件',name:'顶部空间',std:'符合'},
+  {id:211,category:'井道部件',name:'底坑空间(附表2)',std:'符合'},
+  {id:212,category:'底坑设备',name:'底坑内应干燥，无积水，渗水',std:'干燥'},
+  {id:213,category:'底坑设备',name:'底坑停止装置、井道照明操作装置',std:'有效'},
+  {id:214,category:'底坑设备',name:'底坑爬梯的安装',std:'牢固'},
+  {id:215,category:'底坑设备',name:'缓冲器的固定',std:'牢固'},
+  {id:216,category:'底坑设备',name:'耗能缓冲器液位、验证复位的电气安全装置',std:'有效'},
+  {id:217,category:'底坑设备',name:'对重越程距离标识',std:'符合'},
+  {id:218,category:'底坑设备',name:'涨紧轮运行无异响，离地间隙合格',std:'正常'},
+  {id:219,category:'底坑设备',name:'极限与缓冲器的位置关系',std:'符合'},
+  {id:220,category:'感官检查',name:'运行舒适感：①优 ②良 ③差',std:'优良'},
+  {id:221,category:'感官检查',name:'快车运行过程无晃动、震动',std:'无'},
+  {id:222,category:'感官检查',name:'快车运行无异响',std:'无'},
+  {id:223,category:'感官检查',name:'平层精度（±5mm以内）',std:'≤5mm'},
+  {id:224,category:'感官检查',name:'层、轿门开门到位平整',std:'平整'},
+  {id:225,category:'感官检查',name:'层、轿门中心偏差小于2mm',std:'<2mm'},
+  {id:226,category:'感官检查',name:'开关门过程无异响',std:'无'},
+  {id:227,category:'感官检查',name:'轿壁无划痕、安装平整',std:'完好'},
+  {id:228,category:'感官检查',name:'门板无划痕',std:'完好'},
+  {id:229,category:'感官检查',name:'厅外召唤安装对称、美观',std:'美观'}
+];
+
+// ============ 通知单生成 ============
+function buildNoticeHTML(task, info, ngItems, startIdx) {
+  var projName = info.projName;
+  var installer = info.installer;
+  var manager = info.manager;
+  var installAddr = info.installAddr;
+  var dutyMap = {A:'A-安装/维保',B:'B-工厂',C:'C-客户',D:'D-调试',E:'E-监督'};
+  var si = startIdx || 0;
+  var items = ngItems || [];
+
+  var h = '';
+  h += '<div class="notice-title-bar">';
+  h += '<span class="title">电梯厂检意见通知书</span>';
+  h += '</div>';
+  h += '<div class="notice-file-no">文件编号 WT/S-G-2024-001(A)</div>';
+
+  h += '<table class="notice-table">';
+  h += '<colgroup>';
+  h += '<col style="width:13%"><col style="width:30%"><col style="width:13%"><col style="width:15.5%"><col style="width:13%"><col style="width:15.5%">';
+  h += '</colgroup>';
+
+  // 项目名称行
+  h += '<tr>';
+  h += '<td>项目名称</td><td>' + escHtml(projName) + '</td>';
+  h += '<td>型号</td><td>' + escHtml(task.model||'') + '</td>';
+  h += '<td>产品编号</td><td>' + escHtml(task.prodNo||'') + '</td>';
+  h += '</tr>';
+
+  // 安装地点行
+  h += '<tr>';
+  h += '<td>安装地点</td><td>' + escHtml(installAddr) + '</td>';
+  h += '<td>安装单位/人员</td><td>' + escHtml(installer) + '</td>';
+  h += '<td>项目管理</td><td>' + escHtml(manager) + '</td>';
+  h += '</tr>';
+
+  // 检验依据
+  h += '<tr>';
+  h += '<td>检验依据</td>';
+  h += '<td colspan="5">《电梯监督检验和定期检验规则》(TSG T7001—2023)</td>';
+  h += '</tr>';
+
+  // 经检验上述设备
+  h += '<tr>';
+  h += '<td class="notice-ng-cell" colspan="6">经检验上述设备，存在以下问题：';
+  if (items.length > 0) {
+    for (var i = 0; i < items.length; i++) {
+      var item = items[i];
+      h += '<div style="margin-top:2px;">' + (si + i + 1) + '. ' + item.idStr + '. ' + escHtml(item.note || '');
+      h += ' — ' + (dutyMap[item.duty]||item.duty||'');
+      h += '</div>';
+    }
+  }
+  h += '</td></tr>';
+
+  // 空白撑高行
+  var contentItemsH = items.length * 18;
+  var blankH = Math.max(100, 350 - contentItemsH);
+  h += '<tr><td colspan="6" style="height:'+blankH+'px;border-left:1px solid #000;border-right:1px solid #000;border-bottom:1px solid #000;">&nbsp;</td></tr>';
+
+  // 厂检意见
+  var conclusion = task.conclusion || '';
+  var rectifyDeadline = task.rectifyDeadline || '';
+  h += '<tr>';
+  h += '<td class="notice-footer-cell" colspan="6">厂检意见：';
+  if (conclusion === 'pass') {
+    h += '☑厂检合格';
+  } else if (conclusion === 'pass-rectify') {
+    var dlStr = rectifyDeadline || '____年____月____日';
+    h += '☑厂检合格需整改，以上问题请于' + dlStr + '前整改完毕，并将整改情况及时报检验人员。';
+  } else if (conclusion === 'fail') {
+    var dlStr = rectifyDeadline || '____年____月____日';
+    h += '☑厂检不合格，以上问题请于' + dlStr + '前整改完毕，并将整改情况及时报检验人员。';
+  } else {
+    h += '□厂检不合格，以上问题请于____年____月____日前整改完毕，并将整改情况及时报检验人员。☐厂检合格（请根据实际勾选）';
+  }
+  h += '</td></tr>';
+
+  // 检验人员行
+  var inspSig = (task.signatures && task.signatures.inspectorSig) || '';
+  h += '<tr>';
+  h += '<td style="border:1px solid #000;border-top:none;border-right:none;padding:4px 3px;height:32px;white-space:nowrap;">检验人员：</td>';
+  h += '<td class="notice-sig-cell" style="border-top:none;border-bottom:1px solid #000;border-right:none;border-left:none;" colspan="3">';
+  if (inspSig) {
+    h += '<img src="' + inspSig + '" style="max-height:28px;max-width:160px;vertical-align:middle;">';
+  }
+  h += '</td>';
+  h += '<td style="border-top:none;border-bottom:1px solid #000;border-left:none;padding:4px 3px;height:28px;white-space:nowrap;">检验日期：</td>';
+  h += '<td style="border:1px solid #000;border-top:none;border-left:none;padding:4px 1px;height:28px;text-align:center;">' + (task.checkDate ? formatDateDot(task.checkDate) : '<span style="letter-spacing:10px;white-space:nowrap;">年月日</span>') + '</td>';
+  h += '</tr>';
+
+  // 安装单位代表 / 签收日期
+  var pmSig = (task.signatures && task.signatures.pmSig) || '';
+  h += '<tr>';
+  h += '<td style="border:1px solid #000;border-top:none;padding:4px 3px;height:32px;white-space:nowrap;">安装单位代表：</td>';
+  h += '<td class="notice-sig-cell" colspan="3">';
+  if (pmSig) {
+    h += '<img src="' + pmSig + '" style="max-height:28px;max-width:160px;vertical-align:middle;">';
+  }
+  h += '</td>';
+  h += '<td style="border:1px solid #000;border-top:none;padding:4px 3px;height:28px;white-space:nowrap;">签收日期：</td>';
+  h += '<td style="border:1px solid #000;padding:4px 3px;height:28px;text-align:center;">' + (task.checkDate ? formatDateDot(task.checkDate) : '') + '</td>';
+  h += '</tr>';
+
+  // 整改情况反馈 + 整改结果确认
+  h += '<tr>';
+  h += '<td style="border:1px solid #000;padding:4px 3px;height:63px;line-height:1.8;" colspan="3">整改情况反馈：<br>□以上问题已整改完成，并提供相关视频/图片，用以验证整改情况</td>';
+  h += '<td style="border:1px solid #000;padding:4px 3px;height:63px;line-height:1.8;" colspan="3">整改结果确认：<br>□约定期限内未提供整改材料（视频/图片），不合格<br>□整改合格<br>□整改不合格</td>';
+  h += '</tr>';
+
+  // 安装单位代表（盖章）+检验人员
+  h += '<tr>';
+  h += '<td style="border:1px solid #000;border-top:none;padding:4px 3px;height:28px;text-align:center;">安装单位代表：</td>';
+  h += '<td style="border:1px solid #000;padding:4px 3px;height:28px;text-align:center;">（盖章）</td>';
+  h += '<td style="border:1px solid #000;padding:4px 1px;height:28px;text-align:right;"><span style="letter-spacing:10px;white-space:nowrap;">年月日</span></td>';
+  h += '<td style="border:1px solid #000;padding:4px 3px;height:28px;text-align:center;">检验人员：</td>';
+  h += '<td style="border:1px solid #000;padding:4px 3px;height:28px;"></td>';
+  h += '<td style="border:1px solid #000;padding:4px 1px;text-align:right;height:28px;"><span style="letter-spacing:10px;white-space:nowrap;">年月日</span></td>';
+  h += '</tr>';
+
+  // 备注
+  h += '<tr>';
+  h += '<td class="notice-remark-cell" colspan="6">备注：①本通知书一式三联，检验机构、安装单位、项目管理各执一联。②整改完成后，请将本通知书返还检验人员确认。③如有异议，请在收到本通知书之日起5个工作日内提出。</td>';
+  h += '</tr>';
+
+  h += '</table>';
+  return h;
+}
+
+// 收集不合格项
+function collectNgItems(task) {
+  var ngItems = [];
+  if (!task.checks) return ngItems;
+  for (var id in task.checks) {
+    var c = task.checks[id];
+    if (c && c.s === 'ng') {
+      var item = checkItems.find(function(it){ return it.id === parseInt(id); });
+      if (item) {
+        ngItems.push({
+          idStr: item.id + '.' + item.name,
+          note: c.note || '',
+          duty: c.duty || ''
+        });
+      }
+    }
+  }
+  ngItems.sort(function(a,b){ return parseInt(a.idStr) - parseInt(b.idStr); });
+  return ngItems;
+}
+
+// ============ 记录单生成 ============
+var catNameMap = {
+  '技术资料': '技术资料与铭牌',
+  '机房空间': '机器空间及通道',
+  '机房电气': '机器空间电气设备与标识',
+  '功能检查': '功能检查',
+  '安全开关': '安全开关',
+  '试验': '试验',
+  '驱动主机': '驱动主机',
+  '轿顶设备': '轿顶设备',
+  '层门轿门': '层门轿门',
+  '导轨支架': '导轨支架',
+  '悬挂补偿': '悬挂补偿',
+  '轿顶护栏': '轿顶护栏',
+  '轿厢对重': '轿厢对重',
+  '轿底部件': '轿底部件',
+  '限速器': '限速器',
+  '井道部件': '井道部件',
+  '底坑设备': '底坑设备',
+  '感官检查': '感官检查'
+};
+
+var recordPageConfig = {
+  page1: {
+    col1: [
+      {cat: '技术资料', ids: rangeArr(1,12)},
+      {cat: '机房空间', ids: rangeArr(13,21)},
+      {cat: '机房电气', ids: rangeArr(22,36)}
+    ],
+    col2: [
+      {cat: '功能检查', ids: rangeArr(37,68)},
+      {cat: '安全开关', ids: rangeArr(69,74)}
+    ],
+    col3: [
+      {cat: '试验', ids: rangeArr(75,99)},
+      {cat: '驱动主机', ids: rangeArr(100,112)}
+    ]
+  },
+  page2: {
+    col1: [
+      {cat: '层门轿门', ids: rangeArr(113,137)},
+      {cat: '导轨支架', ids: rangeArr(138,142)},
+      {cat: '悬挂补偿', ids: rangeArr(143,151)}
+    ],
+    col2: [
+      {cat: '轿顶设备', ids: rangeArr(152,166)},
+      {cat: '轿顶护栏', ids: rangeArr(167,171)},
+      {cat: '轿厢对重', ids: rangeArr(172,179)},
+      {cat: '轿底部件', ids: rangeArr(180,190)}
+    ],
+    col3: [
+      {cat: '限速器', ids: rangeArr(191,199)},
+      {cat: '井道部件', ids: rangeArr(200,211)},
+      {cat: '底坑设备', ids: rangeArr(212,219)},
+      {cat: '感官检查', ids: rangeArr(220,229)}
+    ]
+  }
+};
+
+function rangeArr(start, end) {
+  var arr = [];
+  for (var i = start; i <= end; i++) arr.push(i);
+  return arr;
+}
+
+function getItemById(id) {
+  return checkItems.find(function(it){ return it.id === id; });
+}
+
+function getCheckResult(id, task) {
+  var c = task.checks && task.checks[id];
+  if (!c) return '';
+  if (c.s === 'ok') return '√';
+  if (c.s === 'ng') return '×';
+  if (c.s === 'na') return '/';
+  if (c.v !== undefined && c.v !== '') return escHtml(c.v);
+  return '';
+}
+
+function getItemDisplayName(item, task) {
+  var name = item.name;
+  var id = item.id;
+  var c = task.checks && task.checks[id];
+  if (!c) return name;
+
+  if (id === 23) {
+    if (c.powerType === 'formal') {
+      name = name.replace('□正式电', '☑正式电').replace('□临时电', '☐临时电');
+    } else if (c.powerType === 'temp') {
+      name = name.replace('□正式电', '☐正式电').replace('□临时电', '☑临时电');
+    }
+    if (c.v) name = name.replace('___V', c.v + 'V');
+  }
+  else if (id === 39) {
+    if (c.brakeType === 'manual') {
+      name = name.replace('□手动', '☑手动').replace('□电动', '☐电动');
+    } else if (c.brakeType === 'electric') {
+      name = name.replace('□手动', '☐手动').replace('□电动', '☑电动');
+    }
+  }
+  else if (id === 25) {
+    var plv = c.powerLightV || c.powerV || '';
+    var sv = c.safetyV || c.lightV || '';
+    if (plv && sv) {
+      name = '绝缘电阻：动力/照明' + plv + 'MΩ(≥0.5)；安全电路' + sv + 'MΩ(≥0.25)';
+    }
+  }
+  else if (id === 26 && c.v) {
+    name = name.replace('≤4Ω', c.v + 'Ω(≤4)');
+  }
+  else if ((id === 168 || id === 169 || id === 170 || id === 171) && c.v) {
+    name = name.replace('___米', c.v + '米');
+  }
+  else if (id === 204) {
+    if (c.hasDoorLock) {
+      name = '轿厢入口与井道壁距离' + (c.v || '') + '米 或☑轿门锁';
+    } else if (c.v) {
+      name = name.replace('≤0.15米', c.v + '米(≤0.15)');
+    }
+  }
+  return name;
+}
+
+function buildRecordPageHTML(task, pageNum) {
+  var config = pageNum === 1 ? recordPageConfig.page1 : recordPageConfig.page2;
+  var pageLabel = pageNum === 1 ? '1' : '2';
+
+  var h = '';
+  h += '<div style="font-size:9px;float:right;">产品编号：' + escHtml(task.prodNo||'') + '</div>';
+  h += '<div class="record-header">';
+  if (pageNum === 1) {
+    h += '<div class="title">厂检调试记录单</div>';
+    h += '<div class="subtitle">威特电梯有限公司</div>';
+  } else {
+    h += '<div style="font-size:11px;"><span>威特电梯有限公司</span> <span>厂检调试记录单</span></div>';
+  }
+  h += '</div>';
+
+  h += '<div style="display:flex;justify-content:space-between;width:100%;flex:1;">';
+
+  var cols = [config.col1, config.col2, config.col3];
+  for (var ci = 0; ci < 3; ci++) {
+    h += '<div style="width:32.5%;">';
+    h += '<table class="record-table" style="width:100%;">';
+    h += '<colgroup>';
+    h += '<col style="width:8%;"><col style="width:8%;"><col style="width:72%;"><col style="width:12%;">';
+    h += '</colgroup>';
+    h += '<tr><th style="width:8%;">大类</th><th style="width:8%;">序</th><th style="width:72%;">检查内容</th><th style="width:12%;">结论</th></tr>';
+
+    var groups = cols[ci];
+    for (var g = 0; g < groups.length; g++) {
+      var grp = groups[g];
+      var catLabel = catNameMap[grp.cat] || grp.cat;
+      var visibleIds = grp.ids.filter(function(id){ return hiddenCheckIds.indexOf(id) === -1; });
+      if (visibleIds.length === 0) continue;
+
+      for (var i = 0; i < visibleIds.length; i++) {
+        var itemId = visibleIds[i];
+        var item = getItemById(itemId);
+        if (!item) continue;
+
+        h += '<tr style="height:18px;">';
+        if (i === 0) {
+          h += '<td class="cat-cell" rowspan="' + visibleIds.length + '">' + catLabel + '</td>';
+        }
+        h += '<td>' + itemId + '</td>';
+        h += '<td style="text-align:left;padding-left:3px;font-size:7.5px;line-height:1.2;">' + getItemDisplayName(item, task) + '</td>';
+        h += '<td style="font-weight:bold;">' + getCheckResult(itemId, task) + '</td>';
+        h += '</tr>';
+      }
+    }
+    h += '</table>';
+    h += '</div>';
+  }
+
+  h += '</div>';
+
+  h += '<div class="record-footer-note">结论选项中，符合打"√"，不符合打"×"，不适用打"/"，或写入测量值。</div>';
+  h += '<div class="record-page-num">— ' + pageLabel + ' —</div>';
+
+  return h;
+}
+
 // ============ 填充数据 ============
 function fillData() {
   var task = getCurrentTask();
   if (!task) return;
   
+  var proj = getCurrentProject();
+  var info = getProjectInfo(task, proj);
   var att = task.attachments || {};
+
+  // 填充通知单（支持多页，不合格项多时自动分页）
+  var ngItems = collectNgItems(task);
+  var perPage = 15; // 每页约15项不合格项
+  var totalPages = Math.max(1, Math.ceil(ngItems.length / perPage));
+  if (totalPages > 2) totalPages = 2; // 最多2页
   
+  var noticeContainer1 = document.getElementById('noticeContainer1');
+  if (noticeContainer1) {
+    var page1Items = ngItems.slice(0, perPage);
+    noticeContainer1.innerHTML = buildNoticeHTML(task, info, page1Items, 0);
+  }
+  
+  var noticePage2 = document.getElementById('notice-page-2');
+  var noticeContainer2 = document.getElementById('noticeContainer2');
+  if (totalPages >= 2 && noticeContainer2) {
+    var page2Items = ngItems.slice(perPage, perPage * 2);
+    noticeContainer2.innerHTML = buildNoticeHTML(task, info, page2Items, perPage);
+    noticePage2.style.display = '';
+  } else if (noticePage2) {
+    noticePage2.style.display = 'none';
+  }
+
+  // 填充记录单
+  var recordContainer1 = document.getElementById('recordContainer1');
+  if (recordContainer1) {
+    recordContainer1.innerHTML = buildRecordPageHTML(task, 1);
+  }
+  var recordContainer2 = document.getElementById('recordContainer2');
+  if (recordContainer2) {
+    recordContainer2.innerHTML = buildRecordPageHTML(task, 2);
+  }
+
+  // 填充副表
   fillFb1(att.attach1);
   fillFb2(att.attach2);
   fillFb3(att.attach3);
