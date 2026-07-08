@@ -6205,7 +6205,7 @@ function buildNoticeFullHTML(task, project, dateStr, ngItems, startIndex) {
 function buildCheckItemsHTML(task, project, dateStr, pageNum) {
   // ========== 配置参数 ==========
   var rowH = 15;         // 数据行行高
-  var titleW = 28;       // 竖排标题列宽（加宽，长标题可分两列）
+  var titleW = 26;       // 竖排标题列宽（长标题可分两列竖排）
   var seqW = 20;         // 序号列宽
   var resultW = 28;      // 结论列宽
   var headerH = 17;      // 表头行高
@@ -6213,7 +6213,7 @@ function buildCheckItemsHTML(task, project, dateStr, pageNum) {
   var strokeW = 0.5;     // 统一框线粗细
   var colGap = 0;        // 栏间距（0=紧贴）
   var splitRatio = 0.55; // 技术资料分类内容列分割比例
-  var totalW = 780;      // SVG总宽度（A4打印左右边距对称）
+  var totalW = 750;      // SVG总宽度（A4打印安全宽度，左右边距对称）
 
   // 页面配置（两页三栏）
   var pageConfig;
