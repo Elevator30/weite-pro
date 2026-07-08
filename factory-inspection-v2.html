@@ -6470,10 +6470,20 @@ function buildCheckItemsHTML(task, project, dateStr, pageNum) {
           svg += '<text x="' + contX + '" y="' + (textStartY + li * lineHeight) + '" font-size="' + fontSize + '" text-anchor="start" dominant-baseline="middle" fill="#000">' + escHtml(lines[li]) + '</text>';
         }
 
-        // 技术资料右边列：显示设备编号/型号
+        // 技术资料右边列：显示设备编号（优先读checks.v，为空则从配置表自动取）
         if (info.splitContent) {
           var checkData = task.checks && task.checks[id];
           var plateNo = (checkData && checkData.v) ? escHtml(checkData.v) : '';
+          if (!plateNo) {
+            var _item = checkItems.find(function(i){return i.id === id;});
+            if (_item && _item.category === '技术资料') {
+              var _partKey = getConfigPartKey(_item);
+              if (_partKey) {
+                var _parts = (task && task.configParts) ? task.configParts : configPartsData;
+                plateNo = escHtml(_parts[_partKey + '_编号'] || '');
+              }
+            }
+          }
           if (plateNo) {
             var rightColCenterX = splitX + (contentRight - splitX) / 2;
             svg += '<text x="' + rightColCenterX + '" y="' + itemMidY + '" font-size="' + fontSize + '" text-anchor="middle" dominant-baseline="middle" fill="#000">' + plateNo + '</text>';
