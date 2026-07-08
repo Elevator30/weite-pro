@@ -6336,7 +6336,7 @@ function buildCheckItemsHTML(task, project, dateStr, pageNum) {
     var chars = text.split('');
     var lines = [];
     var current = '';
-    var charW = fs * 1.0; // 每个字符大概宽度（中文约1倍字号）
+    var charW = fs * 1.2; // 每个字符大概宽度（中文约1倍字号）
     for (var i = 0; i < chars.length; i++) {
       var ch = chars[i];
       var testLine = current + ch;
@@ -6566,10 +6566,10 @@ function buildCheckItemsHTML(task, project, dateStr, pageNum) {
   html += '</div>';
 
   // SVG记录表
-  html += '<div>' + svg + '</div>';
+  html += '<div style="margin-left:20px;">' + svg + '</div>';
 
   // 结论说明
-  html += '<div style="margin-top:2px;font-size:7px;color:#333;">结论选项中，符合打"√"，不符合打"×"，不适用打"/"，或写入测量值。</div>';
+  html += '<div style="margin-top:2px;margin-left:20px;font-size:7px;color:#333;">结论选项中，符合打"√"，不符合打"×"，不适用打"/"，或写入测量值。</div>';
 
   // 页码
   html += '<div style="text-align:center;font-size:8px;margin-top:2px;">— ' + pageNum + ' —</div>';
