@@ -6201,7 +6201,7 @@ function buildCheckItemsHTML(task, project, dateStr, pageNum) {
   var titleW = 26;       // 竖排标题列宽（长标题可分两列竖排）
   var seqW = 20;         // 序号列宽
   var resultW = 28;      // 结论列宽
-  var headerH = 17;      // 表头行高
+  var headerH = 22;      // 表头行高
   var fontSize = 8;      // 统一字号
   var strokeW = 0.5;     // 统一框线粗细
   var colGap = 0;        // 栏间距（0=紧贴）
@@ -6511,7 +6511,7 @@ function buildCheckItemsHTML(task, project, dateStr, pageNum) {
   var col3X = 2 * (colW + colGap);
 
   var svg = '';
-  svg += '<svg width="' + totalW + '" height="' + (totalH + 40) + '" xmlns="http://www.w3.org/2000/svg" style="display:block;max-width:100%;height:auto;margin:0 auto;">';
+  svg += '<svg width="' + totalW + '" height="' + (totalH + 6) + '" xmlns="http://www.w3.org/2000/svg" style="display:block;max-width:100%;height:auto;margin:0 auto;">';
 
   // 渲染三栏
   svg = renderColumn(svg, pageConfig.col1, 0, colW, layout1);
@@ -6538,7 +6538,7 @@ function buildCheckItemsHTML(task, project, dateStr, pageNum) {
   html += '<div style="text-align:center;">' + svg + '</div>';
 
   // 结论说明
-  html += '<div style="margin-top:4px;font-size:7px;color:#333;">结论选项中，符合打"√"，不符合打"×"，不适用打"/"，或写入测量值。</div>';
+  html += '<div style="margin-top:2px;font-size:7px;color:#333;">结论选项中，符合打"√"，不符合打"×"，不适用打"/"，或写入测量值。</div>';
 
   // 页码
   html += '<div style="text-align:center;font-size:8px;margin-top:2px;">— ' + pageNum + ' —</div>';
