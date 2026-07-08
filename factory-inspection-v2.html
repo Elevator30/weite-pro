@@ -72,7 +72,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
 .btn-view{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;}
 .btn-del{background:#fff5f5;color:#c0392b;border:1.5px solid #fed7d7!important;}
 .print-dropdown{position:relative;flex:1;}
-.print-dropdown-menu{position:absolute;top:100%;left:0;right:0;background:#fff;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.15);z-index:100;overflow:hidden;margin-top:4px;display:none;}
+.print-dropdown .btn-view{width:100%;}
+.print-dropdown-menu{position:absolute;top:100%;left:0;right:0;background:#fff;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.15);z-index:9999;overflow:hidden;margin-top:4px;display:none;}
 .print-dropdown-menu.show{display:block;}
 .print-dropdown-menu div{padding:10px 12px;font-size:12px;cursor:pointer;white-space:nowrap;}
 .print-dropdown-menu div:hover{background:#f7fafc;}
@@ -1271,7 +1272,7 @@ var checkItems = [
   {id:217,category:'底坑设备',name:'对重越程距离标识',std:'符合'},
   {id:218,category:'底坑设备',name:'涨紧轮运行无异响，离地间隙合格',std:'正常'},
   {id:219,category:'底坑设备',name:'极限与缓冲器的位置关系',std:'符合'},
-  {id:220,category:'感官检查',name:'运行舒适感：①优 ②良 ③差',std:'优良'},
+  {id:220,category:'感官检查',name:'运行舒适感',std:'优为合格',isComfort:true},
   {id:221,category:'感官检查',name:'快车运行过程无晃动、震动',std:'无'},
   {id:222,category:'感官检查',name:'快车运行无异响',std:'无'},
   {id:223,category:'感官检查',name:'平层精度（±5mm以内）',std:'≤5mm'},
@@ -1284,7 +1285,7 @@ var checkItems = [
 ];
 
 // 隐藏的检查项ID列表（检查界面隐藏，打印时显示）
-var hiddenCheckIds = [113,114,115,116,117,209,210,211,138,76,143,89];
+var hiddenCheckIds = [113,114,115,116,117,209,210,211,138,76,143,89,140];
 
 
 // ============ PROJECT HELPERS ============
@@ -1769,7 +1770,7 @@ function createTask() {
     checks: {},
     configParts: JSON.parse(JSON.stringify(configPartsData)),
     attachments: {
-      attach1: {cargate:[Array(15).fill(''),Array(15).fill('')], laygate:[]},
+      attach1: {cargate:[Array(15).fill(''),Array(15).fill('')], laygate:[], doorStructure:'center'},
       attach2: {轿厢缓冲距:'',对重缓冲距:'',最大允许值:'',轿厢压缩行程:'',对重压缩行程:'',顶部空间:{s1:'',s2:'',s3:'',s4:'',s5L:'',s5W:'',s5H:''},底坑空间:{p1:'',p2:'',p3h:'',p3v1:'',p3v2:'',p4:'',p5L:'',p5W:'',p5H:''}},
       attach3: {rows:[{carL:'',carR:'',weightL:'',weightR:''}], hasWeightSafety: 'no'},
       attach4: {rows:[{car:'',weight:''}], refCar:'', refWeight:''},
@@ -2275,6 +2276,17 @@ function renderCheckRow(itemId, color) {
     }
   }
   
+  // 运行舒适感特殊渲染（优/良/差）
+  if (item.isComfort) {
+    var comfortVal = c.comfort || '';
+    html += '<div style="display:flex;gap:6px;margin-top:6px;">';
+    html += '<div onclick="setComfort('+item.id+',&#39;excellent&#39;)" style="flex:1;padding:8px 0;text-align:center;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:all 0.2s;border:1.5px solid ' + (comfortVal === 'excellent' ? '#52c41a' : '#ddd') + ';background:' + (comfortVal === 'excellent' ? '#f6ffed' : '#fff') + ';color:' + (comfortVal === 'excellent' ? '#389e0d' : '#666') + ';">优</div>';
+    html += '<div onclick="setComfort('+item.id+',&#39;good&#39;)" style="flex:1;padding:8px 0;text-align:center;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:all 0.2s;border:1.5px solid ' + (comfortVal === 'good' ? '#faad14' : '#ddd') + ';background:' + (comfortVal === 'good' ? '#fffbe6' : '#fff') + ';color:' + (comfortVal === 'good' ? '#d48806' : '#666') + ';">良</div>';
+    html += '<div onclick="setComfort('+item.id+',&#39;poor&#39;)" style="flex:1;padding:8px 0;text-align:center;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:all 0.2s;border:1.5px solid ' + (comfortVal === 'poor' ? '#ff4d4f' : '#ddd') + ';background:' + (comfortVal === 'poor' ? '#fff2f0' : '#fff') + ';color:' + (comfortVal === 'poor' ? '#cf1322' : '#666') + ';">差</div>';
+    html += '</div>';
+    html += '<div style="margin-top:4px;font-size:11px;color:#999;text-align:center;">自动判定：优=符合，良/差=不符合</div>';
+  }
+  
   // Radio group
   html += '<div class="radio-group">';
   html += '<div class="radio-btn' + (c.s === 'ok' ? ' r-ok' : '') + '" onclick="setCheckStatus('+item.id+',&#39;ok&#39;)">✓ 符合</div>';
@@ -2322,6 +2334,17 @@ function renderNgExpand(itemId) {
   html += '</div></div>';
   html += '</div>';
   return html;
+}
+
+function setComfort(itemId, val) {
+  var task = getCurrentTask(); if (!task) return;
+  if (!task.checks[itemId]) task.checks[itemId] = {};
+  task.checks[itemId].comfort = val;
+  // 自动判断：优=符合，良/差=不符合
+  task.checks[itemId].s = (val === 'excellent') ? 'ok' : 'ng';
+  saveCurrentTask();
+  renderCurrentZone();
+  updateProgress();
 }
 
 function setCheckStatus(id, status) {
@@ -2611,7 +2634,7 @@ var subGroupMap = {
     {title: '限速器与夹绳器', ids: [191,192,193,194,195,196,197,198,199]},
     {title: '井道部件', ids: [200,201,202,203,204,205,206,207,208,209,210,211]},
     {title: '底坑设备', ids: [212,213,214,215,216,217,218,219]},
-    {title: '导轨与支架', ids: [138,139,140,141,142]},
+    {title: '导轨与支架', ids: [138,139,141,142]},
     {title: '悬挂与补偿', ids: [143,144,145,146,147,148,149,150,151]}
   ],
   // 功能实验
@@ -3289,7 +3312,17 @@ function renderAttach1(container) {
   if (!att1.cargate) att1.cargate = [Array(15).fill(''), Array(15).fill('')];
   if (!att1.laygate) att1.laygate = [];
   
+  var doorStruct = att1.doorStructure || 'center';
   var html = '<div class="att-card"><div class="att-card-title">🚪 门间隙测量表</div>';
+  
+  // 门结构总开关
+  var doorStruct = att1.doorStructure || 'center';
+  html += '<div class="door-toggle" style="margin-bottom:10px;">';
+  html += '<div style="font-size:12px;font-weight:600;color:#4a5568;margin-bottom:4px;">门结构</div>';
+  html += '<div style="display:flex;gap:8px;">';
+  html += '<div onclick="setAtt1DoorStructure(&#39;center&#39;)" style="flex:1;padding:8px 0;text-align:center;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;transition:all 0.2s;border:1.5px solid ' + (doorStruct === 'center' ? '#667eea' : '#e2e8f0') + ';background:' + (doorStruct === 'center' ? 'linear-gradient(135deg,#667eea,#764ba2)' : '#fff') + ';color:' + (doorStruct === 'center' ? '#fff' : '#718096') + ';">中分门</div>';
+  html += '<div onclick="setAtt1DoorStructure(&#39;side&#39;)" style="flex:1;padding:8px 0;text-align:center;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;transition:all 0.2s;border:1.5px solid ' + (doorStruct === 'side' ? '#667eea' : '#e2e8f0') + ';background:' + (doorStruct === 'side' ? 'linear-gradient(135deg,#667eea,#764ba2)' : '#fff') + ';color:' + (doorStruct === 'side' ? '#fff' : '#718096') + ';">旁开门</div>';
+  html += '</div></div>';
   
   html += '<div class="fr"><label>门类型</label><select id="att1DoorType" onchange="changeAtt1DoorType(this.value)" style="flex:1;border:1px solid #ddd;border-radius:6px;padding:10px;font-size:14px;">';
   html += '<option value="cargate"' + (currentAtt1Door === 'cargate' ? ' selected' : '') + '>轿门-前门</option>';
@@ -3320,7 +3353,7 @@ function renderAttach1(container) {
       html += '<input type="text" value="' + (d.name||'') + '" placeholder="楼层号" onchange="updateLaygateName(' + currentLaygateEditIdx + ',this.value)" style="flex:1;border:1px solid #ddd;border-radius:6px;padding:8px;font-size:13px;">';
       html += '<button onclick="closeLaygateEdit()" style="background:#f5f5f5;border:1px solid #ddd;border-radius:6px;padding:6px 10px;font-size:12px;cursor:pointer;">收起</button>';
       html += '</div>';
-      html += renderAtt1LaygateInputs(d.data || Array(15).fill(''), currentLaygateEditIdx);
+      html += renderAtt1LaygateInputs(d.data || Array(15).fill(''), currentLaygateEditIdx, att1.doorStructure || 'center');
       html += '<div style="margin-top:8px;"><button onclick="saveEditAndNewLaygate()" style="width:100%;padding:10px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;">保存并新增下一层</button></div>';
       html += '</div>';
     } else if (currentLaygateEditIdx === -2) {
@@ -3329,7 +3362,7 @@ function renderAttach1(container) {
       html += '<span style="font-size:13px;font-weight:600;color:#667eea;">➕ 新增楼层</span>';
       html += '<input type="text" id="newLaygateName" placeholder="楼层号" style="flex:1;border:1px solid #ddd;border-radius:6px;padding:8px;font-size:13px;">';
       html += '</div>';
-      html += renderAtt1LaygateInputs(Array(15).fill(''), '_new');
+      html += renderAtt1LaygateInputs(Array(15).fill(''), '_new', att1.doorStructure || 'center');
       html += '<div style="margin-top:8px;"><button onclick="saveAndNewLaygate()" style="width:100%;padding:10px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;">新增楼层</button></div>';
       html += '</div>';
     }
@@ -3337,11 +3370,13 @@ function renderAttach1(container) {
     // 轿门模式: 4行
     var cargateIdx = currentAtt1Door === 'cargate' ? 0 : 1;
     var cd = att1.cargate[cargateIdx] || Array(15).fill('');
+    var doorStruct = att1.doorStructure || 'center';
+    var forceStd = (doorStruct === 'side') ? '≤30mm' : '≤45mm';
     
     var rows = [
       {type:'pair', l:{label:'门扇与立柱/门楣间隙-左',std:'≤6mm',idx:2}, r:{label:'门扇与立柱/门楣间隙-右',std:'≤6mm',idx:3}},
       {type:'pair', l:{label:'门扇与地坎间隙-左',std:'≤6mm',idx:14}, r:{label:'门扇与地坎间隙-右',std:'≤6mm',idx:1}},
-      {type:'pair', l:{label:'门扇间间隙',std:'3-6mm',idx:7}, r:{label:'门扇间施力间隙',std:'旁开≤30/中分≤45',idx:6}},
+      {type:'pair', l:{label:'门扇间间隙',std:'3-6mm',idx:7}, r:{label:'门扇间施力间隙',std:forceStd,idx:6}},
       {type:'single', f:{label:'门锁啮合长度',std:'≥7mm',idx:9}}
     ];
     
@@ -3515,8 +3550,40 @@ function renderAttach1Judge() {
     task.checks[115].s = doorLockOk ? 'ok' : 'ng';
     if (!doorLockOk) task.checks[115].n = '门锁啮合长度不足7mm';
   }
+  // id116: 轿门刀与层门地坎间隙 (≥5mm)
+  if (!task.checks[116]) task.checks[116] = {};
+  var hasCutterData = false;
+  var cutterOk = true;
+  laygateArr.forEach(function(lg) {
+    if (!lg || !lg.data) return;
+    var v = parseFloat(lg.data[10]);
+    if (!isNaN(v) && v > 0) {
+      hasCutterData = true;
+      if (v < 5) cutterOk = false;
+    }
+  });
+  if (hasCutterData) {
+    task.checks[116].s = cutterOk ? 'ok' : 'ng';
+    if (!cutterOk) task.checks[116].n = '轿门刀与层门地坎间隙不足5mm';
+  }
+  // id117: 层门锁滚轮与轿厢地坎间隙 (≥5mm)
+  if (!task.checks[117]) task.checks[117] = {};
+  var hasRollerData = false;
+  var rollerOk = true;
+  laygateArr.forEach(function(lg) {
+    if (!lg || !lg.data) return;
+    var v = parseFloat(lg.data[12]);
+    if (!isNaN(v) && v > 0) {
+      hasRollerData = true;
+      if (v < 5) rollerOk = false;
+    }
+  });
+  if (hasRollerData) {
+    task.checks[117].s = rollerOk ? 'ok' : 'ng';
+    if (!rollerOk) task.checks[117].n = '层门锁滚轮与轿厢地坎间隙不足5mm';
+  }
   
-  var allOk = hasData && sillOk && doorGapOk && doorLockOk;
+  var allOk = hasData && sillOk && doorGapOk && doorLockOk && (!hasCutterData || cutterOk) && (!hasRollerData || rollerOk);
   
   var html = '<div class="auto-result' + (allOk ? ' pass' : '') + '" style="margin-top:12px;">';
   html += '<strong>自动判定:</strong><br>';
@@ -3529,9 +3596,24 @@ function renderAttach1Judge() {
   html += ' | id115(门锁啮合长度) ';
   if (hasDoorLockData) html += doorLockOk ? '<span style="color:#52c41a;">✓合格</span>' : '<span style="color:#ff4d4f;">✕不合格</span>';
   else html += '<span style="color:#999;">未判定</span>';
-  html += '<br><span style="font-size:11px;color:#999;">根据附表1数据自动判定，关联检测项: id113、id114、id115</span>';
+  html += ' | id116(轿门刀间隙) ';
+  if (hasCutterData) html += cutterOk ? '<span style="color:#52c41a;">✓合格</span>' : '<span style="color:#ff4d4f;">✕不合格</span>';
+  else html += '<span style="color:#999;">未判定</span>';
+  html += ' | id117(层门锁滚轮间隙) ';
+  if (hasRollerData) html += rollerOk ? '<span style="color:#52c41a;">✓合格</span>' : '<span style="color:#ff4d4f;">✕不合格</span>';
+  else html += '<span style="color:#999;">未判定</span>';
+  html += '<br><span style="font-size:11px;color:#999;">根据附表1数据自动判定，关联检测项: id113、id114、id115、id116、id117</span>';
   html += '</div>';
   return html;
+}
+
+function setAtt1DoorStructure(type) {
+  var task = getCurrentTask(); if (!task) return;
+  if (!task.attachments.attach1) task.attachments.attach1 = {cargate:[Array(15).fill(''),Array(15).fill('')], laygate:[], doorStructure:'center'};
+  task.attachments.attach1.doorStructure = type;
+  saveCurrentTask();
+  var target = document.getElementById('attModalBody') || document.getElementById('attContent');
+  if (target) renderAttach1(target);
 }
 
 function changeAtt1DoorType(type) {
@@ -3541,14 +3623,16 @@ function changeAtt1DoorType(type) {
   updateAtt1Footer();
 }
 
-function renderAtt1LaygateInputs(data, rowIdx) {
+function renderAtt1LaygateInputs(data, rowIdx, doorStruct) {
   var isNew = (rowIdx === '_new');
   // 层门布局: 6行
+  var ds = doorStruct || 'center';
+  var forceStdLg = (ds === 'side') ? '≤30mm' : '≤45mm';
   var rows = [
     {type:'pair', l:{label:'门地坎距离-左',std:'≤35mm',idx:4}, r:{label:'门地坎距离-右',std:'≤35mm',idx:5}},
     {type:'pair', l:{label:'门扇与立柱/门楣间隙-左',std:'≤6mm',idx:2}, r:{label:'门扇与立柱/门楣间隙-右',std:'≤6mm',idx:3}},
     {type:'pair', l:{label:'门扇与地坎间隙-左',std:'≤6mm',idx:14}, r:{label:'门扇与地坎间隙-右',std:'≤6mm',idx:1}},
-    {type:'pair', l:{label:'门扇间间隙',std:'3-6mm',idx:7}, r:{label:'门扇间施力间隙',std:'旁开≤30/中分≤45',idx:6}},
+    {type:'pair', l:{label:'门扇间间隙',std:'3-6mm',idx:7}, r:{label:'门扇间施力间隙',std:forceStdLg,idx:6}},
     {type:'single', f:{label:'门锁啮合长度',std:'≥7mm',idx:9}},
     {type:'pair', l:{label:'轿门刀与层门地坎',std:'≥5mm',idx:10}, r:{label:'层门锁滚轮与轿厢地坎',std:'≥5mm',idx:12}}
   ];
@@ -3655,7 +3739,7 @@ function renderAttach2(container) {
     {key:'s1', label:'①轿厢导轨进一步制导行程', formula:'0.1+0.035v2'},
     {key:'s2', label:'②轿顶可站人面积垂直距离', formula:'1.0+0.035v2'},
     {key:'s3', label:'③井道顶最低部件与轿顶部件距离', formula:'0.3+0.035v2'},
-    {key:'s4', label:'④悬挂装置端接装置附件距离', formula:'0.1+0.035v2'}
+    {key:'s4', label:'④井道顶的最低部件与导靴或滚轮、悬挂装置端接装置附件、垂直滑动门的横梁或者部件的最高部分之间的自由垂直距离', formula:'0.1+0.035v2'}
   ];
   
   var cwSubM = (cwBuf + cwComp) / 1000; // 对重侧总压缩量，单位m

@@ -195,6 +195,7 @@ th { font-weight: bold; background: #fff; }
 
 /* 打印样式 */
 @media print {
+#toolbar{display:none!important;}
   body { background: #fff; padding: 0; }
   .page { box-shadow: none; margin: 0; width: 100%; min-height: auto; padding: 0; }
   @page { size: A4 landscape; margin: 10mm; }
@@ -202,6 +203,15 @@ th { font-weight: bold; background: #fff; }
 </style>
 </head>
 <body>
+<!-- 工具栏 -->
+<div id="toolbar" style="position:fixed;top:0;left:0;right:0;background:#fff;padding:10px 20px;box-shadow:0 2px 8px rgba(0,0,0,0.1);z-index:1000;display:flex;justify-content:space-between;align-items:center;">
+  <div style="font-size:14px;font-weight:600;color:#333;">副表打印预览</div>
+  <div style="display:flex;gap:10px;">
+    <button onclick="window.print()" style="padding:8px 16px;background:#667eea;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;">打印</button>
+    <button onclick="exportFubiaoPDF()" style="padding:8px 16px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;">保存到文件(PDF)</button>
+  </div>
+</div>
+<div style="height:50px;"></div>
 
 <!-- 第1页 -->
 <div class="page" id="page1">
@@ -754,15 +764,24 @@ function fillFb1Row(rowKey, name, data) {
   if (!row) return;
   
   var cells = row.querySelectorAll('td');
-  if (cells.length < 13) return;
+  if (cells.length < 12) return;
   
-  cells[0].textContent = name;
+  // 判断第一个td是不是空的（垂直文本列），位置名称应该在哪
+  var nameIdx = 0;
+  if (cells.length >= 13 && !cells[0].textContent.trim()) {
+    nameIdx = 1;
+  }
+  cells[nameIdx].textContent = name;
   
-  // 共11个数据列 cells[1] ~ cells[11]
+  // 共11个数据列
+  var dataStartIdx = nameIdx + 1;
   for (var j = 0; j < 11; j++) {
     var dataIdx = FB1_COL_MAP[j];
     var val = (data[dataIdx] !== undefined && data[dataIdx] !== null) ? data[dataIdx] : '';
-    cells[j + 1].textContent = val;
+    var cellIdx = dataStartIdx + j;
+    if (cellIdx < cells.length) {
+      cells[cellIdx].textContent = val;
+    }
   }
 }
 
@@ -809,6 +828,62 @@ function fillFb2(att2) {
   
   // 轿底空间尺寸
   setFb2Text('pit-p5-space', (pit.p5L || '') + '×' + (pit.p5W || '') + '×' + (pit.p5H || ''));
+  
+  // 计算顶部空间检验结果
+  // 对重完全压在缓冲器上时轿门与层门地坎距离 = 对重缓冲距 + 对重压缩行程
+  var cwBufM = (parseFloat(att2.对重缓冲距) || 0) / 1000;
+  var cwCompM = (parseFloat(att2.对重压缩行程) || 0) / 1000;
+  var topSub = cwBufM + cwCompM;
+  var speed = 0;
+  // 尝试从配置单获取速度
+  if (typeof task !== 'undefined' && task.configParts) {
+    var vStr = task.configParts['额定速度'] || '';
+    speed = parseFloat(vStr) || 0;
+  }
+  function calcStd(formula, v) {
+    if (formula === '0.1+0.035v2') return 0.1 + 0.035 * v * v;
+    if (formula === '1.0+0.035v2') return 1.0 + 0.035 * v * v;
+    if (formula === '0.3+0.035v2') return 0.3 + 0.035 * v * v;
+    return 0;
+  }
+  function judgeTop(key, formula) {
+    var val = parseFloat(top[key]) || 0;
+    if (val <= 0 || topSub <= 0) return '';
+    var result = val - topSub;
+    var std = calcStd(formula, speed);
+    if (std <= 0) return (result > 0 ? '符合' : '不符合');
+    return result >= std ? '符合' : '不符合';
+  }
+  setFb2Text('top-s1-result', judgeTop('s1', '0.1+0.035v2'));
+  setFb2Text('top-s2-result', judgeTop('s2', '1.0+0.035v2'));
+  setFb2Text('top-s3-result', judgeTop('s3', '0.3+0.035v2'));
+  setFb2Text('top-s4-result', judgeTop('s4', '0.1+0.035v2'));
+  
+  // 计算底坑空间检验结果
+  // 轿厢完全压在缓冲器上时 = 轿厢缓冲距 + 轿厢压缩行程
+  var carBufM = (parseFloat(att2.轿厢缓冲距) || 0) / 1000;
+  var carCompM = (parseFloat(att2.轿厢压缩行程) || 0) / 1000;
+  var pitSub = carBufM + carCompM;
+  function judgePit_p1() {
+    var val = parseFloat(pit.p1) || 0;
+    if (val <= 0 || pitSub <= 0) return '';
+    var result = val - pitSub;
+    return result >= 0.5 ? '符合' : '不符合';
+  }
+  function judgePit_p2() {
+    var val = parseFloat(pit.p2) || 0;
+    if (val <= 0 || pitSub <= 0) return '';
+    var result = val - pitSub;
+    return result >= 0.3 ? '符合' : '不符合';
+  }
+  setFb2Text('pit-p1-result', judgePit_p1());
+  setFb2Text('pit-p2-result', judgePit_p2());
+  // p4判断
+  var p4Val = parseFloat(pit.p4) || 0;
+  if (p4Val > 0 && pitSub > 0) {
+    var p4Result = p4Val - pitSub;
+    setFb2Text('pit-p4-result', p4Result >= 0.3 ? '符合' : '不符合');
+  }
 }
 
 function setFb2Text(key, val) {
@@ -1268,6 +1343,86 @@ function fillFb7(att7) {
     if (el) el.textContent = '最大值：' + mrlVal.toFixed(1) + ' dB';
   }
 }
+
+// ============ 导出PDF功能 ============
+function exportFubiaoPDF() {
+  if (typeof jspdf === 'undefined' || typeof jspdf.jsPDF === 'undefined') {
+    alert('PDF导出库加载中，请稍候再试...');
+    return;
+  }
+  if (typeof html2canvas === 'undefined') {
+    alert('截图库加载中，请稍候再试...');
+    return;
+  }
+  
+  var btn = event.target;
+  btn.disabled = true;
+  btn.textContent = '生成中...';
+  
+  var pages = document.querySelectorAll('.page');
+  var totalPages = pages.length;
+  var currentPage = 0;
+  
+  // 横版A4
+  var pdf = new jspdf.jsPDF('l', 'mm', 'a4');
+  var pageWidth = pdf.internal.pageSize.getWidth();
+  var pageHeight = pdf.internal.pageSize.getHeight();
+  
+  function addNextPage() {
+    if (currentPage >= totalPages) {
+      pdf.save('副表-' + Date.now() + '.pdf');
+      btn.disabled = false;
+      btn.textContent = '保存到文件(PDF)';
+      return;
+    }
+    
+    var page = pages[currentPage];
+    html2canvas(page, {
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      backgroundColor: '#ffffff'
+    }).then(function(canvas) {
+      var imgData = canvas.toDataURL('image/jpeg', 0.95);
+      if (currentPage > 0) pdf.addPage();
+      pdf.addImage(imgData, 'JPEG', 0, 0, pageWidth, pageHeight);
+      currentPage++;
+      setTimeout(addNextPage, 50);
+    }).catch(function(err) {
+      console.error('导出失败', err);
+      alert('导出失败：' + err.message);
+      btn.disabled = false;
+      btn.textContent = '保存到文件(PDF)';
+    });
+  }
+  
+  addNextPage();
+}
+
+// 加载jsPDF和html2canvas
+(function() {
+  function loadScript(src, callback) {
+    if (document.querySelector('script[src="'+src+'"]')) { callback(); return; }
+    var s = document.createElement('script');
+    s.src = src;
+    s.onload = callback;
+    s.onerror = function() { console.warn('加载失败:', src); callback(); };
+    document.head.appendChild(s);
+  }
+  var needLoad = 0;
+  var loaded = 0;
+  function check() {
+    loaded++;
+  }
+  if (typeof jspdf === 'undefined' || typeof jspdf.jsPDF === 'undefined') {
+    needLoad++;
+    loadScript('https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js', check);
+  }
+  if (typeof html2canvas === 'undefined') {
+    needLoad++;
+    loadScript('https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js', check);
+  }
+})();
 
 // ============ 初始化 ============
 document.addEventListener('DOMContentLoaded', fillData);
