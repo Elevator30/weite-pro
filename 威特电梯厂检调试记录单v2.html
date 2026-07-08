@@ -6542,7 +6542,7 @@ function buildCheckItemsHTML(task, project, dateStr, pageNum) {
   var col3X = 2 * (colW + colGap);
 
   var svg = '';
-  svg += '<svg width="' + totalW + '" height="' + (totalH + 6) + '" xmlns="http://www.w3.org/2000/svg" style="display:block;max-width:100%;height:auto;margin:0 auto;">';
+  svg += '<svg width="' + totalW + '" height="' + (totalH + 6) + '" xmlns="http://www.w3.org/2000/svg" style="display:block;max-width:100%;height:auto;">';
 
   // 渲染三栏
   svg = renderColumn(svg, pageConfig.col1, 0, colW, layout1);
@@ -6566,7 +6566,7 @@ function buildCheckItemsHTML(task, project, dateStr, pageNum) {
   html += '</div>';
 
   // SVG记录表
-  html += '<div style="text-align:center;">' + svg + '</div>';
+  html += '<div>' + svg + '</div>';
 
   // 结论说明
   html += '<div style="margin-top:2px;font-size:7px;color:#333;">结论选项中，符合打"√"，不符合打"×"，不适用打"/"，或写入测量值。</div>';

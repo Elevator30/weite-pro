@@ -6239,7 +6239,7 @@ function buildCheckItemsHTML(task, project, dateStr, pageNum) {
   var strokeW = 0.5;     // 统一框线粗细
   var colGap = 0;        // 栏间距（0=紧贴）
   var splitRatio = 0.55; // 技术资料分类内容列分割比例
-  var totalW = 700;      // SVG总宽度（A4打印适配，避免右边裁切）
+  var totalW = 750;      // SVG总宽度（A4打印适配，避免右边裁切）
 
   // 页面配置（两页三栏）
   var pageConfig;
@@ -6518,7 +6518,7 @@ function buildCheckItemsHTML(task, project, dateStr, pageNum) {
         // 结论
         var resultVal = getResult(id, info.splitContent);
         if (resultVal) {
-          svg += '<text x="' + (contentRight + resultW - 3) + '" y="' + itemMidY + '" font-size="' + fontSize + '" text-anchor="end" dominant-baseline="middle" fill="#000">' + resultVal + '</text>';
+          svg += '<text x="' + (contentRight + resultW / 2) + '" y="' + itemMidY + '" font-size="' + fontSize + '" text-anchor="middle" dominant-baseline="middle" fill="#000">' + resultVal + '</text>';
         }
       }
     }
@@ -6542,7 +6542,7 @@ function buildCheckItemsHTML(task, project, dateStr, pageNum) {
   var col3X = 2 * (colW + colGap);
 
   var svg = '';
-  svg += '<svg width="' + totalW + '" height="' + (totalH + 6) + '" xmlns="http://www.w3.org/2000/svg" style="display:block;max-width:100%;height:auto;margin:0 auto;">';
+  svg += '<svg width="' + totalW + '" height="' + (totalH + 6) + '" xmlns="http://www.w3.org/2000/svg" style="display:block;max-width:100%;height:auto;">';
 
   // 渲染三栏
   svg = renderColumn(svg, pageConfig.col1, 0, colW, layout1);
@@ -6566,7 +6566,7 @@ function buildCheckItemsHTML(task, project, dateStr, pageNum) {
   html += '</div>';
 
   // SVG记录表
-  html += '<div style="text-align:center;">' + svg + '</div>';
+  html += '<div>' + svg + '</div>';
 
   // 结论说明
   html += '<div style="margin-top:2px;font-size:7px;color:#333;">结论选项中，符合打"√"，不符合打"×"，不适用打"/"，或写入测量值。</div>';
