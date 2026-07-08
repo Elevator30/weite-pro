@@ -30,6 +30,11 @@ body { font-family: "SimSun", "宋体", serif; font-size: 9px; line-height: 1.2;
 .col-left { width: 48%; display: flex; flex-direction: column; }
 .col-right { width: 48%; display: flex; flex-direction: column; }
 
+/* 左列三表布局（第2页） */
+.col-left.triple { justify-content: space-between; }
+.triple-section { margin-bottom: 5mm; }
+.triple-section:last-child { margin-bottom: 0; }
+
 /* 左列内上下两个表的间距 */
 .col-top { margin-bottom: 5mm; }
 .col-bottom { flex: 1; }
@@ -60,7 +65,7 @@ th { font-weight: bold; background: #fff; }
 
 /* ========== 附表1 样式 ========== */
 .fb1-table { width: 100%; margin: 0 auto; }
-.fb1-table .col1 { width: 8%; }
+.fb1-table .col1 { width: 9%; }
 .fb1-table .col2 { width: 8%; }
 .fb1-table .col3 { width: 7%; }
 .fb1-table .col4 { width: 7%; }
@@ -84,7 +89,7 @@ th { font-weight: bold; background: #fff; }
 .fb2-table .col-e { width: 7.5%; }
 .fb2-table .col-f { width: 7.5%; }
 .fb2-table .col-g { width: 7.5%; }
-.fb2-table .col-h { width: 15%; }
+.fb2-table .col-h { width: 15.5%; }
 .fb2-table .col-i { width: 8.5%; }
 .fb2-table .col-j { width: 8.5%; }
 .fb2-table .remark-row .vertical-text { font-size: 8px; }
@@ -93,17 +98,17 @@ th { font-weight: bold; background: #fff; }
 .fb3-table { width: 100%; margin: 0 auto; }
 .fb3-table .col-a { width: 9%; }
 .fb3-table .col-b { width: 9%; }
-.fb3-table .col-c { width: 6.8%; }
-.fb3-table .col-d { width: 6.8%; }
-.fb3-table .col-e { width: 6.8%; }
-.fb3-table .col-f { width: 6.8%; }
-.fb3-table .col-g { width: 6.8%; }
-.fb3-table .col-h { width: 6.8%; }
-.fb3-table .col-i { width: 6.8%; }
-.fb3-table .col-j { width: 6.8%; }
-.fb3-table .col-k { width: 6.8%; }
-.fb3-table .col-l { width: 6.8%; }
-.fb3-table .col-m { width: 11%; }
+.fb3-table .col-c { width: 7.0%; }
+.fb3-table .col-d { width: 7.0%; }
+.fb3-table .col-e { width: 7.0%; }
+.fb3-table .col-f { width: 7.0%; }
+.fb3-table .col-g { width: 7.0%; }
+.fb3-table .col-h { width: 7.0%; }
+.fb3-table .col-i { width: 7.0%; }
+.fb3-table .col-j { width: 7.0%; }
+.fb3-table .col-k { width: 7.0%; }
+.fb3-table .col-l { width: 7.0%; }
+.fb3-table .col-m { width: 12%; }
 .fb3-table .remark-row td { font-size: 7px; line-height: 1.5; text-align: left; padding-left: 4px; }
 
 /* ========== 附表4 样式 ========== */
@@ -142,7 +147,7 @@ th { font-weight: bold; background: #fff; }
 .balance-chart-container svg {
   width: 100%;
   height: auto;
-  max-height: 95mm;
+  max-height: 130mm;
 }
 .balance-result-text {
   font-size: 10px;
@@ -154,18 +159,17 @@ th { font-weight: bold; background: #fff; }
 /* ========== 附表6 样式 ========== */
 .fb6-table { width: 100%; margin: 0 auto; }
 .fb6-table .col-a { width: 14%; }
-.fb6-table .col-b { width: 12.25%; }
-.fb6-table .col-c { width: 12.25%; }
-.fb6-table .col-d { width: 12.25%; }
-.fb6-table .col-e { width: 12.25%; }
-.fb6-table .col-f { width: 12.25%; }
-.fb6-table .col-g { width: 12.25%; }
-.fb6-table .col-h { width: 12.25%; }
-.fb6-table .col-i { width: 12.25%; }
+.fb6-table .col-b { width: 10.75%; }
+.fb6-table .col-c { width: 10.75%; }
+.fb6-table .col-d { width: 10.75%; }
+.fb6-table .col-e { width: 10.75%; }
+.fb6-table .col-f { width: 10.75%; }
+.fb6-table .col-g { width: 10.75%; }
+.fb6-table .col-h { width: 10.75%; }
+.fb6-table .col-i { width: 10.75%; }
 .fb6-table .result-row td { height: 28px; text-align: center !important; }
 
 /* ========== 附表7 样式 ========== */
-.fb7-wrap { width: 80%; margin: 0 auto; }
 .fb7-table { width: 100%; }
 .fb7-table .col-a { width: 17%; }
 .fb7-table .col-b { width: 12%; }
@@ -174,6 +178,8 @@ th { font-weight: bold; background: #fff; }
 .fb7-table .col-e { width: 14%; }
 .fb7-table .col-f { width: 30%; }
 .fb7-table .std-text { font-size: 7px; text-align: left; padding: 3px 4px; }
+.fb7-table .data-row td { height: 18px; }
+.fb7-table tr:not(.data-row) th, .fb7-table tr:not(.data-row) td { height: 20px; }
 
 /* 打印样式 */
 @media print {
@@ -419,9 +425,9 @@ th { font-weight: bold; background: #fff; }
 <!-- 第2页 -->
 <div class="page" id="page2">
   <div class="two-col">
-    <div class="col-left">
+    <div class="col-left triple">
       <!-- 附表4 -->
-      <div class="col-top">
+      <div class="triple-section">
         <div class="fb-title">附表4 导轨顶面距离测量（单位mm）</div>
         <table class="fb4-table">
           <colgroup>
@@ -464,7 +470,7 @@ th { font-weight: bold; background: #fff; }
         </table>
       </div>
       <!-- 附表6 -->
-      <div class="col-bottom">
+      <div class="triple-section">
         <div class="fb-title">附表6 钢丝绳张力测试记录</div>
         <table class="fb6-table">
           <colgroup>
@@ -495,70 +501,8 @@ th { font-weight: bold; background: #fff; }
           </tr>
         </table>
       </div>
-    </div>
-    <div class="col-right">
-      <!-- 附表5 -->
-      <div style="height:100%;">
-        <div class="fb-title">附表5 电梯平衡系数检验记录</div>
-        <table class="fb5-table">
-          <colgroup>
-            <col class="col-a"><col class="col-b"><col class="col-c"><col class="col-d">
-            <col class="col-e"><col class="col-f"><col class="col-g"><col class="col-h">
-            <col class="col-i"><col class="col-j"><col class="col-k"><col class="col-l">
-          </colgroup>
-          <tr>
-            <th rowspan="2">载重量</th>
-            <th>重量（Kg）</th>
-            <th colspan="2" data-fb5="weight-0"></th>
-            <th colspan="2" data-fb5="weight-1"></th>
-            <th colspan="2" data-fb5="weight-2"></th>
-            <th colspan="2" data-fb5="weight-3"></th>
-            <th colspan="2" data-fb5="weight-4"></th>
-          </tr>
-          <tr>
-            <th>额载百分比（%）</th>
-            <th colspan="2">30%</th>
-            <th colspan="2">40%</th>
-            <th colspan="2">45%</th>
-            <th colspan="2">50%</th>
-            <th colspan="2">60%</th>
-          </tr>
-          <tr>
-            <th colspan="2">运 行 方 向</th>
-            <th>上行</th><th>下行</th>
-            <th>上行</th><th>下行</th>
-            <th>上行</th><th>下行</th>
-            <th>上行</th><th>下行</th>
-            <th>上行</th><th>下行</th>
-          </tr>
-          <tr class="data-row">
-            <th colspan="2">电 流（A）</th>
-            <td data-fb5="up-0"></td><td data-fb5="down-0"></td>
-            <td data-fb5="up-1"></td><td data-fb5="down-1"></td>
-            <td data-fb5="up-2"></td><td data-fb5="down-2"></td>
-            <td data-fb5="up-3"></td><td data-fb5="down-3"></td>
-            <td data-fb5="up-4"></td><td data-fb5="down-4"></td>
-          </tr>
-          <tr class="data-row">
-            <th colspan="2">测试结果</th>
-            <td colspan="10">平衡系数：<span data-fb5="balance-value"></span></td>
-          </tr>
-        </table>
-        <!-- 平衡系数曲线图 -->
-        <div class="balance-chart-container">
-          <svg id="balanceChart" viewBox="0 0 320 200" preserveAspectRatio="xMidYMid meet">
-          </svg>
-          <div class="balance-result-text" id="balanceResultText"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- 第3页 -->
-<div class="page" id="page3">
-  <div class="fb7-wrap">
-    <div class="fb-title" style="text-align:center;">附表7 乘客电梯噪声测试记录表</div>
+      <div class="triple-section">
+        <div class="fb-title">附表7 乘客电梯噪声测试记录表</div>
     <table class="fb7-table">
       <colgroup>
         <col class="col-a"><col class="col-b"><col class="col-c"><col class="col-d">
@@ -648,10 +592,69 @@ th { font-weight: bold; background: #fff; }
         <td colspan="4" class="std-text">不超过制造单位的允许值。制造单位未规定的，按照额定速度为2.5m/s的电梯限制指标判定。</td>
       </tr>
     </table>
+      </div>
+    </div>
+    <div class="col-right">
+      <!-- 附表5 -->
+      <div style="height:100%;">
+        <div class="fb-title">附表5 电梯平衡系数检验记录</div>
+        <table class="fb5-table">
+          <colgroup>
+            <col class="col-a"><col class="col-b"><col class="col-c"><col class="col-d">
+            <col class="col-e"><col class="col-f"><col class="col-g"><col class="col-h">
+            <col class="col-i"><col class="col-j"><col class="col-k"><col class="col-l">
+          </colgroup>
+          <tr>
+            <th rowspan="2">载重量</th>
+            <th>重量（Kg）</th>
+            <th colspan="2" data-fb5="weight-0"></th>
+            <th colspan="2" data-fb5="weight-1"></th>
+            <th colspan="2" data-fb5="weight-2"></th>
+            <th colspan="2" data-fb5="weight-3"></th>
+            <th colspan="2" data-fb5="weight-4"></th>
+          </tr>
+          <tr>
+            <th>额载百分比（%）</th>
+            <th colspan="2">30%</th>
+            <th colspan="2">40%</th>
+            <th colspan="2">45%</th>
+            <th colspan="2">50%</th>
+            <th colspan="2">60%</th>
+          </tr>
+          <tr>
+            <th colspan="2">运 行 方 向</th>
+            <th>上行</th><th>下行</th>
+            <th>上行</th><th>下行</th>
+            <th>上行</th><th>下行</th>
+            <th>上行</th><th>下行</th>
+            <th>上行</th><th>下行</th>
+          </tr>
+          <tr class="data-row">
+            <th colspan="2">电 流（A）</th>
+            <td data-fb5="up-0"></td><td data-fb5="down-0"></td>
+            <td data-fb5="up-1"></td><td data-fb5="down-1"></td>
+            <td data-fb5="up-2"></td><td data-fb5="down-2"></td>
+            <td data-fb5="up-3"></td><td data-fb5="down-3"></td>
+            <td data-fb5="up-4"></td><td data-fb5="down-4"></td>
+          </tr>
+          <tr class="data-row">
+            <th colspan="2">测试结果</th>
+            <td colspan="10">平衡系数：<span data-fb5="balance-value"></span></td>
+          </tr>
+        </table>
+        <!-- 平衡系数曲线图 -->
+        <div class="balance-chart-container">
+          <svg id="balanceChart" viewBox="0 0 320 200" preserveAspectRatio="xMidYMid meet">
+          </svg>
+          <div class="balance-result-text" id="balanceResultText"></div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
-<script>
+
+
 // ============ 数据读取 ============
 var STORAGE_KEY = 'WEITE_CHECK_V4';
 
