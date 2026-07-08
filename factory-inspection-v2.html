@@ -6456,6 +6456,8 @@ function buildCheckItemsHTML(task, project, dateStr, pageNum) {
         }
       }
     }
+  
+    return svg;
   }
 
   // ========== 构建SVG ==========
@@ -6477,9 +6479,9 @@ function buildCheckItemsHTML(task, project, dateStr, pageNum) {
   svg += '<svg width="' + totalW + '" height="' + (totalH + 40) + '" xmlns="http://www.w3.org/2000/svg" style="display:block;width:100%;height:auto;">';
 
   // 渲染三栏
-  renderColumn(svg, pageConfig.col1, 0, colW, layout1);
-  renderColumn(svg, pageConfig.col2, col2X, colW, layout2);
-  renderColumn(svg, pageConfig.col3, col3X, colW, layout3);
+  svg = renderColumn(svg, pageConfig.col1, 0, colW, layout1);
+  svg = renderColumn(svg, pageConfig.col2, col2X, colW, layout2);
+  svg = renderColumn(svg, pageConfig.col3, col3X, colW, layout3);
 
   svg += '</svg>';
 
