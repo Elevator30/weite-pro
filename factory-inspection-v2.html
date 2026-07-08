@@ -4190,6 +4190,7 @@ function updateAtt3Safety(val) {
 function addAtt3Row() {
   var task = getCurrentTask(); if (!task) return;
   var att3 = task.attachments.attach3;
+  if (att3.rows.length >= 10) { showToast("最多10个测点"); return; }
   att3.rows.push({carL:'',carR:'',weightL:'',weightR:''});
   saveCurrentTask();
   var target = document.getElementById('attModalBody') || document.getElementById('attContent');
@@ -4369,6 +4370,7 @@ function updateAtt4Ref(key, val) {
 function addAtt4Row() {
   var task = getCurrentTask(); if (!task) return;
   var att4 = task.attachments.attach4;
+  if (att4.rows.length >= 10) { showToast("最多10个测点"); return; }
   att4.rows.push({car:'',weight:''});
   saveCurrentTask();
   var target = document.getElementById('attModalBody') || document.getElementById('attContent');
