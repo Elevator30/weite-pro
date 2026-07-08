@@ -11,9 +11,7 @@
 <title>威特电梯厂检调试记录单V2 v54</title>
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%231a3a6b'/%3E%3Ctext x='50' y='42' font-family='Arial' font-size='28' font-weight='900' text-anchor='middle' fill='white'%3EVEITE%3C/text%3E%3Ctext x='50' y='72' font-family='serif' font-size='16' font-weight='800' text-anchor='middle' fill='%23e63946'%3E电梯%3C/text%3E%3C/svg%3E">
-<script src="jspdf.min.js" onerror="console.error('jsPDF加载失败')"></script>
-<script src="html2canvas.min.js" onerror="console.error('html2canvas加载失败')"></script>
-<script>if(window.jspdf && window.jspdf.jsPDF){var jsPDF=window.jspdf.jsPDF;}else{console.error("jsPDF加载失败");}</script>
+
 <script async src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
@@ -5568,9 +5566,21 @@ function exportNoticePDF() {
   var dateForFilename = checkDateStr.replace(/[年月日/\-]/g, '');
   var filename = dateForFilename + '_' + projName + '_整改通知.pdf';
 
-  if (typeof html2canvas === 'undefined') { showToast('html2canvas库未加载，请刷新页面'); return; }
-  var JsPDF = (typeof jsPDF !== 'undefined') ? jsPDF : (window.jspdf && window.jspdf.jsPDF);
-  if (!JsPDF) { showToast('jsPDF库未加载, window.jspdf=' + typeof window.jspdf); return; }
+  // 确保PDF库已加载
+  if (typeof html2canvas === 'undefined' || typeof jsPDF === 'undefined') {
+    showToast('正在加载PDF库，请稍候...');
+    loadPdfLibs(function(){
+      // 加载完成后重试
+      if (typeof html2canvas === 'undefined' || typeof jsPDF === 'undefined') {
+        showToast('PDF库加载失败，请检查网络后重试');
+        return;
+      }
+      // 重新调用导出函数
+      exportCheckToPdf();
+    });
+    return;
+  }
+  var JsPDF = jsPDF;
 
   showToast('正在准备意见通知书...');
 
@@ -5778,9 +5788,19 @@ function exportCheckPDF() {
   var dateForFilename = checkDateStr.replace(/[年月日/\-]/g, '');
   var filename = dateForFilename + '_' + projName + '_厂检记录单.pdf';
 
-  if (typeof html2canvas === 'undefined') { showToast('html2canvas库未加载，请刷新页面'); return; }
-  var JsPDF = (typeof jsPDF !== 'undefined') ? jsPDF : (window.jspdf && window.jspdf.jsPDF);
-  if (!JsPDF) { showToast('jsPDF库未加载'); return; }
+  // 确保PDF库已加载
+  if (typeof html2canvas === 'undefined' || typeof jsPDF === 'undefined') {
+    showToast('正在加载PDF库，请稍候...');
+    loadPdfLibs(function(){
+      if (typeof html2canvas === 'undefined' || typeof jsPDF === 'undefined') {
+        showToast('PDF库加载失败，请检查网络后重试');
+        return;
+      }
+      exportCheckToExcelWithPdf();
+    });
+    return;
+  }
+  var JsPDF = jsPDF;
 
   showToast('正在准备检查表...');
 
@@ -7890,6 +7910,39 @@ function renderNoticeList() {
 }
 
 // 页面初始化
+
+// 动态加载PDF相关库，不阻塞首页渲染
+var _pdfLibsReady = false;
+function loadPdfLibs(callback){
+  if(_pdfLibsReady){ callback && callback(); return; }
+  var loaded = 0;
+  var total = 2;
+  function check(){
+    loaded++;
+    if(loaded >= total){
+      _pdfLibsReady = true;
+      if(window.jspdf && window.jspdf.jsPDF){ window.jsPDF = window.jspdf.jsPDF; }
+      callback && callback();
+    }
+  }
+  var s1 = document.createElement('script');
+  s1.src = 'jspdf.min.js';
+  s1.onload = check;
+  s1.onerror = function(){ console.error('jsPDF加载失败'); check(); };
+  document.head.appendChild(s1);
+  var s2 = document.createElement('script');
+  s2.src = 'html2canvas.min.js';
+  s2.onload = check;
+  s2.onerror = function(){ console.error('html2canvas加载失败'); check(); };
+  document.head.appendChild(s2);
+}
+// 页面加载完成后后台预加载PDF库
+if(document.readyState === 'loading'){
+  document.addEventListener('DOMContentLoaded', function(){ setTimeout(loadPdfLibs, 100); });
+} else {
+  setTimeout(loadPdfLibs, 100);
+}
+
 init();
 
 </script>
