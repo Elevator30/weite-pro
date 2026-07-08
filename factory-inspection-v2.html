@@ -265,6 +265,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
 .header-dropdown div:hover{background:#f7fafc;}
 /* Sub-accordion styles */
 .sub-accordion{margin-bottom:10px;border-radius:12px;background:#fff;border:1px solid #e8ecf0;}
+.notes-section{background:#fff;border-radius:12px;padding:15px;margin-bottom:10px;border:1px solid #e8ecf0;}
+.notes-title{font-size:14px;font-weight:600;color:#2d3748;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;}
+.notes-add-btn{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border:none;border-radius:6px;padding:6px 12px;font-size:12px;cursor:pointer;}
+.note-item{background:#f7fafc;border-radius:8px;padding:10px;margin-bottom:8px;border-left:3px solid #667eea;}
+.note-item-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.note-item-title{font-size:12px;font-weight:600;color:#4a5568;}
+.note-item-del{color:#e53e3e;cursor:pointer;font-size:12px;}
+.note-item textarea{width:100%;border:1px solid #e2e8f0;border-radius:6px;padding:8px;font-size:13px;font-family:inherit;resize:vertical;min-height:60px;box-sizing:border-box;}
+.note-item textarea:focus{outline:none;border-color:#667eea;}
 .sub-header-sticky{font-size:15px;font-weight:700;color:#fff;padding:13px 16px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none;position:sticky;top:150px;z-index:10;transition:background .15s;border-radius:12px 12px 0 0;}
 .sub-header-sticky:hover{filter:brightness(1.05);}
 .sub-header-sticky .sub-title{display:flex;align-items:center;gap:8px;}
@@ -367,7 +376,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
       <div onclick="saveCurrentTask();goPage('taskList');closeHeaderMenu('check')">📋 返回列表</div>
       <div onclick="showNewCheck();closeHeaderMenu('check')">➕ 新建</div>
       <div onclick="openInspectorSigSetting();closeHeaderMenu('check')">✍️ 检验人员签名</div>
-      <div onclick="saveCurrentTask();exportNoticeExcel();closeHeaderMenu('check')">📊 导出通知书Excel</div>
       <div onclick="exportTasksJSON();closeHeaderMenu('check')">📤 导出JSON</div>
       <div onclick="importTasksJSON();closeHeaderMenu('check')">📥 导入JSON</div>
       <div onclick="exportTasksExcel();closeHeaderMenu('check')">📊 导出Excel</div>
@@ -1689,6 +1697,7 @@ function copyTask(index) {
   newTask.prodNo = '';
   newTask.checks = {};
   newTask.signatures = {};
+  newTask.notes = [];
   newTask.conclusion = '';
   newTask.checkDate = new Date().toISOString().split('T')[0];
   
@@ -1781,6 +1790,7 @@ function createTask() {
     remark: '',
     sig1: '', sig2: '', sig3: '',
     conclusion: '',
+    notes: [],
     rectifyDeadline: '',
     projectManagerSign: '',
     installerSign: '',
@@ -2099,7 +2109,7 @@ function renderZoneContent(index, direction) {
   }
   // 签字确认页
   if (index === 6) {
-    renderSignZoneContent(container);
+    renderNotesAndSign(container);
     return;
   }
   
@@ -2123,7 +2133,7 @@ function renderZoneContent(index, direction) {
       var badgeClass = isDone ? 'done' : '';
       var badgeText = isDone ? '✓ ' + doneCount + '/' + grpItems.length : doneCount + '/' + grpItems.length;
       
-      html += '<div class="sub-accordion">';
+      html += '<div class="sub-accordion" id="subGroup_' + index + '_' + gi + '">';
       html += '<div class="sub-header-sticky" style="background:' + region.color + ';" onclick="toggleSubGroup(' + index + ',' + gi + ')">';
       html += '<span class="sub-title">📋 ' + grp.title + '</span>';
       html += '<span class="sub-badge ' + badgeClass + '">' + badgeText + '</span>';
@@ -2418,6 +2428,86 @@ function deleteNgPhoto(itemId, photoIndex) {
   task.checks[itemId].photos.splice(photoIndex, 1);
   saveCurrentTask();
   renderZoneContent(currentZoneIndex);
+}
+
+function renderNotesSection(container) {
+  var task = getCurrentTask();
+  if (!task) return;
+  if (!task.notes) task.notes = [];
+  
+  var html = '<div class="notes-section">';
+  html += '<div class="notes-title">📝 备注 <button class="notes-add-btn" onclick="addNote()">+ 添加备注</button></div>';
+  
+  if (task.notes.length === 0) {
+    html += '<div style="text-align:center;color:#aaa;font-size:12px;padding:20px 0;">暂无备注</div>';
+  } else {
+    task.notes.forEach(function(note, idx) {
+      html += '<div class="note-item">';
+      html += '<div class="note-item-header"><span class="note-item-title">备注' + (idx + 1) + '</span><span class="note-item-del" onclick="deleteNote(' + idx + ')">删除</span></div>';
+      html += '<textarea placeholder="输入备注内容..." onchange="updateNote(' + idx + ', this.value)">' + (note.content || '') + '</textarea>';
+      html += '</div>';
+    });
+  }
+  
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+function addNote() {
+  var task = getCurrentTask(); if (!task) return;
+  if (!task.notes) task.notes = [];
+  task.notes.push({content: ''});
+  saveCurrentTask();
+  var target = document.getElementById('notesSection');
+  if (target) renderNotesSection(target);
+  updateProgress();
+}
+
+function updateNote(idx, val) {
+  var task = getCurrentTask(); if (!task) return;
+  if (!task.notes || !task.notes[idx]) return;
+  task.notes[idx].content = val;
+  saveCurrentTask();
+}
+
+function deleteNote(idx) {
+  var task = getCurrentTask(); if (!task) return;
+  if (!task.notes) return;
+  if (!confirm('确定删除这条备注吗？')) return;
+  task.notes.splice(idx, 1);
+  saveCurrentTask();
+  var target = document.getElementById('notesSection');
+  if (target) renderNotesSection(target);
+  updateProgress();
+}
+
+function renderNotesAndSign(container) {
+  var task = getCurrentTask();
+  if (!task) return;
+  
+  var html = '';
+  // 备注区域
+  html += '<div class="notes-section">';
+  html += '<div class="notes-title">📝 备注 <button class="notes-add-btn" onclick="addNote()">+ 添加备注</button></div>';
+  
+  if (!task.notes || task.notes.length === 0) {
+    html += '<div style="text-align:center;color:#aaa;font-size:12px;padding:20px 0;">暂无备注</div>';
+  } else {
+    task.notes.forEach(function(note, idx) {
+      html += '<div class="note-item">';
+      html += '<div class="note-item-header"><span class="note-item-title">备注' + (idx + 1) + '</span><span class="note-item-del" onclick="deleteNote(' + idx + ')">删除</span></div>';
+      html += '<textarea placeholder="输入备注内容..." onchange="updateNote(' + idx + ', this.value)">' + (note.content || '') + '</textarea>';
+      html += '</div>';
+    });
+  }
+  html += '</div>';
+  
+  container.innerHTML = html;
+  
+  // 渲染签字区域（追加）
+  var signDiv = document.createElement('div');
+  renderSignZoneContent(signDiv);
+  container.appendChild(signDiv);
 }
 
 function renderSignZoneContent(container) {
@@ -3315,16 +3405,16 @@ function renderAttach1(container) {
   var doorStruct = att1.doorStructure || 'center';
   var html = '<div class="att-card"><div class="att-card-title">🚪 门间隙测量表</div>';
   
-  // 门结构总开关
+  // 门结构切换 + 门类型选择（同一行）
   var doorStruct = att1.doorStructure || 'center';
-  html += '<div class="door-toggle" style="margin-bottom:10px;">';
-  html += '<div style="font-size:12px;font-weight:600;color:#4a5568;margin-bottom:4px;">门结构</div>';
-  html += '<div style="display:flex;gap:8px;">';
-  html += '<div onclick="setAtt1DoorStructure(&#39;center&#39;)" style="flex:1;padding:8px 0;text-align:center;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;transition:all 0.2s;border:1.5px solid ' + (doorStruct === 'center' ? '#667eea' : '#e2e8f0') + ';background:' + (doorStruct === 'center' ? 'linear-gradient(135deg,#667eea,#764ba2)' : '#fff') + ';color:' + (doorStruct === 'center' ? '#fff' : '#718096') + ';">中分门</div>';
-  html += '<div onclick="setAtt1DoorStructure(&#39;side&#39;)" style="flex:1;padding:8px 0;text-align:center;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;transition:all 0.2s;border:1.5px solid ' + (doorStruct === 'side' ? '#667eea' : '#e2e8f0') + ';background:' + (doorStruct === 'side' ? 'linear-gradient(135deg,#667eea,#764ba2)' : '#fff') + ';color:' + (doorStruct === 'side' ? '#fff' : '#718096') + ';">旁开门</div>';
-  html += '</div></div>';
-  
-  html += '<div class="fr"><label>门类型</label><select id="att1DoorType" onchange="changeAtt1DoorType(this.value)" style="flex:1;border:1px solid #ddd;border-radius:6px;padding:10px;font-size:14px;">';
+  html += '<div style="display:flex;gap:10px;margin-bottom:12px;align-items:stretch;">';
+  // 左：中分门/旁开门按钮
+  html += '<div style="flex:0 0 auto;display:flex;gap:6px;">';
+  html += '<div onclick="setAtt1DoorStructure(&#39;center&#39;)" style="padding:0 16px;display:flex;align-items:center;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;transition:all 0.2s;border:1.5px solid ' + (doorStruct === 'center' ? '#667eea' : '#e2e8f0') + ';background:' + (doorStruct === 'center' ? 'linear-gradient(135deg,#667eea,#764ba2)' : '#fff') + ';color:' + (doorStruct === 'center' ? '#fff' : '#718096') + ';">中分门</div>';
+  html += '<div onclick="setAtt1DoorStructure(&#39;side&#39;)" style="padding:0 16px;display:flex;align-items:center;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;transition:all 0.2s;border:1.5px solid ' + (doorStruct === 'side' ? '#667eea' : '#e2e8f0') + ';background:' + (doorStruct === 'side' ? 'linear-gradient(135deg,#667eea,#764ba2)' : '#fff') + ';color:' + (doorStruct === 'side' ? '#fff' : '#718096') + ';">旁开门</div>';
+  html += '</div>';
+  // 右：门类型下拉
+  html += '<div class="fr" style="flex:1;display:flex;align-items:center;"><label style="flex-shrink:0;">门类型</label><select id="att1DoorType" onchange="changeAtt1DoorType(this.value)" style="flex:1;border:1px solid #ddd;border-radius:6px;padding:10px;font-size:14px;min-width:0;">';
   html += '<option value="cargate"' + (currentAtt1Door === 'cargate' ? ' selected' : '') + '>轿门-前门</option>';
   html += '<option value="cargated"' + (currentAtt1Door === 'cargated' ? ' selected' : '') + '>轿门-后门</option>';
   html += '<option value="laygate"' + (currentAtt1Door === 'laygate' ? ' selected' : '') + '>层门</option>';
@@ -3443,10 +3533,14 @@ function renderAttach1Judge() {
   var doorGapOk = true;    // 门间隙 3-6mm (id114)
   var doorLockOk = true;   // 门锁啮合长度 ≥7mm (id115)
   var sillOk = true;       // 门地坎距离 ≤35mm (id113)
+  var forceGapOk = true;   // 门扇间施力间隙 ≤45mm(中分)/≤30mm(旁开) (id114)
   
   var hasDoorGapData = false;
   var hasDoorLockData = false;
   var hasSillData = false;
+  var hasForceGapData = false;
+  var doorStructure = (att1.doorStructure || 'center');
+  var forceGapStd = (doorStructure === 'side') ? 30 : 45;
   
   // 检查轿门数据
   var cargateArr = att1.cargate || [];
@@ -3483,6 +3577,13 @@ function renderAttach1Judge() {
       hasDoorLockData = true;
       hasData = true;
       if (v9 < 7) doorLockOk = false;
+    }
+    // 门扇间施力间隙 idx:6 (标准:中分门≤45mm, 旁开门≤30mm)
+    var v6 = parseFloat(cd[6]);
+    if (!isNaN(v6) && v6 > 0) {
+      hasForceGapData = true;
+      hasData = true;
+      if (v6 > forceGapStd) forceGapOk = false;
     }
   });
   
@@ -3532,6 +3633,13 @@ function renderAttach1Judge() {
       hasData = true;
       if (v9 < 7) doorLockOk = false;
     }
+    // 门扇间施力间隙 idx:6 (标准:中分门≤45mm, 旁开门≤30mm)
+    var v6 = parseFloat(d[6]);
+    if (!isNaN(v6) && v6 > 0) {
+      hasForceGapData = true;
+      hasData = true;
+      if (v6 > forceGapStd) forceGapOk = false;
+    }
   });
   
   // 回填到主表检测项
@@ -3540,10 +3648,15 @@ function renderAttach1Judge() {
     task.checks[113].s = sillOk ? 'ok' : 'ng';
     if (!sillOk) task.checks[113].n = '门地坎距离超标';
   }
-  // id114: 门间隙
-  if (hasDoorGapData) {
-    task.checks[114].s = doorGapOk ? 'ok' : 'ng';
-    if (!doorGapOk) task.checks[114].n = '门间隙不符合标准';
+  // id114: 门间隙（包含门扇间隙和门扇间施力间隙）
+  if (hasDoorGapData || hasForceGapData) {
+    if (!task.checks[114]) task.checks[114] = {};
+    var gapAllOk = doorGapOk && forceGapOk;
+    task.checks[114].s = gapAllOk ? 'ok' : 'ng';
+    var ngMsgs = [];
+    if (!doorGapOk) ngMsgs.push('门间隙不符合标准');
+    if (!forceGapOk) ngMsgs.push('门扇间施力间隙超过' + forceGapStd + 'mm');
+    if (!gapAllOk) task.checks[114].n = ngMsgs.join('；');
   }
   // id115: 门锁啮合长度
   if (hasDoorLockData) {
@@ -3583,14 +3696,14 @@ function renderAttach1Judge() {
     if (!rollerOk) task.checks[117].n = '层门锁滚轮与轿厢地坎间隙不足5mm';
   }
   
-  var allOk = hasData && sillOk && doorGapOk && doorLockOk && (!hasCutterData || cutterOk) && (!hasRollerData || rollerOk);
+  var allOk = hasData && sillOk && doorGapOk && doorLockOk && forceGapOk && (!hasCutterData || cutterOk) && (!hasRollerData || rollerOk);
   
   var html = '<div class="auto-result' + (allOk ? ' pass' : '') + '" style="margin-top:12px;">';
   html += '<strong>自动判定:</strong><br>';
   html += 'id113(门地坎距离) ';
   if (hasSillData) html += sillOk ? '<span style="color:#52c41a;">✓合格</span>' : '<span style="color:#ff4d4f;">✕不合格</span>';
   else html += '<span style="color:#999;">未判定</span>';
-  html += ' | id114(门间隙) ';
+  html += ' | id114(门间隙含施力间隙) ';
   if (hasDoorGapData) html += doorGapOk ? '<span style="color:#52c41a;">✓合格</span>' : '<span style="color:#ff4d4f;">✕不合格</span>';
   else html += '<span style="color:#999;">未判定</span>';
   html += ' | id115(门锁啮合长度) ';
@@ -3736,10 +3849,10 @@ function renderAttach2(container) {
   html += '<div style="font-size:11px;color:#666;margin-bottom:8px;">检验结果 = 上端站平层时测量值 - (对重缓冲距 + 对重缓冲器压缩行程)</div>';
   
   var topItems = [
-    {key:'s1', label:'①轿厢导轨进一步制导行程', formula:'0.1+0.035v2'},
-    {key:'s2', label:'②轿顶可站人面积垂直距离', formula:'1.0+0.035v2'},
-    {key:'s3', label:'③井道顶最低部件与轿顶部件距离', formula:'0.3+0.035v2'},
-    {key:'s4', label:'④井道顶的最低部件与导靴或滚轮、悬挂装置端接装置附件、垂直滑动门的横梁或者部件的最高部分之间的自由垂直距离', formula:'0.1+0.035v2'}
+    {key:'s1', label:'①轿厢导轨进一步制导行程≥0.1＋0.035v²(m)', formula:'0.1+0.035v2'},
+    {key:'s2', label:'②位于轿厢投影部分的井道顶最低部件的水平面与轿顶最高可站人面积水平面之间的自由垂直距离≥1.0＋0.035v²(m)', formula:'1.0+0.035v2'},
+    {key:'s3', label:'③井道顶最低部件与固定在轿顶部件最高部分之间的自由垂直距离≥0.3＋0.035v²(m)', formula:'0.3+0.035v2'},
+    {key:'s4', label:'④井道顶的最低部件与导靴或滚轮、悬挂装置端接装置附件、垂直滑动门的横梁或者部件的最高部分之间的自由垂直距离≥0.1＋0.035v²(m)', formula:'0.1+0.035v2'}
   ];
   
   var cwSubM = (cwBuf + cwComp) / 1000; // 对重侧总压缩量，单位m
@@ -5423,10 +5536,25 @@ function toggleSubGroup(zoneIdx, groupIdx) {
     }
   }
   // 如果之前是收起的，则展开当前模块（手风琴：点击已展开的则全部收起）
-  if (!isCurrentlyExpanded) {
+  var willExpand = !isCurrentlyExpanded;
+  if (willExpand) {
     expandedSubGroups[zoneIdx][groupIdx] = true;
   }
   renderZoneContent(zoneIdx);
+  
+  // 展开后滚动到该分组顶部
+  if (willExpand) {
+    setTimeout(function() {
+      var groupEl = document.getElementById('subGroup_' + zoneIdx + '_' + groupIdx);
+      if (groupEl) {
+        var rect = groupEl.getBoundingClientRect();
+        var headerOffset = 60; // 顶部导航栏高度
+        var scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        var targetTop = scrollTop + rect.top - headerOffset;
+        window.scrollTo({top: targetTop, behavior: 'smooth'});
+      }
+    }, 50);
+  }
 }
 function isSubGroupExpanded(zoneIdx, groupIdx) {
   return expandedSubGroups[zoneIdx] && expandedSubGroups[zoneIdx][groupIdx] === true;
@@ -5775,7 +5903,7 @@ function exportNoticePDF() {
         showToast('PDF库加载失败，请检查网络');
         return;
       }
-      exportCheckToPdf();
+      exportNoticePDF();
     });
     return;
   }
@@ -5791,6 +5919,14 @@ function exportNoticePDF() {
       ngItems.push({id:item.id,name:dispName,std:item.std,value:c.v||'',duty:c.d||'A',note:c.n||''});
     }
   });
+  // 添加备注
+  if (task.notes && task.notes.length > 0) {
+    task.notes.forEach(function(note, idx) {
+      if (note.content && note.content.trim()) {
+        ngItems.push({id:'note_' + idx, name:'备注：' + note.content, std:'-', value:'', duty:'', note:'', isNote:true});
+      }
+    });
+  }
 
   var htmlContent = buildNoticeFullHTML(task, proj, dateStr, ngItems);
   var container = document.createElement('div');
@@ -5995,7 +6131,7 @@ function exportCheckPDF() {
         showToast('PDF库加载失败，请检查网络');
         return;
       }
-      exportCheckToExcelWithPdf();
+      exportCheckPDF();
     });
     return;
   }

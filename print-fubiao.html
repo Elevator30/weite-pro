@@ -211,7 +211,7 @@ th { font-weight: bold; background: #fff; }
     <button onclick="exportFubiaoPDF()" style="padding:8px 16px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;">保存到文件(PDF)</button>
   </div>
 </div>
-<div style="height:50px;"></div>
+<div id="content" style="width:100%;">
 
 <!-- 第1页 -->
 <div class="page" id="page1">
@@ -708,7 +708,10 @@ function getCurrentTask() {
 // ============ 填充数据 ============
 function fillData() {
   var task = getCurrentTask();
-  if (!task) return;
+  if (!task) {
+    document.getElementById('content').innerHTML = '<div style="text-align:center;padding:80px 20px;color:#999;font-size:14px;"><div style="font-size:48px;margin-bottom:16px;">📋</div>暂无数据<br><span style="font-size:12px;">请先在主页面录入检查数据后再打印副表</span></div>';
+    return;
+  }
   
   var att = task.attachments || {};
   
@@ -1428,5 +1431,6 @@ function exportFubiaoPDF() {
 document.addEventListener('DOMContentLoaded', fillData);
 </script>
 
+</div>
 </body>
 </html>
