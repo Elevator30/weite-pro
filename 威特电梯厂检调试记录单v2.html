@@ -329,6 +329,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
       <button class="header-menu-btn" style="position:relative;top:auto;right:auto;transform:none;" onclick="toggleHeaderMenu('main')">☰</button>
       <div class="header-dropdown" id="headerDropdownMain" style="top:100%;right:0;">
         <div onclick="showNewProject();closeHeaderMenu('main')">➕ 新建项目</div>
+        <div onclick="openInspectorSigSetting();closeHeaderMenu('main')">✍️ 厂检签字</div>
       </div>
     </div>
   </div>
@@ -354,6 +355,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
     <button class="header-menu-btn" onclick="toggleHeaderMenu('task')">☰</button>
     <div class="header-dropdown" id="headerDropdown-task">
       <div onclick="showNewCheck();closeHeaderMenu('task')">➕ 新建检查</div>
+      <div onclick="openClientSignature();closeHeaderMenu('task')">✍️ 甲方签字</div>
     </div>
   </div>
   <div id="taskList" class="task-list"></div>
@@ -375,7 +377,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
     <div class="header-dropdown no-print" id="headerDropdownCheck">
       <div onclick="saveCurrentTask();goPage('taskList');closeHeaderMenu('check')">📋 返回列表</div>
       <div onclick="showNewCheck();closeHeaderMenu('check')">➕ 新建</div>
-      <div onclick="openInspectorSigSetting();closeHeaderMenu('check')">✍️ 检验人员签名</div>
+      <div onclick="openInspectorSigSetting();closeHeaderMenu('check')">✍️ 厂检签字</div>
       <div onclick="exportTasksJSON();closeHeaderMenu('check')">📤 导出JSON</div>
       <div onclick="importTasksJSON();closeHeaderMenu('check')">📥 导入JSON</div>
       <div onclick="exportTasksExcel();closeHeaderMenu('check')">📊 导出Excel</div>
@@ -402,7 +404,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
 <!-- Sign Modal -->
 <div class="mo" id="moSign">
   <div class="mi">
-    <div class="mh"><h3>签字确认</h3><button onclick="closeMoModal('moSign')">×</button></div>
+    <div class="mh"><h3>厂检结论</h3><button onclick="closeMoModal('moSign')">×</button></div>
     <div class="mb">
       <div class="fr" style="margin-bottom:8px;">
         <label>施工单位签字</label>
@@ -1056,7 +1058,7 @@ var regions = [
   {name:'功能实验', color:'#e53e3e', ids:[37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99]},
   {name:'感官检查', color:'#3182ce', ids:[220,221,222,223,224,225,226,227,228,229]},
   {name:'测量数据', color:'#d69e2e', ids:[]}, // 附表统一入口
-  {name:'签字确认', color:'#e53e3e', ids:[]} // 签字与结论
+  {name:'厂检结论', color:'#e53e3e', ids:[]} // 签字与结论
 ];
 
 // 检查项 - 按id升序排列
@@ -2358,6 +2360,8 @@ function setComfort(itemId, val) {
 }
 
 function setCheckStatus(id, status) {
+  // 保存滚动位置，防止重渲染导致页面抖动
+  var savedScrollTop = window.pageYOffset || document.documentElement.scrollTop;
   var task = getCurrentTask();
   if (!task) return;
   if (!task.checks[id]) task.checks[id] = {};
@@ -2375,6 +2379,8 @@ function setCheckStatus(id, status) {
   renderZoneContent(currentZoneIndex);
   renderZoneTabs();
   updateProgress();
+  // 恢复滚动位置，消除抖动
+  window.scrollTo(0, savedScrollTop);
 }
 
 function updateNgField(id, field, value) {
@@ -2461,6 +2467,13 @@ function addNote() {
   var target = document.getElementById('notesSection');
   if (target) renderNotesSection(target);
   updateProgress();
+  // 新增备注后自动聚焦到新输入框（等待DOM渲染完成）
+  setTimeout(function() {
+    var noteTextareas = document.querySelectorAll('#notesSection textarea');
+    if (noteTextareas && noteTextareas.length > 0) {
+      noteTextareas[noteTextareas.length - 1].focus();
+    }
+  }, 60);
 }
 
 function updateNote(idx, val) {
@@ -2542,13 +2555,13 @@ function renderSignZoneContent(container) {
   html += '</div></div>';
 
   // 签字区域 - 合并为一个签字确认面板
-  html += '<div style="font-size:15px;font-weight:700;margin-bottom:10px;color:#667eea;">签字确认</div>';
+  html += '<div style="font-size:15px;font-weight:700;margin-bottom:10px;color:#667eea;">厂检结论</div>';
   
   // 项目管理人员/安装人员 - 姓名输入 + 点击弹窗签名
   var pmSigData = task.signatures.pmSig || '';
   var installerSigData = task.signatures.installerSig || '';
   html += '<div style="background:#f8fff8;border-radius:12px;padding:14px;margin-bottom:12px;border:1px solid #e2e8f0;">';
-  html += '<div style="font-size:13px;font-weight:600;margin-bottom:8px;">签字确认（项目管理人员/安装人员）</div>';
+  html += '<div style="font-size:13px;font-weight:600;margin-bottom:8px;">相关人员签名</div>';
   // 安装人员姓名输入
   html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">';
   // 安装人员姓名（从项目读取，不显示输入框）
@@ -2590,6 +2603,43 @@ function setRectifyDeadline(val) {
   if (!task) return;
   task.rectifyDeadline = val;
   saveProjects();
+}
+
+// 甲方签字（项目级）- 从电梯列表菜单调用
+function openClientSignature() {
+  window._signMode = 'client';
+  openMoModal('moSign');
+  var header = document.querySelector('#moSign .mh h3');
+  if (header) header.textContent = '甲方签字';
+  // 修改标签为甲方签字
+  var labels = document.querySelectorAll('#moSign label');
+  if (labels && labels[0]) labels[0].textContent = '甲方单位签字';
+  if (labels && labels[1]) labels[1].style.display = 'none';
+  var inspectorRow = document.getElementById('signInspectorName');
+  if (inspectorRow) inspectorRow.parentElement.style.display = 'none';
+  var proj = getCurrentProject();
+  if (!proj) return;
+  if (!proj.clientSignature) proj.clientSignature = {};
+  
+  // 填充姓名
+  document.getElementById('signBuilderName').value = proj.clientSignature.name || '';
+  document.getElementById('signInspectorName').value = '';
+  
+  // 初始化画布（使支持绘制）
+  setTimeout(function() {
+    initSigCanvasFor('Builder');
+    initSigCanvasFor('Inspector');
+    // 恢复甲方签名
+    if (proj.clientSignature.sig) {
+      var cBuilder = document.getElementById('sigCanvasBuilder');
+      if (cBuilder) {
+        var ctx = cBuilder.getContext('2d');
+        var img = new Image();
+        img.onload = function() { ctx.drawImage(img, 0, 0, cBuilder.width, cBuilder.height); };
+        img.src = proj.clientSignature.sig;
+      }
+    }
+  }, 300);
 }
 
 // 签字确认标签页 — 点击签名按钮 → 弹出全屏签名弹窗
@@ -3405,20 +3455,23 @@ function renderAttach1(container) {
   var doorStruct = att1.doorStructure || 'center';
   var html = '<div class="att-card"><div class="att-card-title">🚪 门间隙测量表</div>';
   
-  // 门结构切换 + 门类型选择（同一行）
+  // 门类型标签 + 门结构切换 + 门类型下拉（同一行紧凑布局）
   var doorStruct = att1.doorStructure || 'center';
-  html += '<div style="display:flex;gap:10px;margin-bottom:12px;align-items:stretch;">';
-  // 左：中分门/旁开门按钮
-  html += '<div style="flex:0 0 auto;display:flex;gap:6px;">';
-  html += '<div onclick="setAtt1DoorStructure(&#39;center&#39;)" style="padding:0 16px;display:flex;align-items:center;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;transition:all 0.2s;border:1.5px solid ' + (doorStruct === 'center' ? '#667eea' : '#e2e8f0') + ';background:' + (doorStruct === 'center' ? 'linear-gradient(135deg,#667eea,#764ba2)' : '#fff') + ';color:' + (doorStruct === 'center' ? '#fff' : '#718096') + ';">中分门</div>';
-  html += '<div onclick="setAtt1DoorStructure(&#39;side&#39;)" style="padding:0 16px;display:flex;align-items:center;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;transition:all 0.2s;border:1.5px solid ' + (doorStruct === 'side' ? '#667eea' : '#e2e8f0') + ';background:' + (doorStruct === 'side' ? 'linear-gradient(135deg,#667eea,#764ba2)' : '#fff') + ';color:' + (doorStruct === 'side' ? '#fff' : '#718096') + ';">旁开门</div>';
+  html += '<div style="display:flex;gap:8px;margin-bottom:12px;align-items:center;">';
+  // 门类型文字标签
+  html += '<label style="flex-shrink:0;font-size:13px;font-weight:600;color:#333;">门类型</label>';
+  // 中分门/旁开门按钮（紧凑样式，高度和下拉框一致）
+  html += '<div style="flex:0 0 auto;display:flex;gap:4px;">';
+  html += '<div onclick="setAtt1DoorStructure(&#39;center&#39;)" style="padding:0 12px;height:36px;display:flex;align-items:center;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:all 0.2s;border:1.5px solid ' + (doorStruct === 'center' ? '#667eea' : '#e2e8f0') + ';background:' + (doorStruct === 'center' ? 'linear-gradient(135deg,#667eea,#764ba2)' : '#fff') + ';color:' + (doorStruct === 'center' ? '#fff' : '#718096') + ';box-sizing:border-box;">中分门</div>';
+  html += '<div onclick="setAtt1DoorStructure(&#39;side&#39;)" style="padding:0 12px;height:36px;display:flex;align-items:center;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:all 0.2s;border:1.5px solid ' + (doorStruct === 'side' ? '#667eea' : '#e2e8f0') + ';background:' + (doorStruct === 'side' ? 'linear-gradient(135deg,#667eea,#764ba2)' : '#fff') + ';color:' + (doorStruct === 'side' ? '#fff' : '#718096') + ';box-sizing:border-box;">旁开门</div>';
   html += '</div>';
-  // 右：门类型下拉
-  html += '<div class="fr" style="flex:1;display:flex;align-items:center;"><label style="flex-shrink:0;">门类型</label><select id="att1DoorType" onchange="changeAtt1DoorType(this.value)" style="flex:1;border:1px solid #ddd;border-radius:6px;padding:10px;font-size:14px;min-width:0;">';
+  // 门类型下拉框（和按钮同高）
+  html += '<select id="att1DoorType" onchange="changeAtt1DoorType(this.value)" style="flex:1;height:36px;border:1px solid #ddd;border-radius:6px;padding:0 8px;font-size:13px;min-width:0;box-sizing:border-box;">';
   html += '<option value="cargate"' + (currentAtt1Door === 'cargate' ? ' selected' : '') + '>轿门-前门</option>';
   html += '<option value="cargated"' + (currentAtt1Door === 'cargated' ? ' selected' : '') + '>轿门-后门</option>';
   html += '<option value="laygate"' + (currentAtt1Door === 'laygate' ? ' selected' : '') + '>层门</option>';
-  html += '</select></div>';
+  html += '</select>';
+  html += '</div>';
   
   if (currentAtt1Door === 'laygate') {
     var laygates = att1.laygate || [];
@@ -4409,7 +4462,8 @@ function calcFaceDistMaxDev(rows, ref, key) {
   var refVal = parseFloat(ref) || 0;
   if (refVal <= 0) return { maxDev: '', hasNegative: false, hasData: false };
   
-  var maxDev = -Infinity;
+  var maxAbsDev = 0;
+  var maxPosDev = -Infinity;
   var hasNegative = false;
   var hasData = false;
   
@@ -4419,12 +4473,15 @@ function calcFaceDistMaxDev(rows, ref, key) {
       hasData = true;
       var dev = v - refVal;
       if (dev < 0) hasNegative = true;
-      if (dev > maxDev) maxDev = dev;
+      if (dev > maxPosDev) maxPosDev = dev;
+      var absDev = Math.abs(dev);
+      if (absDev > maxAbsDev) maxAbsDev = absDev;
     }
   });
   
   return {
-    maxDev: hasData ? maxDev.toFixed(2) : '',
+    maxDev: hasData ? maxAbsDev.toFixed(2) : '',
+    maxPosDev: hasData ? maxPosDev.toFixed(2) : '',
     hasNegative: hasNegative,
     hasData: hasData
   };
@@ -5504,6 +5561,27 @@ function clearSigCanvas(suffix) {
 }
 
 function saveSignatures() {
+  // 甲方签字模式：保存到项目级clientSignature
+  if (window._signMode === 'client') {
+    var proj = getCurrentProject();
+    if (!proj) return;
+    if (!proj.clientSignature) proj.clientSignature = {};
+    proj.clientSignature.name = document.getElementById('signBuilderName').value || '';
+    var cBuilder = document.getElementById('sigCanvasBuilder');
+    if (cBuilder) {
+      proj.clientSignature.sig = cBuilder.toDataURL('image/png');
+    }
+    saveProjects();
+    closeMoModal('moSign');
+    window._signMode = '';
+    // 恢复检验人员行显示
+    var labels = document.querySelectorAll('#moSign label');
+    if (labels && labels[1]) labels[1].style.display = '';
+    var inspectorRow = document.getElementById('signInspectorName');
+    if (inspectorRow) inspectorRow.parentElement.style.display = '';
+    showToast('甲方签字已保存');
+    return;
+  }
   var task = getCurrentTask();
   if (!task) return;
   if (!task.signatures) task.signatures = {};
@@ -5548,7 +5626,7 @@ function toggleSubGroup(zoneIdx, groupIdx) {
       var groupEl = document.getElementById('subGroup_' + zoneIdx + '_' + groupIdx);
       if (groupEl) {
         var rect = groupEl.getBoundingClientRect();
-        var headerOffset = 60; // 顶部导航栏高度
+        var headerOffset = 100; // 顶部导航栏高度
         var scrollTop = window.pageYOffset || document.documentElement.scrollTop;
         var targetTop = scrollTop + rect.top - headerOffset;
         window.scrollTo({top: targetTop, behavior: 'smooth'});
@@ -5770,6 +5848,14 @@ function closeMoModal(id) {
   var mo = document.getElementById(id);
   if (mo) mo.style.display = 'none';
   closeMoBody();
+  // 重置甲方签字模式的UI状态
+  if (id === 'moSign' && window._signMode === 'client') {
+    window._signMode = '';
+    var labels = document.querySelectorAll('#moSign label');
+    if (labels && labels[1]) labels[1].style.display = '';
+    var inspectorRow = document.getElementById('signInspectorName');
+    if (inspectorRow) inspectorRow.parentElement.style.display = '';
+  }
 }
 
 // ============ SIGNATURE ============

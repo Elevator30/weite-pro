@@ -255,7 +255,7 @@ th { font-weight: bold; background: #fff; }
           </tr>
           <tr><th>中分门:≤45</th></tr>
           <tr class="sub-header">
-            <th rowspan="18" class="vertical-text">检验位置及测量数据</th>
+            <th rowspan="19" class="vertical-text">检验位置及测量数据</th>
             <th>位置</th>
             <th>左</th><th>右</th>
             <th></th>
@@ -758,7 +758,10 @@ function fillFb1(att1) {
   var maxLaygate = Math.min(laygate.length, 16);
   for (var i = 0; i < maxLaygate; i++) {
     var lg = laygate[i];
-    fillFb1Row('laygate' + (i+1), lg.name || ((i+1) + '层'), lg.data || []);
+    var dataArr = lg.data || [];
+    var hasData = dataArr.some(function(v){ return v && v.trim(); });
+    var floorName = hasData ? (lg.name || ((i+1) + '层')) : '';
+    fillFb1Row('laygate' + (i+1), floorName, dataArr);
   }
 }
 
@@ -814,6 +817,13 @@ function fillFb2(att2) {
   
   // 轿顶空间尺寸
   setFb2Text('top-s5-space', (top.s5L || '') + '×' + (top.s5W || '') + '×' + (top.s5H || ''));
+  // 轿顶空间检验结果
+  var _s5L = parseFloat(top.s5L) || 0;
+  var _s5W = parseFloat(top.s5W) || 0;
+  var _s5H = parseFloat(top.s5H) || 0;
+  if (_s5L > 0 && _s5W > 0 && _s5H > 0) {
+    setFb2Text('top-s5-result', (_s5L >= 0.5 && _s5W >= 0.6 && _s5H >= 0.8) ? '符合' : '不符合');
+  }
   
   // 底坑空间
   var pit = att2.底坑空间 || {};
@@ -831,6 +841,13 @@ function fillFb2(att2) {
   
   // 轿底空间尺寸
   setFb2Text('pit-p5-space', (pit.p5L || '') + '×' + (pit.p5W || '') + '×' + (pit.p5H || ''));
+  // 轿底空间检验结果
+  var _p5L = parseFloat(pit.p5L) || 0;
+  var _p5W = parseFloat(pit.p5W) || 0;
+  var _p5H = parseFloat(pit.p5H) || 0;
+  if (_p5L > 0 && _p5W > 0 && _p5H > 0) {
+    setFb2Text('pit-p5-result', (_p5L >= 0.5 && _p5W >= 0.6 && _p5H >= 1.0) ? '符合' : '不符合');
+  }
   
   // 计算顶部空间检验结果
   // 对重完全压在缓冲器上时轿门与层门地坎距离 = 对重缓冲距 + 对重压缩行程
@@ -966,24 +983,22 @@ function fillFb4(att4) {
     }
   }
   
-  // 最大偏差计算
+  // 最大偏差计算（最大绝对偏差：各测点与基准值偏差的绝对值的最大值）
   function calcMaxDev(key) {
     var refVal = parseFloat(key === 'car' ? att4.refCar : att4.refWeight);
-    var deviations = [];
-    var hasNegative = false;
+    var maxAbs = 0;
+    var hasData = false;
     var count = Math.min(rows.length, 10);
     for (var m = 0; m < count; m++) {
       var v = parseFloat(rows[m][key]);
       if (!isNaN(v)) {
-        var dev = v - refVal;
-        deviations.push(dev);
-        if (dev < 0) hasNegative = true;
+        var absDev = Math.abs(v - refVal);
+        if (absDev > maxAbs) maxAbs = absDev;
+        hasData = true;
       }
     }
-    if (deviations.length === 0) return '';
-    var max = Math.max.apply(null, deviations);
-    var min = Math.min.apply(null, deviations);
-    return (max - min).toFixed(2);
+    if (!hasData) return '';
+    return maxAbs.toFixed(2);
   }
   
   setFb4Text('car-max', calcMaxDev('car'));
