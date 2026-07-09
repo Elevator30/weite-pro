@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>数据恢复导入工具</title>
+<style>
+body{font-family:-apple-system,sans-serif;padding:20px;max-width:600px;margin:0 auto;}
+h1{font-size:18px;}
+.btn{display:block;width:100%;padding:15px;margin:10px 0;font-size:16px;border:none;border-radius:8px;background:#007aff;color:#fff;}
+.btn.secondary{background:#f2f2f2;color:#333;}
+#status{padding:15px;margin:10px 0;border-radius:8px;background:#e8f5e9;display:none;line-height:1.6;}
+#status.error{background:#ffebee;}
+.info{font-size:14px;color:#666;margin:15px 0;line-height:1.8;}
+.project-list{margin:10px 0;max-height:300px;overflow-y:auto;}
+.project-item{padding:10px;border:1px solid #ddd;border-radius:6px;margin:5px 0;font-size:14px;}
+input[type=file]{margin:10px 0;}
+</style>
+</head>
+<body>
+<h1>数据恢复导入工具</h1>
+<div class="info">
+选择你之前导出的JSON备份文件，即可恢复全部项目数据。
+</div>
+
+<input type="file" id="fileInput" accept=".json,application/json">
+<button class="btn" onclick="doImport()" style="display:none;" id="importBtn">确认导入全部数据</button>
+<button class="btn secondary" onclick="goBack()">返回主页面</button>
+
+<div id="status"></div>
+<div id="preview" class="project-list" style="display:none;"></div>
+
+<script>
+const STORAGE_KEY = 'WEITE_CHECK_V4';
+var importData = null;
+
+document.getElementById('fileInput').addEventListener('change', function(e) {
+  var file = e.target.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      var data = JSON.parse(e.target.result);
+      importData = data;
+      var projects = data.projects || [];
+      var html = '<b>检测到 ' + projects.length + ' 个项目：</b><br><br>';
+      for (var i = 0; i < projects.length; i++) {
+        var p = projects[i];
+        html += '<div class="project-item">';
+        html += '<b>' + (i+1) + '. ' + (p.projectName || p.name || '未命名项目') + '</b><br>';
+        html += '产品编号: ' + (p.productNo || '未填写') + '<br>';
+        html += '电梯数量: ' + ((p.tasks||[]).length) + ' 台';
+        html += '</div>';
+      }
+      document.getElementById('preview').innerHTML = html;
+      document.getElementById('preview').style.display = 'block';
+      document.getElementById('importBtn').style.display = 'block';
+      showStatus('文件读取成功，点击上方"确认导入全部数据"按钮恢复数据', false);
+    } catch(err) {
+      showStatus('文件读取失败: ' + err.message, true);
+    }
+  };
+  reader.readAsText(file);
+});
+
+function doImport() {
+  if (!importData) {
+    showStatus('请先选择文件', true);
+    return;
+  }
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(importData));
+    showStatus('✅ 导入成功！共 ' + (importData.projects||[]).length + ' 个项目。<br><br>点击下方"返回主页面"即可看到所有数据。', false);
+  } catch(err) {
+    showStatus('导入失败: ' + err.message, true);
+  }
+}
+
+function showStatus(msg, isError) {
+  var s = document.getElementById('status');
+  s.innerHTML = msg;
+  s.style.display = 'block';
+  s.className = isError ? 'error' : '';
+}
+
+function goBack() {
+  window.location.href = 'factory-inspection-v2.html?v=v56';
+}
+</script>
+</body>
+</html>
