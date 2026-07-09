@@ -41,9 +41,43 @@ document.getElementById('fileInput').addEventListener('change', function(e) {
   reader.onload = function(e) {
     try {
       var data = JSON.parse(e.target.result);
-      // 兼容两种格式：纯数组(v56格式) 或 {projects: [...]} (导出页格式)
-      var projects = Array.isArray(data) ? data : (data.projects || []);
-      importData = Array.isArray(data) ? data : (data.projects || []);
+      // 诊断信息
+      var dataType = Array.isArray(data) ? '数组' : '对象';
+      var keys = Array.isArray(data) ? [] : Object.keys(data);
+      var diag = '文件类型: ' + dataType;
+      if (!Array.isArray(data)) {
+        diag += '<br>顶层字段: ' + keys.join(', ');
+        // 尝试在所有字段中找数组类型的
+        for (var k = 0; k < keys.length; k++) {
+          if (Array.isArray(data[keys[k]])) {
+            diag += '<br>字段 "' + keys[k] + '" 是数组，长度: ' + data[keys[k]].length;
+          }
+        }
+      } else {
+        diag += '<br>数组长度: ' + data.length;
+        if (data.length > 0) {
+          diag += '<br>第一个元素字段: ' + Object.keys(data[0]).join(', ');
+        }
+      }
+      showStatus('文件读取成功。诊断信息：<br>' + diag, false);
+      // 兼容多种格式
+      var projects = [];
+      if (Array.isArray(data)) {
+        projects = data;
+      } else if (data.projects && Array.isArray(data.projects)) {
+        projects = data.projects;
+      } else if (data.tasks && Array.isArray(data.tasks)) {
+        projects = [{ name: '导入项目', tasks: data.tasks }];
+      } else {
+        // 遍历所有字段找包含tasks的数组
+        for (var j = 0; j < keys.length; j++) {
+          if (Array.isArray(data[keys[j]]) && data[keys[j]].length > 0 && data[keys[j]][0] && data[keys[j]][0].tasks) {
+            projects = data[keys[j]];
+            break;
+          }
+        }
+      }
+      importData = projects;
       var html = '<b>检测到 ' + projects.length + ' 个项目：</b><br><br>';
       for (var i = 0; i < projects.length; i++) {
         var p = projects[i];
