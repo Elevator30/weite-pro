@@ -1465,46 +1465,62 @@ function getMostRecentProjectIndex(direction) {
 
 function showNewProject() {
   editingProjectIndex = -1;
-  var titleEl = document.getElementById('moNewProjectTitle');
-  if (titleEl) titleEl.textContent = '新建项目';
   openMoModal('moNewProject');
-  var nameEl = document.getElementById('newProjName');
-  if (nameEl) nameEl.value = '';
-  var instEl = document.getElementById('newProjInstaller');
-  if (instEl) instEl.value = '';
-  var mgrEl = document.getElementById('newProjManager');
-  if (mgrEl) mgrEl.value = '';
-  var addrEl = document.getElementById('newProjAddrDetail');
-  if (addrEl) addrEl.value = '';
-  var remarkEl = document.getElementById('newProjRemark');
-  if (remarkEl) remarkEl.value = '';
-  initProvinceSelect('newProjProvince', 'newProjCity', 'newProjDistrict');
+  try {
+    var titleEl = document.getElementById('moNewProjectTitle');
+    if (titleEl) titleEl.textContent = '新建项目';
+    var nameEl = document.getElementById('newProjName');
+    if (nameEl) nameEl.value = '';
+    var instEl = document.getElementById('newProjInstaller');
+    if (instEl) instEl.value = '';
+    var mgrEl = document.getElementById('newProjManager');
+    if (mgrEl) mgrEl.value = '';
+    var addrEl = document.getElementById('newProjAddrDetail');
+    if (addrEl) addrEl.value = '';
+    var remarkEl = document.getElementById('newProjRemark');
+    if (remarkEl) remarkEl.value = '';
+    initProvinceSelect('newProjProvince', 'newProjCity', 'newProjDistrict');
+  } catch(e) {
+    console.error('showNewProject init error:', e);
+  }
 }
 
 function showEditProject(index) {
   editingProjectIndex = index;
-  var titleEl = document.getElementById('moNewProjectTitle');
-  if (titleEl) titleEl.textContent = '编辑项目';
   var proj = projects[index];
   if (!proj) return;
   openMoModal('moNewProject');
-  document.getElementById('newProjName').value = proj.name || '';
-  document.getElementById('newProjInstaller').value = proj.installer || '';
-  document.getElementById('newProjManager').value = proj.projectManagerName || '';
-  document.getElementById('newProjRemark').value = proj.remark || '';
-  initProvinceSelect('newProjProvince', 'newProjCity', 'newProjDistrict');
-  setRegionSelects('newProjProvince', 'newProjCity', 'newProjDistrict', proj.installAddr || '');
-  // 提取详细地址（省市区之后的部分）
-  var detail = '';
-  var addr = proj.installAddr || '';
-  var pVal = document.getElementById('newProjProvince').value || '';
-  var cVal = document.getElementById('newProjCity').value || '';
-  var dVal = document.getElementById('newProjDistrict').value || '';
-  var prefix = pVal + cVal + dVal;
-  if (addr.indexOf(prefix) === 0) {
-    detail = addr.substring(prefix.length);
+  try {
+    var titleEl = document.getElementById('moNewProjectTitle');
+    if (titleEl) titleEl.textContent = '编辑项目';
+    var nameEl = document.getElementById('newProjName');
+    if (nameEl) nameEl.value = proj.name || '';
+    var instEl = document.getElementById('newProjInstaller');
+    if (instEl) instEl.value = proj.installer || '';
+    var mgrEl = document.getElementById('newProjManager');
+    if (mgrEl) mgrEl.value = proj.projectManagerName || '';
+    var remarkEl = document.getElementById('newProjRemark');
+    if (remarkEl) remarkEl.value = proj.remark || '';
+    initProvinceSelect('newProjProvince', 'newProjCity', 'newProjDistrict');
+    setRegionSelects('newProjProvince', 'newProjCity', 'newProjDistrict', proj.installAddr || '');
+    // 提取详细地址（省市区之后的部分）
+    var detail = '';
+    var addr = proj.installAddr || '';
+    var pSel = document.getElementById('newProjProvince');
+    var cSel = document.getElementById('newProjCity');
+    var dSel = document.getElementById('newProjDistrict');
+    var pVal = pSel ? pSel.value || '' : '';
+    var cVal = cSel ? cSel.value || '' : '';
+    var dVal = dSel ? dSel.value || '' : '';
+    var prefix = pVal + cVal + dVal;
+    if (addr.indexOf(prefix) === 0) {
+      detail = addr.substring(prefix.length);
+    }
+    var addrDetailEl = document.getElementById('newProjAddrDetail');
+    if (addrDetailEl) addrDetailEl.value = detail;
+  } catch(e) {
+    console.error('showEditProject init error:', e);
   }
-  document.getElementById('newProjAddrDetail').value = detail;
 }
 
 function confirmProject() {
@@ -6207,7 +6223,7 @@ function saveSig() {
     return;
   }
   
-// 项目管理/安装人员签字（项目级）- 保存到 proj.clientSignature
+  // 项目管理/安装人员签字（项目级）- 保存到 proj.clientSignature
   if (signZoneTarget === 'client') {
     var proj = getCurrentProject();
     if (!proj) return;
@@ -8702,7 +8718,7 @@ init();
 </script>
 
 <!-- New Project Modal -->
-<div class="mo" id="moNewProject">
+<div class="mo" id="moNewProject" style="z-index:1000;">
   <div class="mi">
     <div class="mh"><h3 id="moNewProjectTitle">新建项目</h3><button onclick="closeMoModal('moNewProject')">×</button></div>
     <div class="mb">
