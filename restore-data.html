@@ -41,8 +41,9 @@ document.getElementById('fileInput').addEventListener('change', function(e) {
   reader.onload = function(e) {
     try {
       var data = JSON.parse(e.target.result);
-      importData = data;
-      var projects = data.projects || [];
+      // 兼容两种格式：纯数组(v56格式) 或 {projects: [...]} (导出页格式)
+      var projects = Array.isArray(data) ? data : (data.projects || []);
+      importData = Array.isArray(data) ? data : (data.projects || []);
       var html = '<b>检测到 ' + projects.length + ' 个项目：</b><br><br>';
       for (var i = 0; i < projects.length; i++) {
         var p = projects[i];
