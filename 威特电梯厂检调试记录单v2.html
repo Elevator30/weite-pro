@@ -17,6 +17,28 @@
 <script async src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
+<!-- Splash Screen - PWA启动加载层 -->
+<div id="splash-screen" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    z-index: 99999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    opacity: 1;
+    transition: opacity 0.4s ease-out;
+    -webkit-transition: opacity 0.4s ease-out;
+">
+    <div style="font-size: 36px; font-weight: 900; color: #fff; letter-spacing: 4px; margin-bottom: 8px; font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Heiti SC', sans-serif;">WEITE</div>
+    <div style="font-size: 14px; color: rgba(255,255,255,0.85); letter-spacing: 2px; margin-bottom: 24px; font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif;">威特电梯</div>
+    <div style="width: 36px; height: 36px; border: 3px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: splash-spin 0.8s linear infinite; -webkit-animation: splash-spin 0.8s linear infinite;"></div>
+    <div style="font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 16px; letter-spacing: 1px;">加载中...</div>
+</div>
 <!-- v50.1 -->
 <!-- v51: buildCheckItemsHTML和buildSingleAttachHTML改用纯table布局，移除所有flex/float，确保html2canvas正确渲染 -->
 <script>
@@ -36,6 +58,19 @@
 })();
 </script>
 <style>
+/* Splash Screen Animation */
+@keyframes splash-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+@-webkit-keyframes splash-spin {
+    from { -webkit-transform: rotate(0deg); }
+    to { -webkit-transform: rotate(360deg); }
+}
+#splash-screen.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',sans-serif;background:#f5f7fa;padding-bottom:20px;-webkit-overflow-scrolling:touch;}
 .page{display:none;overflow:visible;padding-top:158px;}
@@ -8719,6 +8754,28 @@ function loadPdfLibs(callback) {
 }
 
 init();
+
+// 隐藏启动加载层
+(function hideSplash() {
+  function doHide() {
+    var splash = document.getElementById('splash-screen');
+    if (!splash) return;
+    splash.classList.add('hidden');
+    setTimeout(function() {
+      if (splash.parentNode) {
+        splash.style.display = 'none';
+      }
+    }, 450);
+  }
+  // 等待DOM和初始化完成后再隐藏，确保用户看到的是完整界面
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    setTimeout(doHide, 300);
+  } else {
+    document.addEventListener('DOMContentLoaded', function() {
+      setTimeout(doHide, 300);
+    });
+  }
+})();
 
 </script>
 
