@@ -355,6 +355,11 @@ th { font-weight: bold; background: #fff; }
             <th>对重</th>
             <th data-fb2="对重压缩行程-val">mm</th>
           </tr>
+          <tr class="small-row">
+            <th>对重缓冲距最大允许值</th>
+            <th colspan="2"></th>
+            <th colspan="2" data-fb2="对重最大允许值-val">mm</th>
+          </tr>
           <tr>
             <th rowspan="6" class="vertical-text">井道顶部空间</th>
             <th colspan="4" class="slant-header">
@@ -369,27 +374,27 @@ th { font-weight: bold; background: #fff; }
             <td colspan="4" class="align-left">①轿厢导轨进一步制导行程≥0.1＋0.035v²（m）</td>
             <td colspan="2" data-fb2="top-s1">m</td>
             <td rowspan="4" data-fb2="top-s5H">m</td>
-            <td colspan="2" data-fb2="top-s1-result"></td>
+            <td colspan="2" data-fb2="top-s1-result" style="text-align:center;font-weight:bold;color:#000;"></td>
           </tr>
           <tr class="data-row">
             <td colspan="4" class="align-left">②位于轿厢投影部分的井道顶最低部件的水平面与轿顶最高可站人面积水平面之间的自由垂直距离≥1.0＋0.035v²（m）</td>
             <td colspan="2" data-fb2="top-s2">m</td>
-            <td colspan="2" data-fb2="top-s2-result"></td>
+            <td colspan="2" data-fb2="top-s2-result" style="text-align:center;font-weight:bold;color:#000;"></td>
           </tr>
           <tr class="data-row">
             <td colspan="4" class="align-left">③井道顶最低部件与固定在轿顶部件最高部分之间的自由垂直距离≥0.3＋0.035v²（m）</td>
             <td colspan="2" data-fb2="top-s3">m</td>
-            <td colspan="2" data-fb2="top-s3-result"></td>
+            <td colspan="2" data-fb2="top-s3-result" style="text-align:center;font-weight:bold;color:#000;"></td>
           </tr>
           <tr class="data-row">
             <td colspan="4" class="align-left">④井道顶的最低部件与导靴或滚轮、悬挂装置端接装置附件、垂直滑动门的横梁或者部件的最高部分之间的自由垂直距离≥0.1＋0.035v²（m）</td>
             <td colspan="2" data-fb2="top-s4">m</td>
-            <td colspan="2" data-fb2="top-s4-result"></td>
+            <td colspan="2" data-fb2="top-s4-result" style="text-align:center;font-weight:bold;color:#000;"></td>
           </tr>
           <tr class="data-row">
             <td colspan="4" class="align-left">⑤轿顶空间（≥0.5m×0.6m×0.8m）</td>
             <td colspan="3" data-fb2="top-s5-space"></td>
-            <td colspan="2" data-fb2="top-s5-result"></td>
+            <td colspan="2" data-fb2="top-s5-result" style="text-align:center;font-weight:bold;"></td>
           </tr>
           <tr>
             <th rowspan="7" class="vertical-text">底坑空间</th>
@@ -405,12 +410,12 @@ th { font-weight: bold; background: #fff; }
             <td colspan="4" class="align-left">①底坑底与轿厢最低部件之间的自由垂直距离≥0.5m</td>
             <td colspan="2" data-fb2="pit-p1">m</td>
             <td rowspan="5" data-fb2="pit-p5H">m</td>
-            <td colspan="2" data-fb2="pit-p1-result"></td>
+            <td colspan="2" data-fb2="pit-p1-result" style="text-align:center;font-weight:bold;color:#000;"></td>
           </tr>
           <tr class="data-row">
             <td colspan="4" class="align-left">②对重导轨进一步制导行程≥0.1+0.035v²（m）</td>
             <td colspan="2" data-fb2="pit-p2">m</td>
-            <td colspan="2" data-fb2="pit-p2-result"></td>
+            <td colspan="2" data-fb2="pit-p2-result" style="text-align:center;font-weight:bold;color:#000;"></td>
           </tr>
           <tr class="data-row">
             <td colspan="4" rowspan="2" class="align-left">③下述水平距离在0.15m之内时，底坑底与轿厢最低部件之间的自由垂直距离≥0.1m，<br>&nbsp;&nbsp;1)垂直滑动门的部件、护脚板和相邻井道壁<br>&nbsp;&nbsp;2)轿厢最低部件和导轨</td>
@@ -424,12 +429,12 @@ th { font-weight: bold; background: #fff; }
           <tr class="data-row">
             <td colspan="4" class="align-left">④底坑中固定的最高部件和轿厢的最低部件之间（b除外）的自由垂直距离≥0.3m</td>
             <td colspan="2" data-fb2="pit-p4">m</td>
-            <td colspan="2" data-fb2="pit-p4-result"></td>
+            <td colspan="2" data-fb2="pit-p4-result" style="text-align:center;font-weight:bold;color:#000;"></td>
           </tr>
           <tr class="data-row">
             <td colspan="4" class="align-left">⑤轿底空间（≥0.5m×0.6m×1.0m）</td>
             <td colspan="3" data-fb2="pit-p5-space"></td>
-            <td colspan="2" data-fb2="pit-p5-result"></td>
+            <td colspan="2" data-fb2="pit-p5-result" style="text-align:center;font-weight:bold;"></td>
           </tr>
           <tr class="remark-row">
             <th rowspan="2" class="vertical-text">备注</th>
@@ -776,14 +781,9 @@ function fillFb1Row(rowKey, name, data) {
   if (cells.length < 12) return;
   
   // 位置列索引确定：
-  // 13个td：第1个对应第1列（被vertical-text rowspan覆盖），第2个才是位置列
-  // 12个td：第1个就是位置列
-  var nameIdx = (cells.length >= 13) ? 1 : 0;
-  
-  // 清空第1列（被rowspan覆盖的列），防止内容错位
-  if (cells.length >= 13) {
-    cells[0].textContent = '';
-  }
+  // HTML表格中，第一列被vertical-text的rowspan占用，每行第一个td就是位置列(B列)
+  // 因此 cells[0] 就是位置列，数据从 cells[1] 开始
+  var nameIdx = 0;
   
   // 设置位置名称
   cells[nameIdx].textContent = name;
@@ -810,6 +810,7 @@ function fillFb2(att2) {
   setFb2Text('最大允许值-val', att2.最大允许值 || '');
   setFb2Text('轿厢压缩行程-val', att2.轿厢压缩行程 || '');
   setFb2Text('对重压缩行程-val', att2.对重压缩行程 || '');
+  setFb2Text('对重最大允许值-val', att2.对重最大允许值 || '');
   
   // 顶部空间
   var top = att2.顶部空间 || {};
@@ -856,6 +857,8 @@ function fillFb2(att2) {
   var _p5H = parseFloat(pit.p5H) || 0;
   if (_p5L > 0 && _p5W > 0 && _p5H > 0) {
     setFb2Text('pit-p5-result', (_p5L >= 0.5 && _p5W >= 0.6 && _p5H >= 1.0) ? '符合' : '不符合');
+  } else {
+    setFb2Text('pit-p5-result', '');
   }
   
   // 计算顶部空间检验结果

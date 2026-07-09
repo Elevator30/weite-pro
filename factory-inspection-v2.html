@@ -355,7 +355,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
     <button class="header-menu-btn" onclick="toggleHeaderMenu('task')">☰</button>
     <div class="header-dropdown" id="headerDropdown-task">
       <div onclick="showNewCheck();closeHeaderMenu('task')">➕ 新建检查</div>
-      <div onclick="openClientSignature();closeHeaderMenu('task')">✍️ 甲方签字</div>
+      <div onclick="openClientSignature();closeHeaderMenu('task')">✍️ 项目管理/安装人员签字</div>
     </div>
   </div>
   <div id="taskList" class="task-list"></div>
@@ -407,9 +407,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
     <div class="mh"><h3>厂检结论</h3><button onclick="closeMoModal('moSign')">×</button></div>
     <div class="mb">
       <div class="fr" style="margin-bottom:8px;">
-        <label>施工单位签字</label>
+        <label>项目管理/安装人员签字</label>
         <div style="flex:1;display:flex;flex-direction:column;gap:4px;">
-          <input type="text" id="signBuilderName" placeholder="施工单位名称" style="font-size:13px;">
           <canvas id="sigCanvasBuilder" width="300" height="80" style="border:1px solid #ddd;border-radius:8px;background:#fff;touch-action:none;"></canvas>
           <button onclick="clearSigCanvas('Builder')" style="font-size:11px;color:#999;background:none;border:none;cursor:pointer;text-align:right;">清除签名</button>
         </div>
@@ -2374,13 +2373,32 @@ function setCheckStatus(id, status) {
     c.s = status;
   }
   
+  // 固定容器高度防止重排抖动
+  var zoneContent = document.getElementById('zoneContent');
+  var origHeight = zoneContent ? zoneContent.offsetHeight : 0;
+  if (zoneContent && origHeight > 0) {
+    zoneContent.style.minHeight = origHeight + 'px';
+  }
+  
   // If switching away from NG, clean up NG fields but keep them in data
   saveCurrentTask();
   renderZoneContent(currentZoneIndex);
   renderZoneTabs();
   updateProgress();
-  // 恢复滚动位置，消除抖动
+  
+  // 立即恢复滚动位置
   window.scrollTo(0, savedScrollTop);
+  
+  // 下一帧再次恢复，确保浏览器布局完成后位置正确
+  requestAnimationFrame(function() {
+    window.scrollTo(0, savedScrollTop);
+    // 第二帧再确认一次
+    requestAnimationFrame(function() {
+      window.scrollTo(0, savedScrollTop);
+      // 清除minHeight限制
+      if (zoneContent) zoneContent.style.minHeight = '';
+    });
+  });
 }
 
 function updateNgField(id, field, value) {
@@ -2583,19 +2601,19 @@ function renderSignZoneContent(container) {
   }
   html += '</div>';
   
-  // 甲方签名（项目级，只读预览）
+  // 项目管理/安装人员签名（项目级，只读预览）
   var _cp = getCurrentProject();
   var _cs = (_cp && _cp.clientSignature) ? _cp.clientSignature : null;
   html += '<div style="background:#f0fff4;border-radius:10px;padding:12px;margin-bottom:12px;border:1px solid #9ae6b4;">';
-  html += '<div style="font-size:13px;font-weight:600;margin-bottom:8px;color:#276749;">✍️ 甲方签名（项目级）</div>';
+  html += '<div style="font-size:13px;font-weight:600;margin-bottom:8px;color:#276749;">✍️ 项目管理/安装人员签名（项目级）</div>';
   if (_cs && _cs.sig) {
     html += '<div style="display:flex;align-items:center;gap:10px;">';
-    html += '<div style="font-size:12px;color:#4b5563;font-weight:600;white-space:nowrap;">' + (_cs.name || '甲方') + '：</div>';
+    html += '<div style="font-size:12px;color:#4b5563;font-weight:600;white-space:nowrap;">' + (_cs.name || '项目管理/安装人员') + '：</div>';
     html += '<div style="flex:1;border:1px solid #e2e8f0;border-radius:6px;background:#fff;padding:6px;min-height:45px;display:flex;align-items:center;justify-content:center;">';
     html += '<img src="' + _cs.sig + '" style="max-height:40px;max-width:100%;">';
     html += '</div></div>';
   } else {
-    html += '<div style="color:#9ca3af;font-size:12px;text-align:center;padding:8px;">尚未设置甲方签名<br><span style="font-size:11px;">电梯列表顶部 → 甲方签字</span></div>';
+    html += '<div style="color:#9ca3af;font-size:12px;text-align:center;padding:8px;">尚未设置项目管理/安装人员签名<br><span style="font-size:11px;">电梯列表顶部 → 项目管理/安装人员签字</span></div>';
   }
   html += '</div>';
   
@@ -2643,31 +2661,35 @@ function setRectifyDeadline(val) {
   saveProjects();
 }
 
-// 甲方签字（项目级）- 从电梯列表菜单调用
+// 项目管理/安装人员签字（项目级）- 从电梯列表菜单调用
 function openClientSignature() {
   window._signMode = 'client';
   openMoModal('moSign');
   var header = document.querySelector('#moSign .mh h3');
-  if (header) header.textContent = '甲方签字';
-  // 修改标签为甲方签字
+  if (header) header.textContent = '项目管理/安装人员签字';
+  // 修改标签为项目管理/安装人员签字
   var labels = document.querySelectorAll('#moSign label');
-  if (labels && labels[0]) labels[0].textContent = '甲方单位签字';
+  if (labels && labels[0]) labels[0].textContent = '项目管理/安装人员签字';
   if (labels && labels[1]) labels[1].style.display = 'none';
   var inspectorRow = document.getElementById('signInspectorName');
   if (inspectorRow) inspectorRow.parentElement.style.display = 'none';
+  var nameInput = document.getElementById('signBuilderName');
+  if (nameInput) nameInput.parentElement.style.display = 'none';
   var proj = getCurrentProject();
-  if (!proj) return;
+  if (!proj) {
+    // 即使没有当前项目也初始化画布
+    setTimeout(function() {
+      initSigCanvasFor('Builder');
+    }, 300);
+    return;
+  }
   if (!proj.clientSignature) proj.clientSignature = {};
-  
-  // 填充姓名
-  document.getElementById('signBuilderName').value = proj.clientSignature.name || '';
-  document.getElementById('signInspectorName').value = '';
   
   // 初始化画布（使支持绘制）
   setTimeout(function() {
     initSigCanvasFor('Builder');
     initSigCanvasFor('Inspector');
-    // 恢复甲方签名
+    // 恢复签名
     if (proj.clientSignature.sig) {
       var cBuilder = document.getElementById('sigCanvasBuilder');
       if (cBuilder) {
@@ -3789,6 +3811,14 @@ function renderAttach1Judge() {
   
   var allOk = hasData && sillOk && doorGapOk && doorLockOk && forceGapOk && (!hasCutterData || cutterOk) && (!hasRollerData || rollerOk);
   
+  // 同步更新主表检测项状态UI
+  if (hasSillData && typeof updateStatusUI === 'function') updateStatusUI(113, task.checks[113].s);
+  if ((hasDoorGapData || hasForceGapData) && typeof updateStatusUI === 'function') updateStatusUI(114, task.checks[114].s);
+  if (hasDoorLockData && typeof updateStatusUI === 'function') updateStatusUI(115, task.checks[115].s);
+  if (hasCutterData && typeof updateStatusUI === 'function') updateStatusUI(116, task.checks[116].s);
+  if (hasRollerData && typeof updateStatusUI === 'function') updateStatusUI(117, task.checks[117].s);
+  if (typeof updateProgress === 'function') updateProgress();
+  
   var html = '<div class="auto-result' + (allOk ? ' pass' : '') + '" style="margin-top:12px;">';
   html += '<strong>自动判定:</strong><br>';
   html += 'id113(门地坎距离) ';
@@ -3928,6 +3958,10 @@ function renderAttach2(container) {
   html += '<div><div style="font-size:11px;color:#666;margin-bottom:2px;">对重缓冲器压缩行程 (mm)</div>';
   html += '<input type="text" value="' + (att2.对重压缩行程||'') + '" placeholder="mm" inputmode="decimal" onfocus="cancelAttachRender()" onblur="updateAtt2(\'对重压缩行程\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:6px;font-size:13px;text-align:center;"></div>';
   html += '</div>';
+  html += '<div style="margin-bottom:8px;">';
+  html += '<div style="font-size:11px;color:#666;margin-bottom:2px;">对重缓冲距最大允许值 (mm)</div>';
+  html += '<input type="text" value="' + (att2.对重最大允许值||'') + '" placeholder="手动填写，不参与计算" inputmode="decimal" onfocus="cancelAttachRender()" onblur="updateAtt2(\'对重最大允许值\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:6px;font-size:13px;text-align:center;">';
+  html += '</div>';
   
   html += '<div style="padding:8px;background:#e6f7ff;border-radius:6px;font-size:12px;line-height:1.6;">';
   html += '🚪 对重压缓冲器时轿门与层门地坎距离: <strong>' + cwTotalMm + ' mm</strong><br>';
@@ -3969,33 +4003,16 @@ function renderAttach2(container) {
     html += '</div></div>';
   });
   
-  // ⑤轿顶空间 - 三个输入 + 检验结果
-  var s5L = parseFloat(att2.顶部空间.s5L) || 0;
-  var s5W = parseFloat(att2.顶部空间.s5W) || 0;
-  var s5H = parseFloat(att2.顶部空间.s5H) || 0;
-  var s5HasData = s5L > 0 && s5W > 0 && s5H > 0;
-  var s5Ok = s5HasData && (s5L >= 0.5 && s5W >= 0.6 && s5H >= 0.8);
-  
+  // ⑤轿顶空间 - 长宽高三个输入
   html += '<div style="margin-bottom:8px;padding:8px;background:#fafafa;border-radius:6px;">';
   html += '<div style="font-size:12px;font-weight:600;color:#333;margin-bottom:6px;">⑤轿顶空间 (≥0.5m×0.6m×0.8m)</div>';
-  html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px;">';
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">';
   html += '<div><div style="font-size:10px;color:#666;">长(m) ≥0.5</div>';
   html += '<input type="text" value="' + (att2.顶部空间.s5L||'') + '" placeholder="m" inputmode="decimal" onfocus="cancelAttachRender()" onblur="updateAtt2Top(\'s5L\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
   html += '<div><div style="font-size:10px;color:#666;">宽(m) ≥0.6</div>';
   html += '<input type="text" value="' + (att2.顶部空间.s5W||'') + '" placeholder="m" inputmode="decimal" onfocus="cancelAttachRender()" onblur="updateAtt2Top(\'s5W\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
   html += '<div><div style="font-size:10px;color:#666;">高(m) ≥0.8</div>';
   html += '<input type="text" value="' + (att2.顶部空间.s5H||'') + '" placeholder="m" inputmode="decimal" onfocus="cancelAttachRender()" onblur="updateAtt2Top(\'s5H\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:5px;font-size:12px;text-align:center;"></div>';
-  html += '</div>';
-  // 检验结果行
-  html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;align-items:center;">';
-  html += '<div><div style="font-size:10px;color:#666;">空间尺寸</div>';
-  var s5SizeStr = s5HasData ? (s5L.toFixed(2)+'×'+s5W.toFixed(2)+'×'+s5H.toFixed(2)) : '-';
-  html += '<div style="padding:5px;background:#fff;border:1px solid #e0e0e0;border-radius:4px;text-align:center;font-size:11px;font-weight:600;">' + s5SizeStr + '</div></div>';
-  html += '<div><div style="font-size:10px;color:#666;">检验结果</div>';
-  html += '<div style="padding:5px;background:#fff;border:1px solid #e0e0e0;border-radius:4px;text-align:center;font-size:12px;font-weight:600;color:' + (s5HasData ? (s5Ok ? '#52c41a' : '#ff4d4f') : '#999') + ';">' + (s5HasData ? (s5Ok ? '合格' : '不合格') : '-') + '</div></div>';
-  html += '<div><div style="font-size:10px;color:#666;">标准判定</div>';
-  html += '<div style="padding:5px;background:#fff;border-radius:4px;text-align:center;font-size:12px;font-weight:600;color:' + (s5HasData ? (s5Ok ? '#52c41a' : '#ff4d4f') : '#999') + ';">' + (s5HasData ? (s5Ok ? '✓达标' : '✕不达标') : '未判定') + '</div></div>';
-  html += '</div>';
   html += '</div>';
   html += '</div>';
   
@@ -5565,7 +5582,8 @@ function showSignModal() {
   var task = getCurrentTask();
   if (!task) return;
   if (!task.signatures) task.signatures = {};
-  document.getElementById('signBuilderName').value = task.signatures.builderName || '';
+  var _sbName = document.getElementById('signBuilderName');
+  if (_sbName) _sbName.value = task.signatures.builderName || '';
   // 检验人员签名优先从持久化存储读取
   var persistentSig = getInspectorSignature();
   var inspectorName = task.signatures.inspectorName || persistentSig.name || '';
@@ -5624,12 +5642,13 @@ function clearSigCanvas(suffix) {
 }
 
 function saveSignatures() {
-  // 甲方签字模式：保存到项目级clientSignature
+  // 项目管理/安装人员签字模式：保存到项目级clientSignature
   if (window._signMode === 'client') {
     var proj = getCurrentProject();
     if (!proj) return;
     if (!proj.clientSignature) proj.clientSignature = {};
-    proj.clientSignature.name = document.getElementById('signBuilderName').value || '';
+    var _sbNameEl = document.getElementById('signBuilderName');
+    proj.clientSignature.name = _sbNameEl ? (_sbNameEl.value || '') : '';
     var cBuilder = document.getElementById('sigCanvasBuilder');
     if (cBuilder) {
       proj.clientSignature.sig = cBuilder.toDataURL('image/png');
@@ -5642,13 +5661,14 @@ function saveSignatures() {
     if (labels && labels[1]) labels[1].style.display = '';
     var inspectorRow = document.getElementById('signInspectorName');
     if (inspectorRow) inspectorRow.parentElement.style.display = '';
-    showToast('甲方签字已保存');
+    showToast('项目管理/安装人员签字已保存');
     return;
   }
   var task = getCurrentTask();
   if (!task) return;
   if (!task.signatures) task.signatures = {};
-  task.signatures.builderName = document.getElementById('signBuilderName').value;
+  var _sbn = document.getElementById('signBuilderName');
+  task.signatures.builderName = _sbn ? _sbn.value : '';
   var inspectorName = document.getElementById('signInspectorName').value;
   task.signatures.inspectorName = inspectorName;
   var cBuilder = document.getElementById('sigCanvasBuilder');
@@ -5911,7 +5931,7 @@ function closeMoModal(id) {
   var mo = document.getElementById(id);
   if (mo) mo.style.display = 'none';
   closeMoBody();
-  // 重置甲方签字模式的UI状态
+  // 重置项目管理/安装人员签字模式的UI状态
   if (id === 'moSign' && window._signMode === 'client') {
     window._signMode = '';
     var labels = document.querySelectorAll('#moSign label');
@@ -5983,14 +6003,31 @@ function saveSig() {
   var canvas = document.getElementById('sigCanvas');
   var dataUrl = canvas.toDataURL();
   var task = getCurrentTask();
+  
+  // 检验人员签名（全局）- 即使没有当前任务也要保存到localStorage
+  if (signZoneTarget === 'inspector') {
+    saveInspectorSignature('检验人员', dataUrl);
+    // 如果有当前任务，也保存到任务中
+    if (task) {
+      if (!task.signatures) task.signatures = {};
+      task.signatures.inspectorSig = dataUrl;
+      saveProjects();
+      // 刷新显示
+      if (typeof renderSignZoneContent === 'function') {
+        var signDiv = document.getElementById('signZoneContent');
+        if (signDiv) renderSignZoneContent(signDiv);
+      }
+    }
+    closeSigModal();
+    showToast('检验人员签名已保存');
+    return;
+  }
+  
   if (!task) return;
   if (!task.signatures) task.signatures = {};
   
   // 签字确认标签页的签名
-  if (signZoneTarget === 'inspector') {
-    task.signatures.inspectorSig = dataUrl;
-    saveInspectorSignature('检验人员', dataUrl);
-  } else if (signZoneTarget === 'pm') {
+  if (signZoneTarget === 'pm') {
     task.signatures.pmSig = dataUrl;
   } else if (signZoneTarget === 'installer') {
     task.signatures.installerSig = dataUrl;
