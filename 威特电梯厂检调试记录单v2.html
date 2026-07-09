@@ -1494,7 +1494,7 @@ function renderProjectList() {
       '<div class="task-btns">' +
         '<button class="btn-view" onclick="event.stopPropagation();openProject(' + i + ')">进入</button>' +
         '<button class="btn-view" onclick="event.stopPropagation();showEditProject(' + i + ')">编辑</button>' +
-        '<button class="btn-del" onclick="event.stopPropagation();deleteProject(' + i + ')">删除</button>' +
+        '<button class="btn-del" onclick="event.stopPropagation();if(confirm(\'确定删除该项目吗？所有电梯记录将一并删除，不可恢复。\')) deleteProject(' + i + ')">删除</button>' +
       '</div>' +
     '</div>';
   });
@@ -1722,7 +1722,7 @@ function renderTaskList() {
             '<div onclick="event.stopPropagation();printFubiao(' + i + ')">📊 打印副表</div>' +
           '</div>' +
         '</div>' +
-        '<button class="btn-del" onclick="event.stopPropagation();deleteTask(' + i + ')">删除</button>' +
+        '<button class="btn-del" onclick="event.stopPropagation();if(confirm(\'确定删除该电梯检验记录吗？不可恢复。\')) deleteTask(' + i + ')">删除</button>' +
       '</div>' +
     '</div>';
   });
@@ -1787,23 +1787,12 @@ function printFubiao(index) {
   }
   currentTaskIndex = index;
   closeAllPrintMenus();
-  
   try {
-    // 确保PDF库已加载
-    if (typeof html2canvas === 'undefined' || typeof jsPDF === 'undefined') {
-      showToast('正在加载PDF库，请稍候...');
-      loadPdfLibs(function(){
-        if (typeof html2canvas === 'undefined' || typeof jsPDF === 'undefined') {
-          showToast('PDF库加载失败，请检查网络');
-          return;
-        }
-        printFubiao(index);
-      });
-      return;
+    var url = 'print-fubiao.html?proj=' + currentProjectIndex + '&task=' + index;
+    var win = window.open(url, '_blank');
+    if (!win) {
+      showToast('弹窗被拦截，请允许弹出窗口');
     }
-    
-    showToast('正在准备副表...');
-    exportFubiaoPDF();
   } catch(e) {
     console.error('副表打印失败:', e);
     showToast('副表打印失败: ' + (e.message || e));
