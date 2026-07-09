@@ -8,7 +8,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="威特厂检记录">
 <meta name="theme-color" content="#667eea">
-<title>威特电梯厂检调试记录单V2 v55</title>
+<title>威特电梯厂检调试记录单V2 v56</title>
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%231a3a6b'/%3E%3Ctext x='50' y='42' font-family='Arial' font-size='28' font-weight='900' text-anchor='middle' fill='white'%3EVEITE%3C/text%3E%3Ctext x='50' y='72' font-family='serif' font-size='16' font-weight='800' text-anchor='middle' fill='%23e63946'%3E电梯%3C/text%3E%3C/svg%3E">
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
@@ -365,6 +365,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
       <div class="header-dropdown" id="headerDropdownMain" style="top:100%;right:0;">
         <div onclick="showNewProject();closeHeaderMenu('main')">➕ 新建项目</div>
         <div onclick="openInspectorSigSetting();closeHeaderMenu('main')">✍️ 厂检签字</div>
+        <div onclick="exportTasksJSON();closeHeaderMenu('main')">📤 导出JSON</div>
+        <div onclick="importTasksJSON();closeHeaderMenu('main')">📥 导入JSON</div>
+        <div onclick="exportTasksExcel();closeHeaderMenu('main')">📊 导出Excel</div>
       </div>
     </div>
   </div>
@@ -412,10 +415,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
     <div class="header-dropdown no-print" id="headerDropdownCheck">
       <div onclick="saveCurrentTask();goPage('taskList');closeHeaderMenu('check')">📋 返回列表</div>
       <div onclick="showNewCheck();closeHeaderMenu('check')">➕ 新建</div>
-      <div onclick="openInspectorSigSetting();closeHeaderMenu('check')">✍️ 厂检签字</div>
-      <div onclick="exportTasksJSON();closeHeaderMenu('check')">📤 导出JSON</div>
-      <div onclick="importTasksJSON();closeHeaderMenu('check')">📥 导入JSON</div>
-      <div onclick="exportTasksExcel();closeHeaderMenu('check')">📊 导出Excel</div>
+      <div onclick="printCheckSheet(currentTaskIndex);closeHeaderMenu('check')">📝 打印检查表</div>
+      <div onclick="printFubiao(currentTaskIndex);closeHeaderMenu('check')">📊 打印副表</div>
     </div>
     </div>
   <div class="progress-container">
@@ -1779,17 +1780,344 @@ function printFubiao(index) {
   if (typeof currentProjectIndex === 'undefined' || currentProjectIndex < 0) {
     if (projects && projects.length > 0) currentProjectIndex = 0;
   }
+  currentTaskIndex = index;
   closeAllPrintMenus();
+  
   try {
-    var url = 'print-fubiao.html?proj=' + currentProjectIndex + '&task=' + index;
-    var win = window.open(url, '_blank');
-    if (!win) {
-      showToast('弹窗被拦截，请允许弹出窗口');
+    // 确保PDF库已加载
+    if (typeof html2canvas === 'undefined' || typeof jsPDF === 'undefined') {
+      showToast('正在加载PDF库，请稍候...');
+      loadPdfLibs(function(){
+        if (typeof html2canvas === 'undefined' || typeof jsPDF === 'undefined') {
+          showToast('PDF库加载失败，请检查网络');
+          return;
+        }
+        printFubiao(index);
+      });
+      return;
     }
+    
+    showToast('正在准备副表...');
+    exportFubiaoPDF();
   } catch(e) {
-    console.error('打开副表打印页失败:', e);
-    showToast('打开副表失败: ' + (e.message || e));
+    console.error('副表打印失败:', e);
+    showToast('副表打印失败: ' + (e.message || e));
   }
+}
+
+// ========== 副表PDF生成（内嵌实现） ==========
+function exportFubiaoPDF() {
+  var task = getCurrentTask();
+  if (!task) { showToast('未找到检查数据'); return; }
+  var proj = getCurrentProject();
+  var now = new Date();
+  var dateStr = now.getFullYear() + '年' + (now.getMonth()+1) + '月' + now.getDate() + '日';
+  var projName = (proj && proj.name || '未命名').replace(/[\\/:*?"<>|]/g, '');
+  var filename = projName + '_副表.pdf';
+  
+  if (typeof html2canvas === 'undefined' || typeof jsPDF === 'undefined') {
+    showToast('PDF库未加载');
+    return;
+  }
+  var JsPDF = jsPDF;
+  
+  var att = task.attachments || {};
+  
+  // 构建副表HTML（简化版，两页横版A4）
+  var page1Html = buildFubiaoPage1(att, task, proj);
+  var page2Html = buildFubiaoPage2(att, task, proj);
+  
+  var canvases = [];
+  var sections = [
+    {html: page1Html, label: '副表第1页', orientation: 'landscape'},
+    {html: page2Html, label: '副表第2页', orientation: 'landscape'}
+  ];
+  var idx = 0;
+  
+  function renderNext() {
+    if (idx >= sections.length) {
+      // 组装PDF
+      try {
+        var pdf = new JsPDF({orientation: 'l', unit: 'mm', format: 'a4'});
+        canvases.forEach(function(item, i) {
+          var canvas = item.canvas;
+          var imgData = canvas.toDataURL('image/jpeg', 0.92);
+          if (i > 0) pdf.addPage('a4', 'l');
+          pdf.addImage(imgData, 'JPEG', 0, 0, 297, 210);
+        });
+        pdf.save(filename);
+        showToast('副表导出成功！共' + canvases.length + '页');
+      } catch(err) {
+        console.error('副表PDF组装失败:', err);
+        showToast('副表PDF组装失败: ' + (err.message||err));
+      }
+      return;
+    }
+    
+    var sec = sections[idx];
+    var container = document.createElement('div');
+    container.style.cssText = 'position:absolute;left:-9999px;top:0;z-index:-1;';
+    document.body.appendChild(container);
+    
+    var div = document.createElement('div');
+    div.style.cssText = "width:842px;height:595px;padding:10mm;font-family:'SimSun','宋体',serif;background:#fff;color:#000;font-size:9px;line-height:1.2;box-sizing:border-box;";
+    div.innerHTML = sec.html;
+    container.appendChild(div);
+    
+    showToast('正在渲染' + sec.label + '...');
+    
+    setTimeout(function() {
+      html2canvas(div, {
+        scale: 2, useCORS: true, allowTaint: true,
+        backgroundColor: '#ffffff', logging: false, removeContainer: false,
+        width: div.scrollWidth, height: div.scrollHeight
+      }).then(function(canvas) {
+        canvases.push({canvas: canvas, orientation: sec.orientation});
+        if (container.parentNode) container.parentNode.removeChild(container);
+        idx++;
+        renderNext();
+      }).catch(function(err) {
+        console.error(sec.label + '渲染失败:', err);
+        showToast(sec.label + '渲染失败: ' + (err.message||err));
+        if (container.parentNode) container.parentNode.removeChild(container);
+        idx++;
+        renderNext();
+      });
+    }, 200);
+  }
+  
+  renderNext();
+}
+
+// 副表第1页：附表1（门系统）+ 附表2（导轨）+ 附表3（安全钳/缓冲器）
+function buildFubiaoPage1(att, task, proj) {
+  var html = '';
+  // 标题
+  html += '<div style="text-align:center;font-size:14px;font-weight:bold;margin-bottom:6px;">电梯安装验收副表（一）</div>';
+  html += '<div style="display:flex;justify-content:space-between;font-size:9px;margin-bottom:6px;">';
+  html += '<span>项目：' + (proj && proj.name || '') + '</span>';
+  html += '<span>产品编号：' + (task.prodNo || '') + '</span>';
+  html += '<span>日期：' + (task.checkDate || '') + '</span>';
+  html += '</div>';
+  
+  html += '<div style="display:flex;gap:8px;">';
+  // 左列
+  html += '<div style="flex:1;">';
+  // 附表1：门系统
+  html += buildFb1Table(att.attach1);
+  html += '</div>';
+  // 右列
+  html += '<div style="flex:1;">';
+  // 附表2：导轨
+  html += buildFb2Table(att.attach2);
+  // 附表3：安全钳/缓冲器
+  html += buildFb3Table(att.attach3);
+  html += '</div>';
+  html += '</div>';
+  
+  return html;
+}
+
+// 副表第2页：附表4（曳引/钢丝绳）+ 附表5（平衡系数）+ 附表6（张力）+ 附表7（噪声）
+function buildFubiaoPage2(att, task, proj) {
+  var html = '';
+  html += '<div style="text-align:center;font-size:14px;font-weight:bold;margin-bottom:6px;">电梯安装验收副表（二）</div>';
+  html += '<div style="display:flex;justify-content:space-between;font-size:9px;margin-bottom:6px;">';
+  html += '<span>项目：' + (proj && proj.name || '') + '</span>';
+  html += '<span>产品编号：' + (task.prodNo || '') + '</span>';
+  html += '<span>日期：' + (task.checkDate || '') + '</span>';
+  html += '</div>';
+  
+  html += '<div style="display:flex;gap:8px;">';
+  // 左列：附表4 + 附表6
+  html += '<div style="flex:1;display:flex;flex-direction:column;gap:6px;">';
+  html += buildFb4Table(att.attach4);
+  html += buildFb6Table(att.attach6);
+  html += '</div>';
+  // 右列：附表5 + 附表7
+  html += '<div style="flex:1;display:flex;flex-direction:column;gap:6px;">';
+  html += buildFb5Table(att.attach5);
+  html += buildFb7Table(att.attach7);
+  html += '</div>';
+  html += '</div>';
+  
+  return html;
+}
+
+// 附表1：层门、轿门
+function buildFb1Table(att1) {
+  if (!att1) return '<div style="font-size:10px;font-weight:bold;margin-bottom:4px;">附表1 层门、轿门</div><div style="border:1px solid #333;padding:10px;text-align:center;color:#999;">暂无数据</div>';
+  var html = '<div style="font-size:10px;font-weight:bold;margin-bottom:2px;">附表1 层门、轿门系统安装检验记录</div>';
+  html += '<table style="width:100%;border-collapse:collapse;font-size:7px;">';
+  // 表头
+  html += '<tr>';
+  html += '<th style="border:1px solid #333;padding:1px;width:18%;">项目</th>';
+  html += '<th style="border:1px solid #333;padding:1px;">门地坎距</th>';
+  html += '<th style="border:1px solid #333;padding:1px;">门扇间隙</th>';
+  html += '<th style="border:1px solid #333;padding:1px;">立柱偏差</th>';
+  html += '<th style="border:1px solid #333;padding:1px;">地坎间隙</th>';
+  html += '<th style="border:1px solid #333;padding:1px;">施力间隙</th>';
+  html += '<th style="border:1px solid #333;padding:1px;">啮合长度</th>';
+  html += '<th style="border:1px solid #333;padding:1px;">门刀地坎</th>';
+  html += '<th style="border:1px solid #333;padding:1px;">滚轮地坎</th>';
+  html += '</tr>';
+  
+  var cargate = att1.cargate || [[], []];
+  // 轿门1
+  var c1 = cargate[0] || [];
+  html += '<tr>';
+  html += '<td style="border:1px solid #333;padding:1px;font-weight:bold;">轿门1</td>';
+  html += '<td style="border:1px solid #333;padding:1px;text-align:center;">' + (c1[4]||'') + '</td>';
+  html += '<td style="border:1px solid #333;padding:1px;text-align:center;">' + (c1[7]||'') + '</td>';
+  html += '<td style="border:1px solid #333;padding:1px;text-align:center;">' + (c1[2]||'') + '/' + (c1[3]||'') + '</td>';
+  html += '<td style="border:1px solid #333;padding:1px;text-align:center;">' + (c1[14]||'') + '</td>';
+  html += '<td style="border:1px solid #333;padding:1px;text-align:center;">' + (c1[6]||'') + '</td>';
+  html += '<td style="border:1px solid #333;padding:1px;text-align:center;">' + (c1[9]||'') + '</td>';
+  html += '<td style="border:1px solid #333;padding:1px;text-align:center;">' + (c1[10]||'') + '</td>';
+  html += '<td style="border:1px solid #333;padding:1px;text-align:center;">' + (c1[12]||'') + '</td>';
+  html += '</tr>';
+  
+  // 层门（前3层）
+  var laygate = att1.laygate || [];
+  for (var i = 0; i < Math.min(3, laygate.length); i++) {
+    var lg = laygate[i];
+    var d = lg.data || [];
+    html += '<tr>';
+    html += '<td style="border:1px solid #333;padding:1px;font-weight:bold;">' + (lg.name || (i+1)+'层') + '</td>';
+    html += '<td style="border:1px solid #333;padding:1px;text-align:center;">' + (d[4]||'') + '</td>';
+    html += '<td style="border:1px solid #333;padding:1px;text-align:center;">' + (d[7]||'') + '</td>';
+    html += '<td style="border:1px solid #333;padding:1px;text-align:center;">-</td>';
+    html += '<td style="border:1px solid #333;padding:1px;text-align:center;">' + (d[14]||'') + '</td>';
+    html += '<td style="border:1px solid #333;padding:1px;text-align:center;">' + (d[6]||'') + '</td>';
+    html += '<td style="border:1px solid #333;padding:1px;text-align:center;">' + (d[9]||'') + '</td>';
+    html += '<td style="border:1px solid #333;padding:1px;text-align:center;">' + (d[10]||'') + '</td>';
+    html += '<td style="border:1px solid #333;padding:1px;text-align:center;">' + (d[12]||'') + '</td>';
+    html += '</tr>';
+  }
+  html += '</table>';
+  return html;
+}
+
+// 附表2：导轨
+function buildFb2Table(att2) {
+  if (!att2) return '<div style="font-size:10px;font-weight:bold;margin:6px 0 2px;">附表2 导轨</div><div style="border:1px solid #333;padding:10px;text-align:center;color:#999;">暂无数据</div>';
+  var html = '<div style="font-size:10px;font-weight:bold;margin:6px 0 2px;">附表2 导轨安装检验记录</div>';
+  html += '<table style="width:100%;border-collapse:collapse;font-size:7px;">';
+  html += '<tr><th style="border:1px solid #333;padding:1px;">项目</th><th style="border:1px solid #333;padding:1px;">轿厢导轨</th><th style="border:1px solid #333;padding:1px;">对重导轨</th></tr>';
+  
+  // 简单显示部分关键数据
+  var car = att2.carRail || {};
+  var cwt = att2.cwtRail || {};
+  html += '<tr><td style="border:1px solid #333;padding:1px;font-weight:bold;">顶面间距</td><td style="border:1px solid #333;padding:1px;text-align:center;">' + (car.topDist||'') + '</td><td style="border:1px solid #333;padding:1px;text-align:center;">' + (cwt.topDist||'') + '</td></tr>';
+  html += '<tr><td style="border:1px solid #333;padding:1px;font-weight:bold;">底面间距</td><td style="border:1px solid #333;padding:1px;text-align:center;">' + (car.bottomDist||'') + '</td><td style="border:1px solid #333;padding:1px;text-align:center;">' + (cwt.bottomDist||'') + '</td></tr>';
+  html += '<tr><td style="border:1px solid #333;padding:1px;font-weight:bold;">偏摆值</td><td style="border:1px solid #333;padding:1px;text-align:center;">' + (car.deflection||'') + '</td><td style="border:1px solid #333;padding:1px;text-align:center;">' + (cwt.deflection||'') + '</td></tr>';
+  html += '</table>';
+  return html;
+}
+
+// 附表3：安全钳/缓冲器
+function buildFb3Table(att3) {
+  if (!att3) return '<div style="font-size:10px;font-weight:bold;margin:6px 0 2px;">附表3 安全钳/缓冲器</div><div style="border:1px solid #333;padding:10px;text-align:center;color:#999;">暂无数据</div>';
+  var html = '<div style="font-size:10px;font-weight:bold;margin:6px 0 2px;">附表3 安全钳、缓冲器检验记录</div>';
+  html += '<table style="width:100%;border-collapse:collapse;font-size:7px;">';
+  html += '<tr><th style="border:1px solid #333;padding:1px;">项目</th><th style="border:1px solid #333;padding:1px;">数据</th></tr>';
+  html += '<tr><td style="border:1px solid #333;padding:1px;font-weight:bold;">安全钳类型</td><td style="border:1px solid #333;padding:1px;text-align:center;">' + (att3.safetyGearType||'') + '</td></tr>';
+  html += '<tr><td style="border:1px solid #333;padding:1px;font-weight:bold;">缓冲器类型</td><td style="border:1px solid #333;padding:1px;text-align:center;">' + (att3.bufferType||'') + '</td></tr>';
+  html += '<tr><td style="border:1px solid #333;padding:1px;font-weight:bold;">越程距离</td><td style="border:1px solid #333;padding:1px;text-align:center;">' + (att3.travelDistance||'') + '</td></tr>';
+  html += '</table>';
+  return html;
+}
+
+// 附表4：曳引/钢丝绳
+function buildFb4Table(att4) {
+  if (!att4) return '<div style="font-size:10px;font-weight:bold;margin-bottom:2px;">附表4 曳引钢丝绳</div><div style="border:1px solid #333;padding:10px;text-align:center;color:#999;">暂无数据</div>';
+  var html = '<div style="font-size:10px;font-weight:bold;margin-bottom:2px;">附表4 曳引钢丝绳检验记录</div>';
+  html += '<table style="width:100%;border-collapse:collapse;font-size:7px;">';
+  html += '<tr><th style="border:1px solid #333;padding:1px;">钢丝绳号</th><th style="border:1px solid #333;padding:1px;">张力(N)</th></tr>';
+  var ropes = att4.ropes || [];
+  for (var i = 0; i < Math.min(6, ropes.length); i++) {
+    html += '<tr><td style="border:1px solid #333;padding:1px;text-align:center;">第' + (i+1) + '根</td><td style="border:1px solid #333;padding:1px;text-align:center;">' + (ropes[i]||'') + '</td></tr>';
+  }
+  html += '</table>';
+  return html;
+}
+
+// 附表5：平衡系数
+function buildFb5Table(att5) {
+  if (!att5) return '<div style="font-size:10px;font-weight:bold;margin-bottom:2px;">附表5 平衡系数</div><div style="border:1px solid #333;padding:10px;text-align:center;color:#999;">暂无数据</div>';
+  var html = '<div style="font-size:10px;font-weight:bold;margin-bottom:2px;">附表5 电梯平衡系数检验记录</div>';
+  var current = att5['电流'] || {};
+  var up = current['电流上行'] || ['','','','',''];
+  var down = current['电流下行'] || ['','','','',''];
+  html += '<table style="width:100%;border-collapse:collapse;font-size:7px;">';
+  html += '<tr><th style="border:1px solid #333;padding:1px;">负载</th><th style="border:1px solid #333;padding:1px;">30%</th><th style="border:1px solid #333;padding:1px;">40%</th><th style="border:1px solid #333;padding:1px;">45%</th><th style="border:1px solid #333;padding:1px;">50%</th><th style="border:1px solid #333;padding:1px;">60%</th></tr>';
+  html += '<tr><td style="border:1px solid #333;padding:1px;font-weight:bold;">上行(A)</td>';
+  for (var i = 0; i < 5; i++) html += '<td style="border:1px solid #333;padding:1px;text-align:center;">' + (up[i]||'') + '</td>';
+  html += '</tr><tr><td style="border:1px solid #333;padding:1px;font-weight:bold;">下行(A)</td>';
+  for (var j = 0; j < 5; j++) html += '<td style="border:1px solid #333;padding:1px;text-align:center;">' + (down[j]||'') + '</td>';
+  html += '</tr></table>';
+  
+  // 计算平衡系数
+  var upVals = up.map(function(v){return parseFloat(v);});
+  var downVals = down.map(function(v){return parseFloat(v);});
+  var percentages = [30, 40, 45, 50, 60];
+  var balancePoint = 0;
+  var found = false;
+  for (var k = 0; k < 4; k++) {
+    if (isNaN(upVals[k]) || isNaN(upVals[k+1]) || isNaN(downVals[k]) || isNaN(downVals[k+1])) continue;
+    var diff1 = upVals[k] - downVals[k];
+    var diff2 = upVals[k+1] - downVals[k+1];
+    if (diff1 * diff2 <= 0 && Math.abs(diff1 - diff2) > 0.001) {
+      var t = Math.abs(diff1) / Math.abs(diff2 - diff1);
+      balancePoint = percentages[k] + t * (percentages[k+1] - percentages[k]);
+      found = true;
+      break;
+    }
+  }
+  if (found) {
+    html += '<div style="margin-top:3px;font-size:7px;">平衡系数：<b>' + balancePoint.toFixed(2) + '%</b>（0.4~0.5为合格）</div>';
+  }
+  return html;
+}
+
+// 附表6：钢丝绳张力
+function buildFb6Table(att6) {
+  if (!att6) return '<div style="font-size:10px;font-weight:bold;margin:6px 0 2px;">附表6 钢丝绳张力</div><div style="border:1px solid #333;padding:10px;text-align:center;color:#999;">暂无数据</div>';
+  var html = '<div style="font-size:10px;font-weight:bold;margin:6px 0 2px;">附表6 钢丝绳张力检验记录</div>';
+  var forces = att6.forces || [];
+  var ropeCount = Math.min(8, att6.ropeCount || 6);
+  html += '<table style="width:100%;border-collapse:collapse;font-size:7px;">';
+  html += '<tr>';
+  for (var i = 0; i < ropeCount; i++) {
+    html += '<th style="border:1px solid #333;padding:1px;">绳' + (i+1) + '</th>';
+  }
+  html += '</tr><tr>';
+  for (var j = 0; j < ropeCount; j++) {
+    html += '<td style="border:1px solid #333;padding:1px;text-align:center;">' + (forces[j] ? forces[j]+'N' : '-') + '</td>';
+  }
+  html += '</tr></table>';
+  return html;
+}
+
+// 附表7：噪声
+function buildFb7Table(att7) {
+  if (!att7) return '<div style="font-size:10px;font-weight:bold;margin:6px 0 2px;">附表7 噪声振动</div><div style="border:1px solid #333;padding:10px;text-align:center;color:#999;">暂无数据</div>';
+  var html = '<div style="font-size:10px;font-weight:bold;margin:6px 0 2px;">附表7 噪声检验记录</div>';
+  html += '<table style="width:100%;border-collapse:collapse;font-size:7px;">';
+  var items = [
+    ['开门层站', att7['开门层站']],
+    ['关门层站', att7['关门层站']],
+    ['开门轿厢', att7['开门轿厢']],
+    ['关门轿厢', att7['关门轿厢']],
+    ['上行轿厢', att7['上行轿厢']],
+    ['下行轿厢', att7['下行轿厢']],
+    ['机房', att7['机房1']],
+  ];
+  items.forEach(function(item) {
+    html += '<tr><td style="border:1px solid #333;padding:1px;width:40%;font-weight:bold;">' + item[0] + '</td><td style="border:1px solid #333;padding:1px;text-align:center;">' + (item[1] ? item[1]+'dB' : '') + '</td></tr>';
+  });
+  html += '</table>';
+  return html;
 }
 
 function backToProjectList() {
@@ -2858,14 +3186,9 @@ function renderSignZoneContent(container) {
   html += '<span style="font-size:13px;">前整改完毕</span>';
   html += '</div></div>';
 
-  // 备注
-  html += '<div style="margin-bottom:20px;">';
-  html += '<div style="font-size:15px;font-weight:700;margin-bottom:10px;color:#667eea;">备注</div>';
-  html += '<textarea id="conclusionRemark" rows="4" placeholder="请输入备注信息..." oninput="setConclusionRemark(this.value)" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:14px;font-family:inherit;resize:vertical;box-sizing:border-box;line-height:1.5;">' + (task.remark || '') + '</textarea>';
-  html += '</div>';
+
 
   // 签字区域 - 合并为一个签字确认面板
-  html += '<div style="font-size:15px;font-weight:700;margin-bottom:10px;color:#667eea;">厂检结论</div>';
   
   // 项目管理人员/安装人员 - 姓名输入 + 点击弹窗签名
   var pmSigData = task.signatures.pmSig || '';
@@ -2903,10 +3226,10 @@ function setConclusion(val) {
   if (!task) return;
   task.conclusion = val;
   saveProjects();
-  // 即时更新按钮样式
+  // 即时更新按钮样式（保留备注模块）
   var container = document.getElementById('zoneContent');
   if (container && currentZoneIndex === 6) {
-    renderSignZoneContent(container);
+    renderNotesAndSign(container);
   }
 }
 
@@ -8842,21 +9165,118 @@ function loadPdfLibs(callback) {
     if (loaded >= total) checkDone();
   }
   
+  // 优先使用CDN，fallback到本地文件
+  var CDN_HC = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
+  var CDN_JSPDF = 'https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js';
+  
   if (needHc) {
     var s1 = document.createElement('script');
-    s1.src = 'html2canvas.min.js';
+    s1.src = CDN_HC;
     s1.onload = onOne;
-    s1.onerror = function(){ console.error('html2canvas本地加载失败'); onOne(); };
+    s1.onerror = function(){
+      // CDN失败，尝试本地文件
+      console.warn('html2canvas CDN加载失败，尝试本地文件...');
+      var s1b = document.createElement('script');
+      s1b.src = 'html2canvas.min.js';
+      s1b.onload = onOne;
+      s1b.onerror = function(){ console.error('html2canvas加载失败'); onOne(); };
+      document.head.appendChild(s1b);
+    };
     document.head.appendChild(s1);
   }
   if (needJspdf) {
     var s2 = document.createElement('script');
-    s2.src = 'jspdf.min.js';
+    s2.src = CDN_JSPDF;
     s2.onload = onOne;
-    s2.onerror = function(){ console.error('jsPDF本地加载失败'); onOne(); };
+    s2.onerror = function(){
+      // CDN失败，尝试本地文件
+      console.warn('jsPDF CDN加载失败，尝试本地文件...');
+      var s2b = document.createElement('script');
+      s2b.src = 'jspdf.min.js';
+      s2b.onload = onOne;
+      s2b.onerror = function(){ console.error('jsPDF加载失败'); onOne(); };
+      document.head.appendChild(s2b);
+    };
     document.head.appendChild(s2);
   }
 }
+
+
+// ========== 左滑返回手势 ==========
+(function() {
+  var touchStartX = 0;
+  var touchStartY = 0;
+  var touchStartTime = 0;
+  var SWIPE_THRESHOLD_RATIO = 0.15; // 屏幕宽度的15%
+  var MAX_VERTICAL_RATIO = 0.5; // 垂直位移不超过水平位移的一半
+  var MAX_DURATION = 500; // 最大滑动时间ms
+
+  function getCurrentPage() {
+    var pages = document.querySelectorAll('.page.active');
+    if (pages.length === 0) return null;
+    return pages[0].id.replace('page-', '');
+  }
+
+  function handleTouchStart(e) {
+    if (e.touches.length !== 1) return;
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+    touchStartTime = Date.now();
+  }
+
+  function handleTouchEnd(e) {
+    if (e.changedTouches.length !== 1) return;
+    var endX = e.changedTouches[0].clientX;
+    var endY = e.changedTouches[0].clientY;
+    var deltaX = endX - touchStartX;
+    var deltaY = endY - touchStartY;
+    var duration = Date.now() - touchStartTime;
+    
+    // 只处理右→左滑动（返回手势）
+    if (deltaX >= 0) return;
+    
+    var screenWidth = window.innerWidth;
+    var threshold = screenWidth * SWIPE_THRESHOLD_RATIO;
+    
+    // 滑动距离不够
+    if (Math.abs(deltaX) < threshold) return;
+    // 垂直位移过大，不是水平滑动
+    if (Math.abs(deltaY) > Math.abs(deltaX) * MAX_VERTICAL_RATIO) return;
+    // 时间过长
+    if (duration > MAX_DURATION) return;
+    
+    // 判断是否在可水平滚动的元素内
+    var target = e.target;
+    while (target && target !== document.body) {
+      var style = window.getComputedStyle(target);
+      var overflowX = style.overflowX;
+      var scrollWidth = target.scrollWidth;
+      var clientWidth = target.clientWidth;
+      // 如果元素可水平滚动且还没滑到最左边，不触发返回
+      if ((overflowX === 'auto' || overflowX === 'scroll') && scrollWidth > clientWidth) {
+        if (target.scrollLeft > 0) {
+          return; // 还没到最左边，让元素自己处理滚动
+        }
+      }
+      target = target.parentElement;
+    }
+    
+    // 左滑 → 返回上一级
+    var currentPage = getCurrentPage();
+    if (currentPage === 'check') {
+      // 检验页 → 电梯列表页
+      if (typeof saveCurrentTask === 'function') saveCurrentTask();
+      if (typeof goPage === 'function') goPage('taskList');
+    } else if (currentPage === 'taskList') {
+      // 电梯列表页 → 项目列表页
+      if (typeof goPage === 'function') goPage('projectList');
+    }
+  }
+
+  // 绑定到body，使用捕获阶段以提前判断
+  document.addEventListener('touchstart', handleTouchStart, { passive: true });
+  document.addEventListener('touchend', handleTouchEnd, { passive: true });
+})();
 
 init();
 
