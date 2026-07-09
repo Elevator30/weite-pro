@@ -2805,104 +2805,29 @@ function setRectifyDeadline(val) {
 
 // 项目管理/安装人员签字（项目级）- 从电梯列表菜单调用
 function openClientSignature() {
-  window._signMode = 'client';
-  openMoModal('moSign');
-  var header = document.querySelector('#moSign .mh h3');
+  signZoneTarget = 'client';
+  var header = document.querySelector('#sigModal .sig-canvas-h span');
   if (header) header.textContent = '项目管理/安装人员签字';
-  // 修改标签为项目管理/安装人员签字
-  var labels = document.querySelectorAll('#moSign label');
-  if (labels && labels[0]) labels[0].textContent = '项目管理/安装人员签字';
-  if (labels && labels[1]) labels[1].style.display = 'none';
-  var inspectorRow = document.getElementById('signInspectorName');
-  if (inspectorRow) inspectorRow.parentElement.style.display = 'none';
-  var nameInput = document.getElementById('signBuilderName');
-  if (nameInput) nameInput.parentElement.style.display = 'none';
-  var proj = getCurrentProject();
-  if (!proj) {
-    // 即使没有当前项目也初始化画布
-    setTimeout(function() {
-      initSigCanvasFor('Builder');
-    }, 300);
-    return;
-  }
-  if (!proj.clientSignature) proj.clientSignature = {};
-  
-  // 初始化画布（使支持绘制）- 确保弹窗显示后再初始化
-  function _doInitSigCanvas() {
-    var cB = document.getElementById('sigCanvasBuilder');
-    var cI = document.getElementById('sigCanvasInspector');
-    if (cB) {
-      // 强制重排确保父容器有宽度
-      cB.style.display = 'block';
-      var parentW = cB.parentElement ? (cB.parentElement.offsetWidth || cB.parentElement.clientWidth) : 0;
-      var w = cB.offsetWidth || parentW || 300;
-      if (w < 50) w = 300;
-      cB.width = w;
-      cB.height = 80;
-      cB.style.width = w + 'px';
-      cB.style.height = '80px';
-    }
-    if (cI) {
-      var parentW2 = cI.parentElement ? (cI.parentElement.offsetWidth || cI.parentElement.clientWidth) : 0;
-      var w2 = cI.offsetWidth || parentW2 || 300;
-      if (w2 < 50) w2 = 300;
-      cI.width = w2;
-      cI.height = 80;
-      cI.style.width = w2 + 'px';
-      cI.style.height = '80px';
-    }
-    initSigCanvasFor('Builder');
-    initSigCanvasFor('Inspector');
-    // 恢复签名
-    if (proj.clientSignature && proj.clientSignature.sig) {
-      var cBuilder = document.getElementById('sigCanvasBuilder');
-      if (cBuilder) {
-        var ctx = cBuilder.getContext('2d');
-        var img = new Image();
-        img.onload = function() { 
-          var cb = document.getElementById('sigCanvasBuilder');
-          if (cb) {
-            var c = cb.getContext('2d');
-            c.clearRect(0, 0, cb.width, cb.height);
-            c.drawImage(img, 0, 0, cb.width, cb.height);
-          }
-        };
-        img.src = proj.clientSignature.sig;
-      }
-    }
-  }
-  // 多阶段初始化，确保flex布局稳定后canvas有正确尺寸
-  setTimeout(_doInitSigCanvas, 50);
-  setTimeout(_doInitSigCanvas, 200);
-  setTimeout(_doInitSigCanvas, 500);
-  // 第二帧再初始化一次，确保尺寸正确
-  setTimeout(function() {
-    var cB2 = document.getElementById('sigCanvasBuilder');
-    var cI2 = document.getElementById('sigCanvasInspector');
-    if (cB2 && (cB2.width === 0 || cB2.width === 300)) {
-      var w3 = cB2.offsetWidth || cB2.parentElement.offsetWidth || 300;
-      if (w3 > 0 && w3 !== cB2.width) {
-        cB2.width = w3;
-        cB2.height = 80;
-        initSigCanvasFor('Builder');
-        // 恢复签名
-        if (proj.clientSignature && proj.clientSignature.sig) {
-          var ctx2 = cB2.getContext('2d');
-          var img2 = new Image();
-          img2.onload = function() { ctx2.drawImage(img2, 0, 0, cB2.width, cB2.height); };
-          img2.src = proj.clientSignature.sig;
+  document.getElementById('sigModal').style.display = 'flex';
+  // 立即初始化 + 延迟再初始化，确保canvas尺寸正确
+  setTimeout(function() { initSigCanvas(); }, 50);
+  setTimeout(function() { 
+    var canvas = document.getElementById('sigCanvas');
+    var container = document.getElementById('sigCanvasC');
+    if (canvas && container && (canvas.width === 0 || canvas.width < 100)) {
+      initSigCanvas();
+      // 如果有已保存的签名，重新加载
+      if (signZoneTarget && signZoneTarget === 'client') {
+        var proj = getCurrentProject();
+        if (proj && proj.clientSignature && proj.clientSignature.sig) {
+          var ctx = canvas.getContext('2d');
+          var img = new Image();
+          img.onload = function() { ctx.drawImage(img, 0, 0, canvas.width, canvas.height); };
+          img.src = proj.clientSignature.sig;
         }
       }
     }
-    if (cI2 && (cI2.width === 0 || cI2.width === 300)) {
-      var w4 = cI2.offsetWidth || cI2.parentElement.offsetWidth || 300;
-      if (w4 > 0 && w4 !== cI2.width) {
-        cI2.width = w4;
-        cI2.height = 80;
-        initSigCanvasFor('Inspector');
-      }
-    }
-  }, 400);
+  }, 300);
 }
 
 // 签字确认标签页 — 点击签名按钮 → 弹出全屏签名弹窗
@@ -6282,6 +6207,17 @@ function saveSig() {
     return;
   }
   
+// 项目管理/安装人员签字（项目级）- 保存到 proj.clientSignature
+  if (signZoneTarget === 'client') {
+    var proj = getCurrentProject();
+    if (!proj) return;
+    if (!proj.clientSignature) proj.clientSignature = {};
+    proj.clientSignature.sig = dataUrl;
+    saveProjects();
+    closeSigModal();
+    showToast('项目管理/安装人员签字已保存');
+    return;
+  }
   if (!task) return;
   if (!task.signatures) task.signatures = {};
   
