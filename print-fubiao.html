@@ -203,14 +203,7 @@ th { font-weight: bold; background: #fff; }
 </style>
 </head>
 <body>
-<!-- 工具栏 -->
-<div id="toolbar" style="position:fixed;top:0;left:0;right:0;background:#fff;padding:10px 20px;box-shadow:0 2px 8px rgba(0,0,0,0.1);z-index:1000;display:flex;justify-content:space-between;align-items:center;">
-  <div style="font-size:14px;font-weight:600;color:#333;">副表打印预览</div>
-  <div style="display:flex;gap:10px;">
-    <button onclick="window.print()" style="padding:8px 16px;background:#667eea;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;">打印</button>
-    <button onclick="exportFubiaoPDF()" style="padding:8px 16px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;">保存到文件(PDF)</button>
-  </div>
-</div>
+
 <div id="content" style="width:100%;">
 
 <!-- 第1页 -->
@@ -404,7 +397,7 @@ th { font-weight: bold; background: #fff; }
           <tr class="data-row">
             <td colspan="4" class="align-left">①底坑底与轿厢最低部件之间的自由垂直距离≥0.5m</td>
             <td colspan="2" data-fb2="pit-p1">m</td>
-            <td rowspan="5" data-fb2="pit-p5H">m</td>
+            <td rowspan="7" data-fb2="pit-p5H">m</td>
             <td colspan="2" data-fb2="pit-p1-result" style="text-align:center;font-weight:bold;color:#000;"></td>
           </tr>
           <tr class="data-row">
@@ -413,13 +406,21 @@ th { font-weight: bold; background: #fff; }
             <td colspan="2" data-fb2="pit-p2-result" style="text-align:center;font-weight:bold;color:#000;"></td>
           </tr>
           <tr class="data-row">
-            <td colspan="4" rowspan="2" class="align-left">③下述水平距离在0.15m之内时，底坑底与轿厢最低部件之间的自由垂直距离≥0.1m，<br>&nbsp;&nbsp;1)垂直滑动门的部件、护脚板和相邻井道壁<br>&nbsp;&nbsp;2)轿厢最低部件和导轨</td>
-            <td colspan="2" data-fb2="pit-p3v1"></td>
-            <td colspan="2" data-fb2="pit-p3-result1"></td>
+            <td colspan="4" rowspan="4" class="align-left">③下述水平距离在0.15m之内时，底坑底与轿厢最低部件之间的自由垂直距离≥0.1m，<br>&nbsp;&nbsp;1)垂直滑动门的部件、护脚板和相邻井道壁<br>&nbsp;&nbsp;2)轿厢最低部件和导轨</td>
+            <td colspan="2" style="font-size:11px;">水平距离：<span data-fb2="pit-p3h1"></span> m</td>
+            <td colspan="2" data-fb2="pit-p3h1-std" style="font-size:11px;text-align:center;"></td>
           </tr>
           <tr class="data-row">
-            <td colspan="2" data-fb2="pit-p3v2"></td>
-            <td colspan="2" data-fb2="pit-p3-result2"></td>
+            <td colspan="2" data-fb2="pit-p3v1">m</td>
+            <td colspan="2" data-fb2="pit-p3-result1" style="text-align:center;font-weight:bold;"></td>
+          </tr>
+          <tr class="data-row">
+            <td colspan="2" style="font-size:11px;">水平距离：<span data-fb2="pit-p3h2"></span> m</td>
+            <td colspan="2" data-fb2="pit-p3h2-std" style="font-size:11px;text-align:center;"></td>
+          </tr>
+          <tr class="data-row">
+            <td colspan="2" data-fb2="pit-p3v2">m</td>
+            <td colspan="2" data-fb2="pit-p3-result2" style="text-align:center;font-weight:bold;"></td>
           </tr>
           <tr class="data-row">
             <td colspan="4" class="align-left">④底坑中固定的最高部件和轿厢的最低部件之间（b除外）的自由垂直距离≥0.3m</td>
@@ -833,8 +834,30 @@ function fillFb2(att2) {
   var pit = att2.底坑空间 || {};
   setFb2Text('pit-p1', pit.p1 || '');
   setFb2Text('pit-p2', pit.p2 || '');
+  // 第③条水平距离（p3h=p3h1向后兼容） + 判定
+  var p3h1 = parseFloat(pit.p3h1 || pit.p3h) || 0;
+  var p3h2 = parseFloat(pit.p3h2) || 0;
+  if (p3h1 > 0) setFb2Text('pit-p3h1', p3h1);
+  if (p3h2 > 0) setFb2Text('pit-p3h2', p3h2);
+  // 标准说明
+  var p3Std1 = p3h1 > 0 ? (p3h1 <= 0.15 ? '≤0.15→≥0.1m' : '>0.15→≥0.5m') : '';
+  var p3Std2 = p3h2 > 0 ? (p3h2 <= 0.15 ? '≤0.15→≥0.1m' : '>0.15→≥0.5m') : '';
+  setFb2Text('pit-p3h1-std', p3Std1);
+  setFb2Text('pit-p3h2-std', p3Std2);
+  // 垂直距离显示
   setFb2Text('pit-p3v1', pit.p3v1 || '');
   setFb2Text('pit-p3v2', pit.p3v2 || '');
+  // 第③条判定
+  var p3v1Val = parseFloat(pit.p3v1) || 0;
+  var p3v2Val = parseFloat(pit.p3v2) || 0;
+  function judgeP3(p3hVal, p3vVal) {
+    if (p3vVal <= 0 || pitSub <= 0) return '';
+    var std = p3hVal > 0 ? (p3hVal <= 0.15 ? 0.1 : 0.5) : 0.5;
+    var result = p3vVal - pitSub;
+    return result >= std ? '符合' : '不符合';
+  }
+  setFb2Text('pit-p3-result1', judgeP3(p3h1, p3v1Val));
+  setFb2Text('pit-p3-result2', judgeP3(p3h2, p3v2Val));
   setFb2Text('pit-p4', pit.p4 || '');
   
   // 轿厢完全压在缓冲器上时轿门与层门地坎距离 = 轿厢缓冲距 + 轿厢压缩行程
@@ -1449,7 +1472,10 @@ function exportFubiaoPDF() {
 })();
 
 // ============ 初始化 ============
-document.addEventListener('DOMContentLoaded', fillData);
+document.addEventListener('DOMContentLoaded', function() {
+  fillData();
+  setTimeout(function() { window.print(); }, 300);
+});
 </script>
 
 </div>
