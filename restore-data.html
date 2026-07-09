@@ -105,7 +105,7 @@ function doImport() {
   }
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(importData));
-    showStatus('✅ 导入成功！共 ' + (importData.projects||[]).length + ' 个项目。<br><br>点击下方"返回主页面"即可看到所有数据。', false);
+    showStatus('✅ 导入成功！共 ' + importData.length + ' 个项目。<br><br>点击下方"返回主页面"即可看到所有数据。', false);
   } catch(err) {
     showStatus('导入失败: ' + err.message, true);
   }
