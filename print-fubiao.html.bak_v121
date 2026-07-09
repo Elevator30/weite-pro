@@ -1,0 +1,1436 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>副表统一打印 - 威特电梯厂检调试记录单</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: "SimSun", "宋体", serif; font-size: 9px; line-height: 1.2; color: #000; background: #f5f5f5; padding: 10px; }
+
+/* 打印页面容器 - 横版A4 */
+.page {
+  width: 297mm;
+  min-height: 210mm;
+  padding: 10mm;
+  margin: 10px auto;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  page-break-after: always;
+}
+.page:last-child { page-break-after: auto; }
+
+/* 两列布局 */
+.two-col {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  height: 190mm;
+}
+.col-left { width: 48%; display: flex; flex-direction: column; }
+.col-right { width: 48%; display: flex; flex-direction: column; }
+
+/* 左列三表布局（第2页） */
+.col-left.triple { justify-content: space-between; }
+.triple-section { margin-bottom: 5mm; }
+.triple-section:last-child { margin-bottom: 0; }
+
+/* 左列内上下两个表的间距 */
+.col-top { margin-bottom: 5mm; }
+.col-bottom { flex: 1; }
+
+/* 子表标题 */
+.fb-title { text-align: left; font-size: 12px; font-weight: bold; margin-bottom: 4px; }
+
+/* ========== 通用表格样式 ========== */
+table { border-collapse: collapse; font-size: 8px; table-layout: fixed; }
+th, td { border: 1px solid #333; padding: 2px 2px; text-align: center; vertical-align: middle; word-break: break-all; }
+th { font-weight: bold; background: #fff; }
+.align-left { text-align: left; padding-left: 4px; }
+.vertical-text { writing-mode: vertical-rl; text-orientation: upright; letter-spacing: 2px; font-weight: bold; }
+.data-row td { height: 22px; }
+.small-row td { height: 20px; }
+.remark-row td { font-size: 7px; line-height: 1.5; }
+
+/* 斜线表头 */
+.slant-header { position: relative; height: 36px; padding: 0 !important; overflow: hidden; }
+.slant-header::before {
+  content: '';
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  background: linear-gradient(to top right, transparent 49.5%, #333 49.5%, #333 50.5%, transparent 50.5%);
+  pointer-events: none;
+}
+.slant-header .slant-top { position: absolute; top: 2px; right: 6px; font-weight: bold; }
+.slant-header .slant-bottom { position: absolute; bottom: 2px; left: 6px; font-weight: bold; }
+
+/* ========== 附表1 样式 ========== */
+.fb1-table { width: 100%; margin: 0 auto; }
+.fb1-table .col1 { width: 9%; }
+.fb1-table .col2 { width: 8%; }
+.fb1-table .col3 { width: 7%; }
+.fb1-table .col4 { width: 7%; }
+.fb1-table .col5 { width: 7%; }
+.fb1-table .col6 { width: 7%; }
+.fb1-table .col7 { width: 7%; }
+.fb1-table .col8 { width: 7%; }
+.fb1-table .col9 { width: 7%; }
+.fb1-table .col10 { width: 10%; }
+.fb1-table .col11 { width: 10%; }
+.fb1-table .col12 { width: 7%; }
+.fb1-table .col13 { width: 7%; }
+.fb1-table .sub-header td { font-weight: normal; font-size: 8px; }
+
+/* ========== 附表2 样式 ========== */
+.fb2-table { width: 100%; margin: 0 auto; }
+.fb2-table .col-a { width: 7.5%; }
+.fb2-table .col-b { width: 7.5%; }
+.fb2-table .col-c { width: 15%; }
+.fb2-table .col-d { width: 15%; }
+.fb2-table .col-e { width: 7.5%; }
+.fb2-table .col-f { width: 7.5%; }
+.fb2-table .col-g { width: 7.5%; }
+.fb2-table .col-h { width: 15.5%; }
+.fb2-table .col-i { width: 8.5%; }
+.fb2-table .col-j { width: 8.5%; }
+.fb2-table .remark-row .vertical-text { font-size: 8px; }
+
+/* ========== 附表3 样式 ========== */
+.fb3-table { width: 100%; margin: 0 auto; }
+.fb3-table .col-a { width: 9%; }
+.fb3-table .col-b { width: 9%; }
+.fb3-table .col-c { width: 7.0%; }
+.fb3-table .col-d { width: 7.0%; }
+.fb3-table .col-e { width: 7.0%; }
+.fb3-table .col-f { width: 7.0%; }
+.fb3-table .col-g { width: 7.0%; }
+.fb3-table .col-h { width: 7.0%; }
+.fb3-table .col-i { width: 7.0%; }
+.fb3-table .col-j { width: 7.0%; }
+.fb3-table .col-k { width: 7.0%; }
+.fb3-table .col-l { width: 7.0%; }
+.fb3-table .col-m { width: 12%; }
+.fb3-table .remark-row td { font-size: 7px; line-height: 1.5; text-align: left; padding-left: 4px; }
+
+/* ========== 附表4 样式 ========== */
+.fb4-table { width: 100%; margin: 0 auto; }
+.fb4-table .col-a { width: 12.5%; }
+.fb4-table .col-b { width: 12.5%; }
+.fb4-table .col-c { width: 12.5%; }
+.fb4-table .col-d { width: 12.5%; }
+.fb4-table .col-e { width: 12.5%; }
+.fb4-table .col-f { width: 12.5%; }
+.fb4-table .col-g { width: 12.5%; }
+.fb4-table .col-h { width: 12.5%; }
+.fb4-table .tol { font-size: 8px; }
+
+/* ========== 附表5 样式 ========== */
+.fb5-table { width: 100%; margin: 0 auto; }
+.fb5-table .col-a { width: 16.5%; }
+.fb5-table .col-b { width: 16.5%; }
+.fb5-table .col-c { width: 6.7%; }
+.fb5-table .col-d { width: 6.7%; }
+.fb5-table .col-e { width: 6.7%; }
+.fb5-table .col-f { width: 6.7%; }
+.fb5-table .col-g { width: 6.7%; }
+.fb5-table .col-h { width: 6.7%; }
+.fb5-table .col-i { width: 6.7%; }
+.fb5-table .col-j { width: 6.7%; }
+.fb5-table .col-k { width: 6.7%; }
+.fb5-table .col-l { width: 6.7%; }
+
+/* 附表5容器 - flex布局让曲线图占满剩余空间 */
+.fb5-wrapper {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 平衡系数曲线图容器 */
+.balance-chart-container {
+  width: 100%;
+  flex: 1;
+  margin-top: 3mm;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.balance-chart-container svg {
+  width: 100%;
+  height: auto;
+  flex-shrink: 0;
+}
+.balance-result-text {
+  font-size: 10px;
+  font-weight: bold;
+  margin-top: 4px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+/* ========== 附表6 样式 ========== */
+.fb6-table { width: 100%; margin: 0 auto; }
+.fb6-table .col-a { width: 14%; }
+.fb6-table .col-b { width: 10.75%; }
+.fb6-table .col-c { width: 10.75%; }
+.fb6-table .col-d { width: 10.75%; }
+.fb6-table .col-e { width: 10.75%; }
+.fb6-table .col-f { width: 10.75%; }
+.fb6-table .col-g { width: 10.75%; }
+.fb6-table .col-h { width: 10.75%; }
+.fb6-table .col-i { width: 10.75%; }
+.fb6-table .result-row td { height: 28px; text-align: center !important; }
+
+/* ========== 附表7 样式 ========== */
+.fb7-table { width: 100%; }
+.fb7-table .col-a { width: 17%; }
+.fb7-table .col-b { width: 12%; }
+.fb7-table .col-c { width: 12%; }
+.fb7-table .col-d { width: 15%; }
+.fb7-table .col-e { width: 14%; }
+.fb7-table .col-f { width: 30%; }
+.fb7-table .std-text { font-size: 7px; text-align: left; padding: 3px 4px; }
+.fb7-table .data-row td { height: 18px; }
+.fb7-table tr:not(.data-row) th, .fb7-table tr:not(.data-row) td { height: 20px; }
+
+/* 打印样式 */
+@media print {
+#toolbar{display:none!important;}
+  body { background: #fff; padding: 0; }
+  .page { box-shadow: none; margin: 0; width: 100%; min-height: auto; padding: 0; }
+  @page { size: A4 landscape; margin: 10mm; }
+}
+</style>
+</head>
+<body>
+<!-- 工具栏 -->
+<div id="toolbar" style="position:fixed;top:0;left:0;right:0;background:#fff;padding:10px 20px;box-shadow:0 2px 8px rgba(0,0,0,0.1);z-index:1000;display:flex;justify-content:space-between;align-items:center;">
+  <div style="font-size:14px;font-weight:600;color:#333;">副表打印预览</div>
+  <div style="display:flex;gap:10px;">
+    <button onclick="window.print()" style="padding:8px 16px;background:#667eea;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;">打印</button>
+    <button onclick="exportFubiaoPDF()" style="padding:8px 16px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;">保存到文件(PDF)</button>
+  </div>
+</div>
+<div id="content" style="width:100%;">
+
+<!-- 第1页 -->
+<div class="page" id="page1">
+  <div class="two-col">
+    <div class="col-left">
+      <!-- 附表1 -->
+      <div class="col-top">
+        <div class="fb-title">附表1 电梯门间隙、门锁啮合长度及地坎间距检验存在问题记录（单位：mm）</div>
+        <table class="fb1-table">
+          <colgroup>
+            <col class="col1"><col class="col2">
+            <col class="col3"><col class="col4"><col class="col5"><col class="col6"><col class="col7"><col class="col8"><col class="col9">
+            <col class="col10"><col class="col11"><col class="col12"><col class="col13">
+          </colgroup>
+          <tr>
+            <th colspan="2" rowspan="3">检验项目编号与内容</th>
+            <th colspan="2">A1.2.7.1</th>
+            <th colspan="6">A1.2.7.2门间隙</th>
+            <th rowspan="3">A1.2.7.8(2)<br>门锁啮合长度</th>
+            <th colspan="2">A1.2.7.10</th>
+          </tr>
+          <tr>
+            <th colspan="2" rowspan="2">门地坎距离</th>
+            <th colspan="5">A1.2.7.2(1)</th>
+            <th rowspan="2">A1.2.7.2(2)<br>门扇间施力间隙</th>
+            <th rowspan="2">轿门门刀与层门地坎间隙</th>
+            <th rowspan="2">层门门锁滚轮与轿厢地坎间隙</th>
+          </tr>
+          <tr>
+            <th>门扇间间隙</th>
+            <th colspan="2">门扇与立柱、门楣间隙</th>
+            <th colspan="2">门扇与地坎间隙</th>
+          </tr>
+          <tr>
+            <th colspan="2" rowspan="2">判断标准</th>
+            <th colspan="2" rowspan="2">≤35<br>左右偏差小于1/1000</th>
+            <th colspan="5" rowspan="2">乘客电梯：3-6<br>载货电梯：3-10<br>左右偏差不超过1mm</th>
+            <th>旁开门:≤30</th>
+            <th rowspan="2">≥7</th>
+            <th colspan="2" rowspan="2">≥5</th>
+          </tr>
+          <tr><th>中分门:≤45</th></tr>
+          <tr class="sub-header">
+            <th rowspan="18" class="vertical-text">检验位置及测量数据</th>
+            <th>位置</th>
+            <th>左</th><th>右</th>
+            <th></th>
+            <th>左</th><th>右</th>
+            <th>左</th><th>右</th>
+            <th></th>
+            <th></th>
+            <th></th>
+            <th></th>
+          </tr>
+          <tr class="data-row" data-fb1-row="cargate1"><td>轿门1</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr class="data-row" data-fb1-row="cargate2"><td>轿门2</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr class="data-row" data-fb1-row="laygate1"><td>1层</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr class="data-row" data-fb1-row="laygate2"><td>2层</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr class="data-row" data-fb1-row="laygate3"><td>3层</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr class="data-row" data-fb1-row="laygate4"><td>4层</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr class="data-row" data-fb1-row="laygate5"><td>5层</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr class="data-row" data-fb1-row="laygate6"><td>6层</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr class="data-row" data-fb1-row="laygate7"><td>7层</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr class="data-row" data-fb1-row="laygate8"><td>8层</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr class="data-row" data-fb1-row="laygate9"><td>9层</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr class="data-row" data-fb1-row="laygate10"><td>10层</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr class="data-row" data-fb1-row="laygate11"><td>11层</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr class="data-row" data-fb1-row="laygate12"><td>12层</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr class="data-row" data-fb1-row="laygate13"><td>13层</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr class="data-row" data-fb1-row="laygate14"><td>14层</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr class="data-row" data-fb1-row="laygate15"><td>15层</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr class="data-row" data-fb1-row="laygate16"><td>16层</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        </table>
+      </div>
+      <!-- 附表3 -->
+      <div class="col-bottom">
+        <div class="fb-title">附表3 导轨工作面铅垂度测量表（单位mm）</div>
+        <table class="fb3-table">
+          <colgroup>
+            <col class="col-a"><col class="col-b">
+            <col class="col-c"><col class="col-d"><col class="col-e"><col class="col-f">
+            <col class="col-g"><col class="col-h"><col class="col-i"><col class="col-j">
+            <col class="col-k"><col class="col-l"><col class="col-m">
+          </colgroup>
+          <tr>
+            <th colspan="2">序&nbsp;&nbsp;&nbsp;&nbsp;号</th>
+            <th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th><th>10</th>
+            <th>最大偏差</th>
+          </tr>
+          <tr class="data-row">
+            <th rowspan="2">轿厢</th><th>左导轨</th>
+            <td data-fb3="carL-0"></td><td data-fb3="carL-1"></td><td data-fb3="carL-2"></td><td data-fb3="carL-3"></td><td data-fb3="carL-4"></td>
+            <td data-fb3="carL-5"></td><td data-fb3="carL-6"></td><td data-fb3="carL-7"></td><td data-fb3="carL-8"></td><td data-fb3="carL-9"></td>
+            <td data-fb3="carL-max"></td>
+          </tr>
+          <tr class="data-row">
+            <th>右导轨</th>
+            <td data-fb3="carR-0"></td><td data-fb3="carR-1"></td><td data-fb3="carR-2"></td><td data-fb3="carR-3"></td><td data-fb3="carR-4"></td>
+            <td data-fb3="carR-5"></td><td data-fb3="carR-6"></td><td data-fb3="carR-7"></td><td data-fb3="carR-8"></td><td data-fb3="carR-9"></td>
+            <td data-fb3="carR-max"></td>
+          </tr>
+          <tr class="data-row">
+            <th rowspan="2">对重</th><th>左导轨</th>
+            <td data-fb3="weightL-0"></td><td data-fb3="weightL-1"></td><td data-fb3="weightL-2"></td><td data-fb3="weightL-3"></td><td data-fb3="weightL-4"></td>
+            <td data-fb3="weightL-5"></td><td data-fb3="weightL-6"></td><td data-fb3="weightL-7"></td><td data-fb3="weightL-8"></td><td data-fb3="weightL-9"></td>
+            <td data-fb3="weightL-max"></td>
+          </tr>
+          <tr class="data-row">
+            <th>右导轨</th>
+            <td data-fb3="weightR-0"></td><td data-fb3="weightR-1"></td><td data-fb3="weightR-2"></td><td data-fb3="weightR-3"></td><td data-fb3="weightR-4"></td>
+            <td data-fb3="weightR-5"></td><td data-fb3="weightR-6"></td><td data-fb3="weightR-7"></td><td data-fb3="weightR-8"></td><td data-fb3="weightR-9"></td>
+            <td data-fb3="weightR-max"></td>
+          </tr>
+          <tr class="remark-row">
+            <td colspan="13">每列导轨工作面每5m铅垂线测量值间的相对最大偏差，轿厢导轨和设有安全钳的T型对重导轨不大于1.2mm，不设安全钳的T型对重导轨不大于2.0mm；</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+    <div class="col-right">
+      <!-- 附表2 -->
+      <div style="height:100%;">
+        <div class="fb-title">附表2 缓冲距、顶部空间和底坑空间检测记录</div>
+        <table class="fb2-table">
+          <colgroup>
+            <col class="col-a"><col class="col-b"><col class="col-c"><col class="col-d"><col class="col-e">
+            <col class="col-f"><col class="col-g"><col class="col-h"><col class="col-i"><col class="col-j">
+          </colgroup>
+          <tr class="small-row">
+            <th rowspan="2" colspan="2">轿厢缓冲距</th>
+            <th rowspan="2" data-fb2="轿厢缓冲距-val">mm</th>
+            <th>对重缓冲距</th>
+            <th colspan="2" data-fb2="对重缓冲距-val">mm</th>
+            <th rowspan="2" colspan="2">缓冲器压缩行程</th>
+            <th>轿厢</th>
+            <th data-fb2="轿厢压缩行程-val">mm</th>
+          </tr>
+          <tr class="small-row">
+            <th>最大允许值</th>
+            <th colspan="2" data-fb2="最大允许值-val">mm</th>
+            <th>对重</th>
+            <th data-fb2="对重压缩行程-val">mm</th>
+          </tr>
+          <tr>
+            <th rowspan="6" class="vertical-text">井道顶部空间</th>
+            <th colspan="4" class="slant-header">
+              <span class="slant-bottom">项&nbsp;目</span>
+              <span class="slant-top">状&nbsp;态</span>
+            </th>
+            <th colspan="2">上端站平层时</th>
+            <th>对重完全压在缓冲器上时轿门与层门地坎距离</th>
+            <th colspan="2">检验结果</th>
+          </tr>
+          <tr class="data-row">
+            <td colspan="4" class="align-left">①轿厢导轨进一步制导行程≥0.1＋0.035v²（m）</td>
+            <td colspan="2" data-fb2="top-s1">m</td>
+            <td rowspan="4" data-fb2="top-s5H">m</td>
+            <td colspan="2" data-fb2="top-s1-result"></td>
+          </tr>
+          <tr class="data-row">
+            <td colspan="4" class="align-left">②位于轿厢投影部分的井道顶最低部件的水平面与轿顶最高可站人面积水平面之间的自由垂直距离≥1.0＋0.035v²（m）</td>
+            <td colspan="2" data-fb2="top-s2">m</td>
+            <td colspan="2" data-fb2="top-s2-result"></td>
+          </tr>
+          <tr class="data-row">
+            <td colspan="4" class="align-left">③井道顶最低部件与固定在轿顶部件最高部分之间的自由垂直距离≥0.3＋0.035v²（m）</td>
+            <td colspan="2" data-fb2="top-s3">m</td>
+            <td colspan="2" data-fb2="top-s3-result"></td>
+          </tr>
+          <tr class="data-row">
+            <td colspan="4" class="align-left">④井道顶的最低部件与导靴或滚轮、悬挂装置端接装置附件、垂直滑动门的横梁或者部件的最高部分之间的自由垂直距离≥0.1＋0.035v²（m）</td>
+            <td colspan="2" data-fb2="top-s4">m</td>
+            <td colspan="2" data-fb2="top-s4-result"></td>
+          </tr>
+          <tr class="data-row">
+            <td colspan="4" class="align-left">⑤轿顶空间（≥0.5m×0.6m×0.8m）</td>
+            <td colspan="3" data-fb2="top-s5-space"></td>
+            <td colspan="2" data-fb2="top-s5-result"></td>
+          </tr>
+          <tr>
+            <th rowspan="7" class="vertical-text">底坑空间</th>
+            <th colspan="4" class="slant-header">
+              <span class="slant-bottom">项&nbsp;目</span>
+              <span class="slant-top">状&nbsp;态</span>
+            </th>
+            <th colspan="2">下端站平层时</th>
+            <th>轿厢完全压在缓冲器上时轿门与层门地坎距离</th>
+            <th colspan="2">检验结果</th>
+          </tr>
+          <tr class="data-row">
+            <td colspan="4" class="align-left">①底坑底与轿厢最低部件之间的自由垂直距离≥0.5m</td>
+            <td colspan="2" data-fb2="pit-p1">m</td>
+            <td rowspan="5" data-fb2="pit-p5H">m</td>
+            <td colspan="2" data-fb2="pit-p1-result"></td>
+          </tr>
+          <tr class="data-row">
+            <td colspan="4" class="align-left">②对重导轨进一步制导行程≥0.1+0.035v²（m）</td>
+            <td colspan="2" data-fb2="pit-p2">m</td>
+            <td colspan="2" data-fb2="pit-p2-result"></td>
+          </tr>
+          <tr class="data-row">
+            <td colspan="4" rowspan="2" class="align-left">③下述水平距离在0.15m之内时，底坑底与轿厢最低部件之间的自由垂直距离≥0.1m，<br>&nbsp;&nbsp;1)垂直滑动门的部件、护脚板和相邻井道壁<br>&nbsp;&nbsp;2)轿厢最低部件和导轨</td>
+            <td colspan="2" data-fb2="pit-p3v1"></td>
+            <td colspan="2" data-fb2="pit-p3-result1"></td>
+          </tr>
+          <tr class="data-row">
+            <td colspan="2" data-fb2="pit-p3v2"></td>
+            <td colspan="2" data-fb2="pit-p3-result2"></td>
+          </tr>
+          <tr class="data-row">
+            <td colspan="4" class="align-left">④底坑中固定的最高部件和轿厢的最低部件之间（b除外）的自由垂直距离≥0.3m</td>
+            <td colspan="2" data-fb2="pit-p4">m</td>
+            <td colspan="2" data-fb2="pit-p4-result"></td>
+          </tr>
+          <tr class="data-row">
+            <td colspan="4" class="align-left">⑤轿底空间（≥0.5m×0.6m×1.0m）</td>
+            <td colspan="3" data-fb2="pit-p5-space"></td>
+            <td colspan="2" data-fb2="pit-p5-result"></td>
+          </tr>
+          <tr class="remark-row">
+            <th rowspan="2" class="vertical-text">备注</th>
+            <td colspan="9" class="align-left">(1)当曳引驱动电梯驱动主机的减速是按照规定被监控时，对于非斜行电梯，0.035v²可以用按轿厢或者对重触及缓冲器时的速度减小；</td>
+          </tr>
+          <tr class="remark-row">
+            <td colspan="9" class="align-left">(2)对于具有补偿绳及补偿绳张紧轮和防跳装置的曳引驱动电梯，0.035v²的值可以用张紧轮可能的移动量再加上轿厢行程的1/500或者0.20m(取二者中的较大者)来代替；</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 第2页 -->
+<div class="page" id="page2">
+  <div class="two-col">
+    <div class="col-left triple">
+      <!-- 附表4 -->
+      <div class="triple-section">
+        <div class="fb-title">附表4 导轨顶面距离测量（单位mm）</div>
+        <table class="fb4-table">
+          <colgroup>
+            <col class="col-a"><col class="col-b"><col class="col-c"><col class="col-d">
+            <col class="col-e"><col class="col-f"><col class="col-g"><col class="col-h">
+          </colgroup>
+          <tr>
+            <th colspan="2">轿厢导轨面距基准：<span data-fb4="refCar"></span></th>
+            <th>mm</th>
+            <th class="tol">（0~+2）</th>
+            <th colspan="2">对重导轨面距基准：<span data-fb4="refWeight"></span></th>
+            <th>mm</th>
+            <th class="tol">（0~+3）</th>
+          </tr>
+          <tr class="data-row">
+            <td>1</td><td data-fb4="car-0"></td><td>6</td><td data-fb4="car-5"></td>
+            <td>1</td><td data-fb4="weight-0"></td><td>6</td><td data-fb4="weight-5"></td>
+          </tr>
+          <tr class="data-row">
+            <td>2</td><td data-fb4="car-1"></td><td>7</td><td data-fb4="car-6"></td>
+            <td>2</td><td data-fb4="weight-1"></td><td>7</td><td data-fb4="weight-6"></td>
+          </tr>
+          <tr class="data-row">
+            <td>3</td><td data-fb4="car-2"></td><td>8</td><td data-fb4="car-7"></td>
+            <td>3</td><td data-fb4="weight-2"></td><td>8</td><td data-fb4="weight-7"></td>
+          </tr>
+          <tr class="data-row">
+            <td>4</td><td data-fb4="car-3"></td><td>9</td><td data-fb4="car-8"></td>
+            <td>4</td><td data-fb4="weight-3"></td><td>9</td><td data-fb4="weight-8"></td>
+          </tr>
+          <tr class="data-row">
+            <td>5</td><td data-fb4="car-4"></td><td>10</td><td data-fb4="car-9"></td>
+            <td>5</td><td data-fb4="weight-4"></td><td>10</td><td data-fb4="weight-9"></td>
+          </tr>
+          <tr class="data-row">
+            <th colspan="2">最大偏差</th>
+            <td colspan="2" data-fb4="car-max"></td>
+            <td colspan="4" data-fb4="weight-max"></td>
+          </tr>
+        </table>
+      </div>
+      <!-- 附表6 -->
+      <div class="triple-section">
+        <div class="fb-title">附表6 钢丝绳张力测试记录</div>
+        <table class="fb6-table">
+          <colgroup>
+            <col class="col-a"><col class="col-b"><col class="col-c"><col class="col-d">
+            <col class="col-e"><col class="col-f"><col class="col-g"><col class="col-h">
+            <col class="col-i">
+          </colgroup>
+          <tr>
+            <th>钢丝绳序号</th>
+            <th>F1</th><th>F2</th><th>F3</th><th>F4</th><th>F5</th><th>F6</th><th>F7</th><th>F8</th>
+          </tr>
+          <tr class="data-row">
+            <th>张力值</th>
+            <td data-fb6="0"></td><td data-fb6="1"></td><td data-fb6="2"></td><td data-fb6="3"></td>
+            <td data-fb6="4"></td><td data-fb6="5"></td><td data-fb6="6"></td><td data-fb6="7"></td>
+          </tr>
+          <tr class="result-row">
+            <th>张力平均值</th>
+            <td colspan="8" data-fb6="avg-text">（最大值－最小值）/张力平均值＝张力偏差</td>
+          </tr>
+          <tr class="result-row">
+            <th>张力偏差计算</th>
+            <td colspan="8" data-fb6="deviation-text">张力值偏差：&nbsp;&nbsp;&nbsp;&nbsp;/&nbsp;&nbsp;&nbsp;&nbsp;＝&nbsp;&nbsp;&nbsp;&nbsp;%（张力偏差≤5%为合格）</td>
+          </tr>
+          <tr class="result-row">
+            <th>张力判定</th>
+            <td colspan="8" data-fb6="result-text">张力偏差计算值：&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;结论：□合格 □不合格</td>
+          </tr>
+        </table>
+      </div>
+      <div class="triple-section">
+        <div class="fb-title">附表7 乘客电梯噪声测试记录表</div>
+    <table class="fb7-table">
+      <colgroup>
+        <col class="col-a"><col class="col-b"><col class="col-c"><col class="col-d">
+        <col class="col-e"><col class="col-f">
+      </colgroup>
+      <tr>
+        <th>测量项目</th>
+        <th>测量位置</th>
+        <th colspan="2">测量值</th>
+        <th>背景</th>
+        <th>修正后</th>
+      </tr>
+      <tr class="data-row">
+        <th rowspan="4">开关门过程噪声</th>
+        <th rowspan="2">层站</th>
+        <td>开门</td><td data-fb7="开门层站"></td>
+        <td rowspan="2" data-fb7="bg-door"></td>
+        <td rowspan="4" data-fb7="max-door">最大值：</td>
+      </tr>
+      <tr class="data-row">
+        <td>关门</td><td data-fb7="关门层站"></td>
+      </tr>
+      <tr class="data-row">
+        <th rowspan="2">轿厢</th>
+        <td>开门</td><td data-fb7="开门轿厢"></td>
+        <td rowspan="2" data-fb7="bg-carior-door"></td>
+      </tr>
+      <tr class="data-row">
+        <td>关门</td><td data-fb7="关门轿厢"></td>
+      </tr>
+      <tr class="data-row">
+        <th rowspan="2">运行中轿厢内噪声</th>
+        <th>上行</th>
+        <td colspan="2" data-fb7="上行轿厢"></td>
+        <td rowspan="2" data-fb7="bg-run"></td>
+        <td rowspan="2" data-fb7="max-run">最大值：</td>
+      </tr>
+      <tr class="data-row">
+        <th>下行</th>
+        <td colspan="2" data-fb7="下行轿厢"></td>
+      </tr>
+      <tr class="data-row">
+        <th rowspan="3">机房噪声</th>
+        <th>1</th>
+        <td colspan="2" data-fb7="机房1"></td>
+        <td rowspan="3" data-fb7="bg-machine"></td>
+        <td rowspan="3" data-fb7="avg-machine">平均值：</td>
+      </tr>
+      <tr class="data-row">
+        <th>2</th>
+        <td colspan="2" data-fb7="机房2"></td>
+      </tr>
+      <tr class="data-row">
+        <th>3</th>
+        <td colspan="2" data-fb7="机房3"></td>
+      </tr>
+      <tr class="data-row">
+        <th>无机房噪声</th>
+        <th>层门处</th>
+        <td colspan="2" data-fb7="无机房层门"></td>
+        <td data-fb7="bg-mrl"></td>
+        <td data-fb7="max-mrl">最大值：</td>
+      </tr>
+      <tr class="data-row">
+        <th>额定速度υ</th>
+        <th>机房噪声</th>
+        <th colspan="2">轿厢内噪声</th>
+        <th>开关门噪声</th>
+        <th>无机房电梯层门处噪声</th>
+      </tr>
+      <tr class="data-row">
+        <th>υ≤2.5m/s</th>
+        <td>≤80dB</td>
+        <td colspan="2">≤55dB</td>
+        <td>≤65dB</td>
+        <td>≤65dB</td>
+      </tr>
+      <tr>
+        <th>2.5m/s＜υ≤6.0m/s</th>
+        <td>≤85dB</td>
+        <td colspan="2">≤60dB</td>
+        <td>≤65dB</td>
+        <td rowspan="2" class="std-text">不超过制造单位的允许值。制造单位未规定的，按照额定速度为2.5m/s的电梯限制指标判定。</td>
+      </tr>
+      <tr>
+        <th>υ＞6.0m/s</th>
+        <td colspan="4" class="std-text">不超过制造单位的允许值。制造单位未规定的，按照额定速度为2.5m/s的电梯限制指标判定。</td>
+      </tr>
+    </table>
+      </div>
+    </div>
+    <div class="col-right">
+      <!-- 附表5 -->
+      <div class="fb5-wrapper">
+        <div class="fb-title">附表5 电梯平衡系数检验记录</div>
+        <table class="fb5-table">
+          <colgroup>
+            <col class="col-a"><col class="col-b"><col class="col-c"><col class="col-d">
+            <col class="col-e"><col class="col-f"><col class="col-g"><col class="col-h">
+            <col class="col-i"><col class="col-j"><col class="col-k"><col class="col-l">
+          </colgroup>
+          <tr>
+            <th rowspan="2">载重量</th>
+            <th>重量（Kg）</th>
+            <th colspan="2" data-fb5="weight-0"></th>
+            <th colspan="2" data-fb5="weight-1"></th>
+            <th colspan="2" data-fb5="weight-2"></th>
+            <th colspan="2" data-fb5="weight-3"></th>
+            <th colspan="2" data-fb5="weight-4"></th>
+          </tr>
+          <tr>
+            <th>额载百分比（%）</th>
+            <th colspan="2">30%</th>
+            <th colspan="2">40%</th>
+            <th colspan="2">45%</th>
+            <th colspan="2">50%</th>
+            <th colspan="2">60%</th>
+          </tr>
+          <tr>
+            <th colspan="2">运 行 方 向</th>
+            <th>上行</th><th>下行</th>
+            <th>上行</th><th>下行</th>
+            <th>上行</th><th>下行</th>
+            <th>上行</th><th>下行</th>
+            <th>上行</th><th>下行</th>
+          </tr>
+          <tr class="data-row">
+            <th colspan="2">电 流（A）</th>
+            <td data-fb5="up-0"></td><td data-fb5="down-0"></td>
+            <td data-fb5="up-1"></td><td data-fb5="down-1"></td>
+            <td data-fb5="up-2"></td><td data-fb5="down-2"></td>
+            <td data-fb5="up-3"></td><td data-fb5="down-3"></td>
+            <td data-fb5="up-4"></td><td data-fb5="down-4"></td>
+          </tr>
+          <tr class="data-row">
+            <th colspan="2">测试结果</th>
+            <td colspan="10">平衡系数：<span data-fb5="balance-value"></span></td>
+          </tr>
+        </table>
+        <!-- 平衡系数曲线图 -->
+        <div class="balance-chart-container">
+          <svg id="balanceChart" viewBox="0 0 320 200" preserveAspectRatio="xMidYMid meet">
+          </svg>
+          <div class="balance-result-text" id="balanceResultText"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============ 数据读取 ============
+var STORAGE_KEY = 'WEITE_CHECK_V4';
+
+function getProjects() {
+  try {
+    var stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) return JSON.parse(stored);
+  } catch(e) {}
+  return [];
+}
+
+function getCurrentTask() {
+  var projects = getProjects();
+  if (projects.length === 0) return null;
+  
+  // 从URL参数获取索引
+  var params = new URLSearchParams(window.location.search);
+  var projIdx = parseInt(params.get('proj'));
+  var taskIdx = parseInt(params.get('task'));
+  
+  if (isNaN(projIdx) || projIdx < 0 || projIdx >= projects.length) projIdx = 0;
+  var proj = projects[projIdx];
+  if (!proj || !proj.tasks || proj.tasks.length === 0) return null;
+  
+  if (isNaN(taskIdx) || taskIdx < 0 || taskIdx >= proj.tasks.length) taskIdx = proj.tasks.length - 1;
+  
+  return proj.tasks[taskIdx];
+}
+
+// ============ 填充数据 ============
+function fillData() {
+  var task = getCurrentTask();
+  if (!task) {
+    document.getElementById('content').innerHTML = '<div style="text-align:center;padding:80px 20px;color:#999;font-size:14px;"><div style="font-size:48px;margin-bottom:16px;">📋</div>暂无数据<br><span style="font-size:12px;">请先在主页面录入检查数据后再打印副表</span></div>';
+    return;
+  }
+  
+  var att = task.attachments || {};
+  
+  fillFb1(att.attach1);
+  fillFb2(att.attach2);
+  fillFb3(att.attach3);
+  fillFb4(att.attach4);
+  fillFb5(att.attach5);
+  fillFb6(att.attach6);
+  fillFb7(att.attach7);
+  
+  // 绘制平衡系数曲线
+  drawBalanceChartSVG(att.attach5);
+}
+
+// ============ 附表1 填充 ============
+// 15个数据索引 -> 表格11列映射:
+// idx4=门地坎距离左, idx5=门地坎距离右
+// idx7=门扇间间隙, idx2=立柱左, idx3=立柱右
+// idx14=地坎间隙左, idx1=地坎间隙右
+// idx6=门扇间施力间隙, idx9=门锁啮合长度
+// idx10=轿门刀与层门地坎, idx12=层门锁滚轮与轿厢地坎
+var FB1_COL_MAP = [4, 5, 7, 2, 3, 14, 1, 6, 9, 10, 12];
+
+function fillFb1(att1) {
+  if (!att1) return;
+  
+  var cargate = att1.cargate || [[], []];
+  var laygate = att1.laygate || [];
+  
+  // 填充轿门1 (前门)
+  fillFb1Row('cargate1', '轿门1', cargate[0] || []);
+  
+  // 填充轿门2 (后门) - 如果没有后门数据，显示"/"
+  var hasBackDoor = cargate[1] && cargate[1].some(function(v){ return v && v.trim(); });
+  if (hasBackDoor) {
+    fillFb1Row('cargate2', '轿门2', cargate[1] || []);
+  } else {
+    // 后门没有数据时显示/
+    fillFb1Row('cargate2', '轿门2', Array(15).fill('/'));
+  }
+  
+  // 填充层门，最多16行（表格共18个数据行-2个轿门=16个层门）
+  var maxLaygate = Math.min(laygate.length, 16);
+  for (var i = 0; i < maxLaygate; i++) {
+    var lg = laygate[i];
+    fillFb1Row('laygate' + (i+1), lg.name || ((i+1) + '层'), lg.data || []);
+  }
+}
+
+function fillFb1Row(rowKey, name, data) {
+  var row = document.querySelector('[data-fb1-row="' + rowKey + '"]');
+  if (!row) return;
+  
+  var cells = row.querySelectorAll('td');
+  if (cells.length < 12) return;
+  
+  // 判断第一个td是不是空的（垂直文本列），位置名称应该在哪
+  var nameIdx = 0;
+  if (cells.length >= 13 && !cells[0].textContent.trim()) {
+    nameIdx = 1;
+  }
+  cells[nameIdx].textContent = name;
+  
+  // 共11个数据列
+  var dataStartIdx = nameIdx + 1;
+  for (var j = 0; j < 11; j++) {
+    var dataIdx = FB1_COL_MAP[j];
+    var val = (data[dataIdx] !== undefined && data[dataIdx] !== null) ? data[dataIdx] : '';
+    var cellIdx = dataStartIdx + j;
+    if (cellIdx < cells.length) {
+      cells[cellIdx].textContent = val;
+    }
+  }
+}
+
+// ============ 附表2 填充 ============
+function fillFb2(att2) {
+  if (!att2) return;
+  
+  // 缓冲距 - 单位mm
+  setFb2Text('轿厢缓冲距-val', att2.轿厢缓冲距 || '');
+  setFb2Text('对重缓冲距-val', att2.对重缓冲距 || '');
+  setFb2Text('最大允许值-val', att2.最大允许值 || '');
+  setFb2Text('轿厢压缩行程-val', att2.轿厢压缩行程 || '');
+  setFb2Text('对重压缩行程-val', att2.对重压缩行程 || '');
+  
+  // 顶部空间
+  var top = att2.顶部空间 || {};
+  setFb2Text('top-s1', top.s1 || '');
+  setFb2Text('top-s2', top.s2 || '');
+  setFb2Text('top-s3', top.s3 || '');
+  setFb2Text('top-s4', top.s4 || '');
+  
+  // 对重完全压在缓冲器上时轿门与层门地坎距离 = 对重缓冲距 + 对重压缩行程
+  var cwBuf = parseFloat(att2.对重缓冲距) || 0;
+  var cwComp = parseFloat(att2.对重压缩行程) || 0;
+  var topDistance = (cwBuf + cwComp) > 0 ? ((cwBuf + cwComp) / 1000).toFixed(3) : '';
+  setFb2Text('top-s5H', topDistance);
+  
+  // 轿顶空间尺寸
+  setFb2Text('top-s5-space', (top.s5L || '') + '×' + (top.s5W || '') + '×' + (top.s5H || ''));
+  
+  // 底坑空间
+  var pit = att2.底坑空间 || {};
+  setFb2Text('pit-p1', pit.p1 || '');
+  setFb2Text('pit-p2', pit.p2 || '');
+  setFb2Text('pit-p3v1', pit.p3v1 || '');
+  setFb2Text('pit-p3v2', pit.p3v2 || '');
+  setFb2Text('pit-p4', pit.p4 || '');
+  
+  // 轿厢完全压在缓冲器上时轿门与层门地坎距离 = 轿厢缓冲距 + 轿厢压缩行程
+  var carBuf = parseFloat(att2.轿厢缓冲距) || 0;
+  var carComp = parseFloat(att2.轿厢压缩行程) || 0;
+  var pitDistance = (carBuf + carComp) > 0 ? ((carBuf + carComp) / 1000).toFixed(3) : '';
+  setFb2Text('pit-p5H', pitDistance);
+  
+  // 轿底空间尺寸
+  setFb2Text('pit-p5-space', (pit.p5L || '') + '×' + (pit.p5W || '') + '×' + (pit.p5H || ''));
+  
+  // 计算顶部空间检验结果
+  // 对重完全压在缓冲器上时轿门与层门地坎距离 = 对重缓冲距 + 对重压缩行程
+  var cwBufM = (parseFloat(att2.对重缓冲距) || 0) / 1000;
+  var cwCompM = (parseFloat(att2.对重压缩行程) || 0) / 1000;
+  var topSub = cwBufM + cwCompM;
+  var speed = 0;
+  // 尝试从配置单获取速度
+  if (typeof task !== 'undefined' && task.configParts) {
+    var vStr = task.configParts['额定速度'] || '';
+    speed = parseFloat(vStr) || 0;
+  }
+  function calcStd(formula, v) {
+    if (formula === '0.1+0.035v2') return 0.1 + 0.035 * v * v;
+    if (formula === '1.0+0.035v2') return 1.0 + 0.035 * v * v;
+    if (formula === '0.3+0.035v2') return 0.3 + 0.035 * v * v;
+    return 0;
+  }
+  function judgeTop(key, formula) {
+    var val = parseFloat(top[key]) || 0;
+    if (val <= 0 || topSub <= 0) return '';
+    var result = val - topSub;
+    var std = calcStd(formula, speed);
+    if (std <= 0) return (result > 0 ? '符合' : '不符合');
+    return result >= std ? '符合' : '不符合';
+  }
+  setFb2Text('top-s1-result', judgeTop('s1', '0.1+0.035v2'));
+  setFb2Text('top-s2-result', judgeTop('s2', '1.0+0.035v2'));
+  setFb2Text('top-s3-result', judgeTop('s3', '0.3+0.035v2'));
+  setFb2Text('top-s4-result', judgeTop('s4', '0.1+0.035v2'));
+  
+  // 计算底坑空间检验结果
+  // 轿厢完全压在缓冲器上时 = 轿厢缓冲距 + 轿厢压缩行程
+  var carBufM = (parseFloat(att2.轿厢缓冲距) || 0) / 1000;
+  var carCompM = (parseFloat(att2.轿厢压缩行程) || 0) / 1000;
+  var pitSub = carBufM + carCompM;
+  function judgePit_p1() {
+    var val = parseFloat(pit.p1) || 0;
+    if (val <= 0 || pitSub <= 0) return '';
+    var result = val - pitSub;
+    return result >= 0.5 ? '符合' : '不符合';
+  }
+  function judgePit_p2() {
+    var val = parseFloat(pit.p2) || 0;
+    if (val <= 0 || pitSub <= 0) return '';
+    var result = val - pitSub;
+    return result >= 0.3 ? '符合' : '不符合';
+  }
+  setFb2Text('pit-p1-result', judgePit_p1());
+  setFb2Text('pit-p2-result', judgePit_p2());
+  // p4判断
+  var p4Val = parseFloat(pit.p4) || 0;
+  if (p4Val > 0 && pitSub > 0) {
+    var p4Result = p4Val - pitSub;
+    setFb2Text('pit-p4-result', p4Result >= 0.3 ? '符合' : '不符合');
+  }
+}
+
+function setFb2Text(key, val) {
+  var el = document.querySelector('[data-fb2="' + key + '"]');
+  if (el) el.textContent = val;
+}
+
+// ============ 附表3 填充 ============
+function fillFb3(att3) {
+  if (!att3 || !att3.rows) return;
+  
+  var rows = att3.rows || [];
+  var maxRows = Math.min(rows.length, 10); // 最多10条
+  
+  for (var i = 0; i < 10; i++) {
+    if (i < rows.length) {
+      var row = rows[i] || {};
+      setFb3Text('carL-' + i, row.carL || '');
+      setFb3Text('carR-' + i, row.carR || '');
+      setFb3Text('weightL-' + i, row.weightL || '');
+      setFb3Text('weightR-' + i, row.weightR || '');
+    } else {
+      // 超过数据行的留空
+      setFb3Text('carL-' + i, '');
+      setFb3Text('carR-' + i, '');
+      setFb3Text('weightL-' + i, '');
+      setFb3Text('weightR-' + i, '');
+    }
+  }
+  
+  // 计算每列的最大偏差
+  function calcMaxDev(key) {
+    var vals = [];
+    for (var m = 0; m < maxRows; m++) {
+      var v = parseFloat(rows[m] && rows[m][key]);
+      if (!isNaN(v)) vals.push(v);
+    }
+    if (vals.length < 2) return '';
+    var max = Math.max.apply(null, vals);
+    var min = Math.min.apply(null, vals);
+    return (max - min).toFixed(2);
+  }
+  
+  setFb3Text('carL-max', calcMaxDev('carL'));
+  setFb3Text('carR-max', calcMaxDev('carR'));
+  setFb3Text('weightL-max', calcMaxDev('weightL'));
+  setFb3Text('weightR-max', calcMaxDev('weightR'));
+}
+
+function setFb3Text(key, val) {
+  var el = document.querySelector('[data-fb3="' + key + '"]');
+  if (el) el.textContent = val;
+}
+
+// ============ 附表4 填充 ============
+function fillFb4(att4) {
+  if (!att4) return;
+  
+  var rows = att4.rows || [];
+  
+  // 基准值
+  document.querySelector('[data-fb4="refCar"]').textContent = att4.refCar || '';
+  document.querySelector('[data-fb4="refWeight"]').textContent = att4.refWeight || '';
+  
+  // 表格布局: 5行，每行2个测点(1-5在左列，6-10在右列)
+  // rows结构: [{car:'', weight:''}, ...] 每个元素是一个测点
+  // 最多显示10个测点
+  var displayCount = Math.min(rows.length, 10);
+  
+  for (var i = 0; i < 10; i++) {
+    if (i < rows.length) {
+      setFb4Text('car-' + i, rows[i].car || '');
+      setFb4Text('weight-' + i, rows[i].weight || '');
+    } else {
+      setFb4Text('car-' + i, '');
+      setFb4Text('weight-' + i, '');
+    }
+  }
+  
+  // 最大偏差计算
+  function calcMaxDev(key) {
+    var refVal = parseFloat(key === 'car' ? att4.refCar : att4.refWeight);
+    var deviations = [];
+    var hasNegative = false;
+    var count = Math.min(rows.length, 10);
+    for (var m = 0; m < count; m++) {
+      var v = parseFloat(rows[m][key]);
+      if (!isNaN(v)) {
+        var dev = v - refVal;
+        deviations.push(dev);
+        if (dev < 0) hasNegative = true;
+      }
+    }
+    if (deviations.length === 0) return '';
+    var max = Math.max.apply(null, deviations);
+    var min = Math.min.apply(null, deviations);
+    return (max - min).toFixed(2);
+  }
+  
+  setFb4Text('car-max', calcMaxDev('car'));
+  setFb4Text('weight-max', calcMaxDev('weight'));
+}
+
+function setFb4Text(key, val) {
+  var el = document.querySelector('[data-fb4="' + key + '"]');
+  if (el) el.textContent = val;
+}
+
+// ============ 附表5 填充 ============
+function fillFb5(att5) {
+  if (!att5) return;
+  
+  var current = att5.电流 || {};
+  var up = current.电流上行 || ['','','','',''];
+  var down = current.电流下行 || ['','','','',''];
+  var load = parseFloat(att5.载重) || 0;
+  var percentages = [0.3, 0.4, 0.45, 0.5, 0.6];
+  
+  // 填充重量
+  for (var i = 0; i < 5; i++) {
+    var w = load ? Math.round(load * percentages[i]) : '';
+    setFb5Text('weight-' + i, w);
+  }
+  
+  // 填充电流
+  for (var j = 0; j < 5; j++) {
+    setFb5Text('up-' + j, up[j] || '');
+    setFb5Text('down-' + j, down[j] || '');
+  }
+  
+  // 平衡系数
+  var balance = att5.平衡系数 || '';
+  setFb5Text('balance-value', balance ? balance + '%' : '');
+}
+
+function setFb5Text(key, val) {
+  var el = document.querySelector('[data-fb5="' + key + '"]');
+  if (el) el.textContent = val;
+}
+
+// ============ 附表5 平衡系数曲线图（SVG） ============
+function calcBalanceFactor(upCurrents, downCurrents) {
+  var upVals = upCurrents.map(function(v){return parseFloat(v);});
+  var downVals = downCurrents.map(function(v){return parseFloat(v);});
+  var percentages = [30, 40, 45, 50, 60];
+  
+  var validUp = upVals.filter(function(v){return !isNaN(v) && v > 0;});
+  var validDown = downVals.filter(function(v){return !isNaN(v) && v > 0;});
+  if (validUp.length < 2 || validDown.length < 2) {
+    return { found: false, value: 0, reason: '数据不足' };
+  }
+  
+  var found = false;
+  var balancePoint = 0;
+  
+  for (var i = 0; i < 4; i++) {
+    var x1 = percentages[i];
+    var x2 = percentages[i + 1];
+    var y1 = upVals[i];
+    var y2 = upVals[i + 1];
+    var z1 = downVals[i];
+    var z2 = downVals[i + 1];
+    
+    if (isNaN(y1) || isNaN(y2) || isNaN(z1) || isNaN(z2)) continue;
+    
+    var diff1 = y1 - z1;
+    var diff2 = y2 - z2;
+    
+    if (diff1 * diff2 <= 0 && Math.abs(diff1 - diff2) > 0.001) {
+      var t = Math.abs(diff1) / Math.abs(diff2 - diff1);
+      balancePoint = x1 + t * (x2 - x1);
+      found = true;
+      break;
+    }
+  }
+  
+  if (!found) {
+    var minDiff = Infinity;
+    var minIdx = 0;
+    for (var j = 0; j < 5; j++) {
+      if (!isNaN(upVals[j]) && !isNaN(downVals[j])) {
+        var d = Math.abs(upVals[j] - downVals[j]);
+        if (d < minDiff) {
+          minDiff = d;
+          minIdx = j;
+        }
+      }
+    }
+    balancePoint = percentages[minIdx];
+  }
+  
+  return {
+    found: found,
+    value: Math.round(balancePoint * 100) / 100
+  };
+}
+
+function drawBalanceChartSVG(att5) {
+  var svg = document.getElementById('balanceChart');
+  if (!svg) return;
+  
+  var current = (att5 && att5.电流) || {};
+  var upCurrents = current.电流上行 || ['','','','',''];
+  var downCurrents = current.电流下行 || ['','','','',''];
+  var percentages = [30, 40, 45, 50, 60];
+  
+  var result = calcBalanceFactor(upCurrents, downCurrents);
+  var balancePoint = result.value;
+  
+  // 更新结果文字
+  var resultText = document.getElementById('balanceResultText');
+  if (resultText) {
+    var status = (balancePoint >= 40 && balancePoint <= 50) ? '合格' : '不合格';
+    resultText.textContent = '平衡系数：' + balancePoint.toFixed(2) + '% （0.4~0.5为合格） — ' + status;
+  }
+  
+  var upVals = upCurrents.map(function(v){return parseFloat(v);});
+  var downVals = downCurrents.map(function(v){return parseFloat(v);});
+  
+  // SVG尺寸
+  var W = 320, H = 200;
+  var padding = { top: 20, right: 20, bottom: 30, left: 35 };
+  var chartW = W - padding.left - padding.right;
+  var chartH = H - padding.top - padding.bottom;
+  
+  // 计算Y轴范围（动态计算，向上取整到最近的5的倍数）
+  var allVals = upVals.concat(downVals).filter(function(v){return !isNaN(v) && v > 0;});
+  var yMax = 10; // 默认值
+  if (allVals.length > 0) {
+    var rawMax = Math.max.apply(null, allVals);
+    // 向上取整到最近的5的倍数（如12→15, 18→20, 26→30）
+    yMax = Math.ceil(rawMax / 5) * 5;
+  }
+  if (yMax < 5) yMax = 5; // 最小5A
+
+  // 动态计算Y轴刻度数（4或5格，选择步长更规整的）
+  var step5 = yMax / 5;
+  var step4 = yMax / 4;
+  // 优先5格（步长为整数），否则4格
+  var yTicks = (step5 === Math.floor(step5)) ? 5 : 4;
+  // yMax为5的倍数时5格总是整数步长，此处保留动态逻辑以兼容未来调整
+  if (yMax % 5 === 0) yTicks = 5;
+  
+  // X坐标映射
+  function xPos(pct) {
+    return padding.left + (pct - 25) / (65 - 25) * chartW;
+  }
+  
+  // Y坐标映射 (Y轴向下为正，所以要反转)
+  function yPos(val) {
+    return padding.top + chartH - (val / yMax) * chartH;
+  }
+  
+  var svgContent = '';
+  
+  // 背景
+  svgContent += '<rect x="0" y="0" width="' + W + '" height="' + H + '" fill="white"/>';
+  
+  // 网格线 - Y轴（yTicks已在上方动态计算）
+  for (var i = 0; i <= yTicks; i++) {
+    var y = padding.top + (chartH / yTicks) * i;
+    var val = yMax - (yMax / yTicks) * i;
+    svgContent += '<line x1="' + padding.left + '" y1="' + y + '" x2="' + (W - padding.right) + '" y2="' + y + '" stroke="#ddd" stroke-width="0.5"/>';
+    svgContent += '<text x="' + (padding.left - 4) + '" y="' + (y + 3) + '" text-anchor="end" font-size="9" fill="#666">' + val.toFixed(1) + '</text>';
+  }
+  
+  // X轴刻度
+  for (var j = 0; j < 5; j++) {
+    var x = xPos(percentages[j]);
+    svgContent += '<line x1="' + x + '" y1="' + padding.top + '" x2="' + x + '" y2="' + (H - padding.bottom) + '" stroke="#eee" stroke-width="0.5"/>';
+    svgContent += '<text x="' + x + '" y="' + (H - padding.bottom + 14) + '" text-anchor="middle" font-size="9" fill="#333">' + percentages[j] + '%</text>';
+  }
+  
+  // X轴标题
+  svgContent += '<text x="' + (W / 2) + '" y="' + (H - 5) + '" text-anchor="middle" font-size="10" fill="#333" font-weight="bold">额载百分比</text>';
+  
+  // Y轴标题
+  svgContent += '<text x="8" y="' + (padding.top + chartH / 2) + '" text-anchor="middle" font-size="10" fill="#333" font-weight="bold" transform="rotate(-90, 8, ' + (padding.top + chartH / 2) + ')">电流 (A)</text>';
+  
+  // 坐标轴线
+  svgContent += '<line x1="' + padding.left + '" y1="' + padding.top + '" x2="' + padding.left + '" y2="' + (H - padding.bottom) + '" stroke="#333" stroke-width="1"/>';
+  svgContent += '<line x1="' + padding.left + '" y1="' + (H - padding.bottom) + '" x2="' + (W - padding.right) + '" y2="' + (H - padding.bottom) + '" stroke="#333" stroke-width="1"/>';
+  
+  // 上行电流折线
+  var upPath = '';
+  var hasUpData = false;
+  for (var k = 0; k < 5; k++) {
+    if (!isNaN(upVals[k]) && upVals[k] > 0) {
+      var px = xPos(percentages[k]);
+      var py = yPos(upVals[k]);
+      if (upPath === '') upPath = 'M' + px + ',' + py;
+      else upPath += ' L' + px + ',' + py;
+      hasUpData = true;
+      // 数据点
+      svgContent += '<circle cx="' + px + '" cy="' + py + '" r="3" fill="#e74c3c"/>';
+    }
+  }
+  if (hasUpData) {
+    svgContent += '<path d="' + upPath + '" fill="none" stroke="#e74c3c" stroke-width="1.5"/>';
+  }
+  
+  // 下行电流折线
+  var downPath = '';
+  var hasDownData = false;
+  for (var m = 0; m < 5; m++) {
+    if (!isNaN(downVals[m]) && downVals[m] > 0) {
+      var px2 = xPos(percentages[m]);
+      var py2 = yPos(downVals[m]);
+      if (downPath === '') downPath = 'M' + px2 + ',' + py2;
+      else downPath += ' L' + px2 + ',' + py2;
+      hasDownData = true;
+      svgContent += '<circle cx="' + px2 + '" cy="' + py2 + '" r="3" fill="#3498db"/>';
+    }
+  }
+  if (hasDownData) {
+    svgContent += '<path d="' + downPath + '" fill="none" stroke="#3498db" stroke-width="1.5"/>';
+  }
+  
+  // 平衡系数交点
+  if (balancePoint > 0 && result.found) {
+    var bx = xPos(balancePoint);
+    var by = yPos(upVals[0] || 0); // 估算Y值
+    
+    // 计算交点Y值
+    for (var n = 0; n < 4; n++) {
+      if (balancePoint >= percentages[n] && balancePoint <= percentages[n+1]) {
+        var t = (balancePoint - percentages[n]) / (percentages[n+1] - percentages[n]);
+        var upY = upVals[n] + t * (upVals[n+1] - upVals[n]);
+        by = yPos(upY);
+        break;
+      }
+    }
+    
+    svgContent += '<circle cx="' + bx + '" cy="' + by + '" r="5" fill="none" stroke="#27ae60" stroke-width="2"/>';
+    svgContent += '<line x1="' + bx + '" y1="' + padding.top + '" x2="' + bx + '" y2="' + (H - padding.bottom) + '" stroke="#27ae60" stroke-width="1" stroke-dasharray="4,2"/>';
+  }
+  
+  // 图例
+  var legendX = W - padding.right - 80;
+  var legendY = padding.top + 5;
+  svgContent += '<line x1="' + legendX + '" y1="' + legendY + '" x2="' + (legendX + 20) + '" y2="' + legendY + '" stroke="#e74c3c" stroke-width="1.5"/>';
+  svgContent += '<text x="' + (legendX + 24) + '" y="' + (legendY + 3) + '" font-size="9" fill="#333">上行电流</text>';
+  svgContent += '<line x1="' + legendX + '" y1="' + (legendY + 16) + '" x2="' + (legendX + 20) + '" y2="' + (legendY + 16) + '" stroke="#3498db" stroke-width="1.5"/>';
+  svgContent += '<text x="' + (legendX + 24) + '" y="' + (legendY + 19) + '" font-size="9" fill="#333">下行电流</text>';
+  
+  // 使用DOMParser确保SVG元素正确渲染（带命名空间）
+  var parser = new DOMParser();
+  var svgDoc = parser.parseFromString(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" preserveAspectRatio="xMidYMid meet" id="balanceChart">' +
+    svgContent +
+    '</svg>',
+    'image/svg+xml'
+  );
+  var newSvg = svgDoc.documentElement;
+  svg.parentNode.replaceChild(newSvg, svg);
+}
+
+// ============ 附表6 填充 ============
+function fillFb6(att6) {
+  if (!att6) return;
+  
+  var forces = att6.forces || [];
+  var ropeCount = att6.ropeCount || 6;
+  var displayCount = Math.min(8, ropeCount);
+  
+  for (var i = 0; i < 8; i++) {
+    var el = document.querySelector('[data-fb6="' + i + '"]');
+    if (el) {
+      if (i < displayCount && forces[i]) {
+        el.textContent = forces[i] + ' N';
+      } else if (i < displayCount) {
+        el.textContent = 'N';
+      } else {
+        el.textContent = '-';
+      }
+    }
+  }
+  
+  // 计算平均值和偏差
+  var vals = [];
+  for (var j = 0; j < displayCount; j++) {
+    var v = parseFloat(forces[j]);
+    if (!isNaN(v) && v > 0) vals.push(v);
+  }
+  
+  if (vals.length >= 2) {
+    var avg = vals.reduce(function(a,b){return a+b;}, 0) / vals.length;
+    var max = Math.max.apply(null, vals);
+    var min = Math.min.apply(null, vals);
+    var deviation = ((max - min) / avg * 100);
+    
+    document.querySelector('[data-fb6="avg-text"]').textContent = 
+      '张力平均值：' + avg.toFixed(1) + ' N  （最大值－最小值）/张力平均值＝张力偏差';
+    document.querySelector('[data-fb6="deviation-text"]').textContent = 
+      '张力值偏差：' + (max - min).toFixed(1) + ' / ' + avg.toFixed(1) + ' ＝ ' + deviation.toFixed(2) + '%（张力偏差≤5%为合格）';
+    
+    var pass = deviation <= 5;
+    document.querySelector('[data-fb6="result-text"]').textContent = 
+      '张力偏差计算值：' + deviation.toFixed(2) + '%  结论：' + (pass ? '☑合格 □不合格' : '□合格 ☑不合格');
+  }
+}
+
+// ============ 附表7 填充 ============
+function fillFb7(att7) {
+  if (!att7) return;
+  
+  var fields = ['开门层站', '关门层站', '开门轿厢', '关门轿厢', '上行轿厢', '下行轿厢', '机房1', '机房2', '机房3', '无机房层门'];
+  for (var i = 0; i < fields.length; i++) {
+    var el = document.querySelector('[data-fb7="' + fields[i] + '"]');
+    if (el) {
+      var val = att7[fields[i]];
+      el.textContent = val ? val + ' dB' : '';
+    }
+  }
+  
+  // 计算最大值/平均值
+  // 开关门噪声最大值
+  var doorVals = [];
+  ['开门层站','关门层站','开门轿厢','关门轿厢'].forEach(function(k){
+    var v = parseFloat(att7[k]);
+    if (!isNaN(v)) doorVals.push(v);
+  });
+  if (doorVals.length > 0) {
+    var maxDoor = Math.max.apply(null, doorVals);
+    var el = document.querySelector('[data-fb7="max-door"]');
+    if (el) el.textContent = '最大值：' + maxDoor.toFixed(1) + ' dB';
+  }
+  
+  // 运行中轿厢内噪声最大值
+  var runVals = [];
+  ['上行轿厢','下行轿厢'].forEach(function(k){
+    var v = parseFloat(att7[k]);
+    if (!isNaN(v)) runVals.push(v);
+  });
+  if (runVals.length > 0) {
+    var maxRun = Math.max.apply(null, runVals);
+    var el = document.querySelector('[data-fb7="max-run"]');
+    if (el) el.textContent = '最大值：' + maxRun.toFixed(1) + ' dB';
+  }
+  
+  // 机房噪声平均值
+  var machineVals = [];
+  ['机房1','机房2','机房3'].forEach(function(k){
+    var v = parseFloat(att7[k]);
+    if (!isNaN(v)) machineVals.push(v);
+  });
+  if (machineVals.length > 0) {
+    var avgMachine = machineVals.reduce(function(a,b){return a+b;}, 0) / machineVals.length;
+    var el = document.querySelector('[data-fb7="avg-machine"]');
+    if (el) el.textContent = '平均值：' + avgMachine.toFixed(1) + ' dB';
+  }
+  
+  // 无机房最大值
+  var mrlVal = parseFloat(att7['无机房层门']);
+  if (!isNaN(mrlVal)) {
+    var el = document.querySelector('[data-fb7="max-mrl"]');
+    if (el) el.textContent = '最大值：' + mrlVal.toFixed(1) + ' dB';
+  }
+}
+
+// ============ 导出PDF功能 ============
+function exportFubiaoPDF() {
+  if (typeof jspdf === 'undefined' || typeof jspdf.jsPDF === 'undefined') {
+    alert('PDF导出库加载中，请稍候再试...');
+    return;
+  }
+  if (typeof html2canvas === 'undefined') {
+    alert('截图库加载中，请稍候再试...');
+    return;
+  }
+  
+  var btn = event.target;
+  btn.disabled = true;
+  btn.textContent = '生成中...';
+  
+  var pages = document.querySelectorAll('.page');
+  var totalPages = pages.length;
+  var currentPage = 0;
+  
+  // 横版A4
+  var pdf = new jspdf.jsPDF('l', 'mm', 'a4');
+  var pageWidth = pdf.internal.pageSize.getWidth();
+  var pageHeight = pdf.internal.pageSize.getHeight();
+  
+  function addNextPage() {
+    if (currentPage >= totalPages) {
+      pdf.save('副表-' + Date.now() + '.pdf');
+      btn.disabled = false;
+      btn.textContent = '保存到文件(PDF)';
+      return;
+    }
+    
+    var page = pages[currentPage];
+    html2canvas(page, {
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      backgroundColor: '#ffffff'
+    }).then(function(canvas) {
+      var imgData = canvas.toDataURL('image/jpeg', 0.95);
+      if (currentPage > 0) pdf.addPage();
+      pdf.addImage(imgData, 'JPEG', 0, 0, pageWidth, pageHeight);
+      currentPage++;
+      setTimeout(addNextPage, 50);
+    }).catch(function(err) {
+      console.error('导出失败', err);
+      alert('导出失败：' + err.message);
+      btn.disabled = false;
+      btn.textContent = '保存到文件(PDF)';
+    });
+  }
+  
+  addNextPage();
+}
+
+// 加载jsPDF和html2canvas
+(function() {
+  function loadScript(src, callback) {
+    if (document.querySelector('script[src="'+src+'"]')) { callback(); return; }
+    var s = document.createElement('script');
+    s.src = src;
+    s.onload = callback;
+    s.onerror = function() { console.warn('加载失败:', src); callback(); };
+    document.head.appendChild(s);
+  }
+  var needLoad = 0;
+  var loaded = 0;
+  function check() {
+    loaded++;
+  }
+  if (typeof jspdf === 'undefined' || typeof jspdf.jsPDF === 'undefined') {
+    needLoad++;
+    loadScript('https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js', check);
+  }
+  if (typeof html2canvas === 'undefined') {
+    needLoad++;
+    loadScript('https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js', check);
+  }
+})();
+
+// ============ 初始化 ============
+document.addEventListener('DOMContentLoaded', fillData);
+</script>
+
+</div>
+</body>
+</html>

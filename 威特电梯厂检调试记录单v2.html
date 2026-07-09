@@ -1363,12 +1363,18 @@ function loadProjects() {
     var stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
       var data = JSON.parse(stored);
-      // 判断是旧格式(数组)还是新格式
+      // 判断是旧格式(任务数组)还是新格式(项目数组)
       if (Array.isArray(data)) {
-        // 旧格式: tasks 数组，需要迁移
-        migrateOldTasks(data);
-        return;
+        // 新格式特征：数组元素有 tasks 字段（项目对象）
+        // 旧格式特征：数组元素有 checks 字段（任务对象）
+        var isNewFormat = data.length > 0 && data[0] && typeof data[0] === 'object' && 'tasks' in data[0];
+        if (!isNewFormat) {
+          // 旧格式: tasks 数组，需要迁移
+          migrateOldTasks(data);
+          return;
+        }
       }
+      projects = data;
       // 【v129】数据异常检查：projects为空但有备份时，自动恢复
       if (!data || !Array.isArray(data) || data.length === 0) {
         var backupData = tryLoadBackup();
