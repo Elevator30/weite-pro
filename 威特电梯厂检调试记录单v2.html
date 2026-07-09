@@ -100,7 +100,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
 .mh{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:linear-gradient(135deg,#667eea,#764ba2);flex-shrink:0;}
 .mh h3{font-size:15px;color:#fff;font-weight:600;}
 .mh button{background:none;border:none;font-size:24px;cursor:pointer;color:#fff;line-height:1;}
-.mb{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 14px 20px;max-height:calc(90vh - 60px);}
+.mb{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 14px 20px;max-height:calc(90vh - 60px);min-height:0;}
 .mc{flex-shrink:0;padding:10px 14px;background:#fff;border-top:1px solid #eee;display:flex;gap:10px;}
 .mc button{flex:1;padding:12px;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;}
 .mc .mc-cancel{background:#f7fafc;color:#718096;border:1.5px solid #e2e8f0;}
@@ -130,7 +130,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
 .att-tab.active{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border-color:transparent;}
 .att-content{padding:12px;}
 /* Attachment cards */
-.att-card{background:#fff;border-radius:12px;padding:14px;margin-bottom:12px;border:1.5px solid #e2e8f0;;overflow:hidden}
+.att-card{background:#fff;border-radius:12px;padding:14px;margin-bottom:12px;border:1.5px solid #e2e8f0;overflow:visible}
 .att-card-title{font-size:13px;font-weight:700;color:#fff;padding:8px 12px;background:linear-gradient(135deg,#667eea,#764ba2);border-radius:8px 8px 0 0;margin:-14px -14px 12px;}
 .att-row{display:flex;align-items:center;margin-bottom:10px;gap:8px;}
 .att-row label{flex:1;font-size:12px;color:#4a5568;min-width:0;}
@@ -212,14 +212,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
 /* Check row new layout */
 .ck-row{background:#fff;border:1px solid #e8ecf0;border-radius:10px;padding:12px;margin-bottom:8px;transition:all .15s;}
 .ck-row.ng-row{border-color:#ffcdd2;background:#fff8f8;}
-.ck-row-top{display:flex;align-items:flex-start;gap:8px;}
+.ck-row-top{display:flex;align-items:flex-start;gap:8px;min-height:60px;}
 .ck-num{font-size:11px;color:#a0aec0;min-width:24px;flex-shrink:0;padding-top:3px;}
 .ck-body{flex:1;min-width:0;}
 .ck-name{font-size:13px;color:#2d3748;margin-bottom:4px;word-break:break-all;}
 .ck-std{font-size:11px;color:#718096;margin-bottom:6px;}
 .ck-badge{display:inline-block;background:#e6f3ff;border:1px solid #91caff;border-radius:4px;padding:1px 6px;font-size:12px;color:#1677ff;margin-left:4px;}
 /* Radio group - 3 choices */
-.radio-group{display:flex;gap:6px;margin-top:4px;}
+.radio-group{display:flex;gap:6px;margin-top:4px;height:34px;flex-shrink:0;}
 .radio-btn{flex:1;padding:0 4px;min-height:34px;height:34px;line-height:30px;border:1.5px solid #e2e8f0;border-radius:8px;text-align:center;font-size:12px;font-weight:600;cursor:pointer;background:#fff;transition:all .12s;color:#718096;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;}
 .radio-btn:active{transform:scale(.96);}
 .radio-btn.r-ok{border-color:#28a745;background:#d4edda;color:#155724;}
@@ -1834,31 +1834,115 @@ function handleConfigUpload(input) {
       // 用坐标函数读取单元格
       var val = function(r,c){ var cell = ws[XLSX.utils.encode_cell({r:r,c:c})]; return cell ? String(cell.v).trim() : ''; };
       
-      configPartsData = {};
+      
+      // === 关键词模糊匹配工具 ===
+      var kwMap = {
+        // 基本信息字段
+        '产品编号': ['产品编号', '产品编码', '产品代码', '出厂编号', '设备编号'],
+        '产品型号': ['产品型号', '型号', '设备型号', '规格型号'],
+        '项目名称': ['项目名称', '项目', '工程名称', '客户名称', '使用单位'],
+        '额定载重量': ['额定载重量', '额定载荷', '载重量', '载重', '额定载重', '载荷'],
+        '额定速度': ['额定速度', '速度', '运行速度'],
+        '提升高度': ['提升高度', '行程', '提升行程'],
+        '层站门': ['层/站/门', '层站门', '层数', '站数', '层站', '楼层数'],
+        // 部件字段
+        '控制柜_型号': ['控制柜'],
+        '控制柜_编号': ['控制柜编号', '控制柜编号或'],
+        '驱动主机_型号': ['驱动主机', '曳引机', '主机'],
+        '驱动主机_编号': ['驱动主机编号', '曳引机编号', '主机编号'],
+        '限速器_型号': ['限速器'],
+        '限速器_编号': ['限速器编号'],
+        '安全钳_型号': ['安全钳'],
+        '安全钳_编号': ['安全钳编号'],
+        '缓冲器_型号': ['缓冲器'],
+        '缓冲器_编号': ['缓冲器编号'],
+        '上行超速_型号': ['上行超速', '轿厢上行超速'],
+        '上行超速_编号': ['上行超速编号'],
+        '意外移动_型号': ['意外移动', '轿厢意外移动'],
+        '意外移动_编号': ['意外移动编号'],
+        '层门锁_型号': ['层门门锁', '层门锁'],
+        '层门锁_编号': ['层门锁编号'],
+        '轿门锁_型号': ['轿门门锁', '轿门锁'],
+        '轿门锁_编号': ['轿门锁编号'],
+        '层门_型号': ['层门'],
+        '层门_编号': ['层门编号'],
+        '安全电路_型号': ['安全电路', '含有电子元件的安全电路'],
+        '安全电路_编号': ['安全电路编号'],
+        '整梯_型号': ['乘客电梯', '载货电梯', '曳引驱动', '整梯', '电梯整机'],
+        '整梯_编号': ['整梯编号']
+      };
+      
+      // 关键词匹配函数：检查文本是否包含任意关键词
+      function matchKw(text, keywords) {
+        if (!text) return false;
+        var t = String(text).replace(/\s/g, '').replace(/\n/g, '');
+        for (var ki = 0; ki < keywords.length; ki++) {
+          if (t.indexOf(keywords[ki]) >= 0) return true;
+        }
+        return false;
+      }
+      
+      // 从单元格文本中提取标签和值（支持"标签：值"格式）
+      function extractLabelValue(text) {
+        if (!text) return null;
+        var t = String(text).trim();
+        // 处理中文冒号
+        var colonIdx = t.indexOf('：');
+        if (colonIdx < 0) colonIdx = t.indexOf(':');
+        if (colonIdx > 0) {
+          return {label: t.substring(0, colonIdx).trim(), value: t.substring(colonIdx + 1).trim()};
+        }
+        return null;
+      }
+      
+      // 规范化文本：去空格、去换行、统一大小写
+      function normText(s) {
+        return String(s || '').replace(/\s/g, '').replace(/\n/g, '').toLowerCase();
+      }
+
+configPartsData = {};
       var prodNo = '', addr = '', modelPrefix = '', loadWeight = '', speed = '';
       
-      // === 1. 提取基本信息（前4行） ===
-      for (var r = 0; r < 5; r++) {
-        for (var c = 0; c < 15; c++) {
+      // === 1. 提取基本信息（前10行，关键词模糊匹配） ===
+      for (var r = 0; r < 10; r++) {
+        for (var c = 0; c < 20; c++) {
           var cv = val(r, c);
           if (!cv) continue;
           // "标签：值"在同一单元格
-          if (cv.indexOf('：') > 0) {
-            var ci = cv.indexOf('：');
-            var label = cv.substring(0, ci).trim();
-            var value = cv.substring(ci + 1).trim();
-            if (label === '产品编号' && !prodNo) prodNo = value;
-            if (label === '项目名称' && !addr) addr = value;
+          var lv = extractLabelValue(cv);
+          if (lv) {
+            if (matchKw(lv.label, kwMap['产品编号']) && !prodNo) prodNo = lv.value;
+            if (matchKw(lv.label, kwMap['项目名称']) && !addr) addr = lv.value;
+            if (matchKw(lv.label, kwMap['产品型号']) && !modelPrefix) {
+              if (!/[\u4e00-\u9fa5]/.test(lv.value)) modelPrefix = lv.value;
+            }
+            if (matchKw(lv.label, kwMap['额定载重量']) && !loadWeight) {
+              var lw = lv.value.replace(/[kK][gG]/gi, '').replace(/公斤/g, '').replace(/kg/gi, '').trim();
+              if (lw && !isNaN(parseFloat(lw))) loadWeight = lw;
+            }
+            if (matchKw(lv.label, kwMap['额定速度']) && !speed) {
+              var sp = lv.value.replace(/[mM]\/[sS]/gi, '').replace(/米\/秒/g, '').replace(/m\/s/gi, '').trim();
+              if (sp && !isNaN(parseFloat(sp))) speed = sp;
+            }
+            if (matchKw(lv.label, kwMap['提升高度'])) {
+              // 先不直接赋值，在参数表中统一处理
+            }
           }
-          // "标签：值"在不同单元格
-          if (cv === '产品编号' && !prodNo) prodNo = val(r, c+1) || val(r, c+2);
-          if (cv === '项目名称' && !addr) addr = val(r, c+1) || val(r, c+2);
-          // 产品型号前缀（如TKJ/TKJW）- 检查多个可能的位置
-          if ((cv === '产品型号' || cv === '型号') && !modelPrefix) {
-            modelPrefix = val(r, c+1) || val(r, c+2) || val(r+1, c) || val(r+1, c+1);
-            // 如果提取到的是中文描述而不是型号前缀，跳过
-            if (modelPrefix && /[\u4e00-\u9fa5]/.test(modelPrefix)) {
-              modelPrefix = '';
+          // "标签：值"在不同单元格（标签在左，值在右）
+          if (!prodNo && matchKw(cv, kwMap['产品编号'])) {
+            prodNo = val(r, c+1) || val(r, c+2) || val(r+1, c) || val(r+1, c+1);
+          }
+          if (!addr && matchKw(cv, kwMap['项目名称'])) {
+            addr = val(r, c+1) || val(r, c+2) || val(r+1, c) || val(r+1, c+1);
+          }
+          // 产品型号前缀（如TKJ/TKJW）- 关键词匹配
+          if (!modelPrefix && matchKw(cv, kwMap['产品型号'])) {
+            var mp = val(r, c+1) || val(r, c+2) || val(r+1, c) || val(r+1, c+1);
+            // 如果提取到的不是纯中文描述，可能是型号
+            if (mp && !/[\u4e00-\u9fa5]/.test(mp)) {
+              modelPrefix = mp;
+            } else if (mp) {
+              // 如果是中文，跳过（可能是"主要技术参数"等描述）
             }
           }
         }
@@ -1867,12 +1951,15 @@ function handleConfigUpload(input) {
       // === 2. 提取额定载重量和额定速度 ===
       // 配置单布局：第5行是表头，第7行是数据
       // 扩大搜索范围，同时搜索前10行和后10列
-      var loadCol = -1, speedCol = -1, headerRow = -1;
+      var loadCol = -1, speedCol = -1, heightCol = -1, floorsCol = -1, headerRow = -1;
       for (var r2 = 0; r2 < 15; r2++) {
         for (var c2 = 0; c2 < 20; c2++) {
           var cv2 = val(r2, c2);
-          if (cv2 === '额定载重量' || cv2 === '额定载荷') { loadCol = c2; headerRow = r2; }
-          if (cv2 === '额定速度') { speedCol = c2; if (headerRow < 0) headerRow = r2; }
+          if (!cv2) continue;
+          if (matchKw(cv2, kwMap['额定载重量'])) { loadCol = c2; headerRow = r2; }
+          if (matchKw(cv2, kwMap['额定速度'])) { speedCol = c2; if (headerRow < 0) headerRow = r2; }
+          if (matchKw(cv2, kwMap['提升高度'])) { heightCol = c2; if (headerRow < 0) headerRow = r2; }
+          if (matchKw(cv2, kwMap['层站门'])) { floorsCol = c2; if (headerRow < 0) headerRow = r2; }
         }
       }
       // 如果没找到表头，尝试其他方式提取载重和速度
@@ -1906,6 +1993,18 @@ function handleConfigUpload(input) {
             var sv = val(headerRow + dr, speedCol);
             if (sv && /\d/.test(sv)) {
               speed = sv.replace(/[mM]\/[sS]/g, '').replace(/米\/秒/g, '').replace(/m\/s/gi, '').trim();
+            }
+          }
+          if (heightCol >= 0) {
+            var hv = val(headerRow + dr, heightCol);
+            if (hv && /\d/.test(hv)) {
+              configPartsData['提升高度'] = hv.replace(/mm/g, '').replace(/米/g, '').replace(/m/g, '').trim();
+            }
+          }
+          if (floorsCol >= 0) {
+            var fv = val(headerRow + dr, floorsCol);
+            if (fv && /\d/.test(fv)) {
+              configPartsData['层站门'] = fv;
             }
           }
           if (loadWeight && speed) break;
@@ -1947,49 +2046,59 @@ function handleConfigUpload(input) {
         }
       }
       if (partStartRow > 0) {
-        for (var r4 = partStartRow; r4 < Math.min(partStartRow + 20, json.length); r4++) {
+        // 先确定型号列和编号列的位置（不同配置表列可能不同）
+        var modelCol = 2; // 默认C列
+        var codeCol = 3;  // 默认D列（编号或制造批次号）
+        // 从表头行检测列位置
+        var headerRow2 = partStartRow - 1;
+        if (headerRow2 >= 0 && json[headerRow2]) {
+          for (var hc = 0; hc < json[headerRow2].length; hc++) {
+            var hcell = String(json[headerRow2][hc] || '').replace(/\s/g, '').replace(/\n/g, '');
+            if (hcell.indexOf('型号') >= 0 || hcell.indexOf('规格') >= 0) modelCol = hc;
+            if (hcell.indexOf('编号') >= 0 || hcell.indexOf('批次') >= 0 || hcell.indexOf('出厂编号') >= 0) codeCol = hc;
+          }
+        }
+        
+        for (var r4 = partStartRow; r4 < Math.min(partStartRow + 25, json.length); r4++) {
           var partName = String(json[r4] ? (json[r4][0] || '') : '').trim();
-          var partModel = String(json[r4] ? (json[r4][2] || '') : '').trim(); // C列=型号
-          var partCode = String(json[r4] ? (json[r4][4] || '') : '').trim();  // E列=编号
+          var partModel = String(json[r4] ? (json[r4][modelCol] || '') : '').trim();
+          var partCode = String(json[r4] ? (json[r4][codeCol] || '') : '').trim();
           if (!partName || partName.indexOf('二、') >= 0 || partName.indexOf('三、') >= 0) break;
-          // 存入configPartsData
-          if (partName.indexOf('乘客电梯') >= 0 || (partName.indexOf('曳引') >= 0 && partName.indexOf('驱动主机') < 0 && partName.indexOf('曳引机') < 0)) {
-            configPartsData['整梯_型号'] = partModel;
-            configPartsData['整梯_编号'] = partCode;
-            // 整梯编号=控制柜编号，后续匹配控制柜行时会自动填充控制柜型号
-          } else if (partName.indexOf('控制柜') >= 0) {
-            configPartsData['控制柜_型号'] = partModel;
-            configPartsData['控制柜_编号'] = partCode;
-          } else if (partName.indexOf('驱动主机') >= 0 || partName.indexOf('主机') >= 0 || partName.indexOf('曳引机') >= 0) {
-            configPartsData['驱动主机_型号'] = partModel;
-            configPartsData['驱动主机_编号'] = partCode;
-          } else if (partName.indexOf('上行超速') >= 0) {
-            configPartsData['上行超速_型号'] = partModel;
-            configPartsData['上行超速_编号'] = partCode;
-          } else if (partName.indexOf('意外移动') >= 0) {
-            configPartsData['意外移动_型号'] = partModel;
-            configPartsData['意外移动_编号'] = partCode;
-          } else if (partName.indexOf('限速器') >= 0) {
-            configPartsData['限速器_型号'] = partModel;
-            configPartsData['限速器_编号'] = partCode;
-          } else if (partName.indexOf('安全钳') >= 0) {
-            configPartsData['安全钳_型号'] = partModel;
-            configPartsData['安全钳_编号'] = partCode;
-          } else if (partName.indexOf('缓冲器') >= 0) {
-            configPartsData['缓冲器_型号'] = partModel;
-            configPartsData['缓冲器_编号'] = partCode;
-          } else if (partName.indexOf('层门门锁') >= 0 || partName.indexOf('层门锁') >= 0) {
-            configPartsData['层门锁_型号'] = partModel;
-            configPartsData['层门锁_编号'] = partCode;
-          } else if (partName.indexOf('轿门门锁') >= 0 || partName.indexOf('轿门锁') >= 0) {
-            configPartsData['轿门锁_型号'] = partModel;
-            configPartsData['轿门锁_编号'] = partCode;
-          } else if (partName.indexOf('层门') >= 0 && partName.indexOf('门锁') < 0) {
-            configPartsData['层门_型号'] = partModel;
-            configPartsData['层门_编号'] = partCode;
-          } else if (partName.indexOf('安全电路') >= 0) {
-            configPartsData['安全电路_型号'] = partModel;
-            configPartsData['安全电路_编号'] = partCode;
+          
+          // 关键词模糊匹配部件类型
+          var partKey = null;
+          var partNameNorm = normText(partName);
+          
+          // 按优先级匹配（更具体的优先）
+          if (matchKw(partName, ['层门门锁', '层门锁装置', '层门锁'])) {
+            partKey = '层门锁';
+          } else if (matchKw(partName, ['轿门门锁', '轿门锁装置', '轿门锁'])) {
+            partKey = '轿门锁';
+          } else if (matchKw(partName, ['上行超速保护装置', '上行超速'])) {
+            partKey = '上行超速';
+          } else if (matchKw(partName, ['意外移动保护装置', '意外移动'])) {
+            partKey = '意外移动';
+          } else if (matchKw(partName, ['驱动主机', '曳引机', '主机'])) {
+            partKey = '驱动主机';
+          } else if (matchKw(partName, ['控制柜'])) {
+            partKey = '控制柜';
+          } else if (matchKw(partName, ['限速器'])) {
+            partKey = '限速器';
+          } else if (matchKw(partName, ['安全钳'])) {
+            partKey = '安全钳';
+          } else if (matchKw(partName, ['缓冲器'])) {
+            partKey = '缓冲器';
+          } else if (matchKw(partName, ['安全电路', '含有电子元件的安全电路'])) {
+            partKey = '安全电路';
+          } else if (matchKw(partName, ['层门']) && partNameNorm.indexOf('门锁') < 0) {
+            partKey = '层门';
+          } else if (matchKw(partName, ['乘客电梯', '载货电梯', '曳引驱动电梯', '观光电梯', '病床电梯'])) {
+            partKey = '整梯';
+          }
+          
+          if (partKey) {
+            configPartsData[partKey + '_型号'] = partModel;
+            configPartsData[partKey + '_编号'] = partCode;
           }
         }
       }
@@ -2685,12 +2794,26 @@ function openClientSignature() {
   }
   if (!proj.clientSignature) proj.clientSignature = {};
   
-  // 初始化画布（使支持绘制）
+  // 初始化画布（使支持绘制）- 确保弹窗显示后再初始化
   setTimeout(function() {
+    // 确保canvas有正确的尺寸
+    var cB = document.getElementById('sigCanvasBuilder');
+    var cI = document.getElementById('sigCanvasInspector');
+    if (cB) {
+      // 用offsetWidth，如果为0则用父容器宽度或默认值
+      var w = cB.offsetWidth || cB.parentElement.offsetWidth || 300;
+      cB.width = w;
+      cB.height = 80;
+    }
+    if (cI) {
+      var w2 = cI.offsetWidth || cI.parentElement.offsetWidth || 300;
+      cI.width = w2;
+      cI.height = 80;
+    }
     initSigCanvasFor('Builder');
     initSigCanvasFor('Inspector');
     // 恢复签名
-    if (proj.clientSignature.sig) {
+    if (proj.clientSignature && proj.clientSignature.sig) {
       var cBuilder = document.getElementById('sigCanvasBuilder');
       if (cBuilder) {
         var ctx = cBuilder.getContext('2d');
@@ -2699,7 +2822,35 @@ function openClientSignature() {
         img.src = proj.clientSignature.sig;
       }
     }
-  }, 300);
+  }, 100);
+  // 第二帧再初始化一次，确保尺寸正确
+  setTimeout(function() {
+    var cB2 = document.getElementById('sigCanvasBuilder');
+    var cI2 = document.getElementById('sigCanvasInspector');
+    if (cB2 && (cB2.width === 0 || cB2.width === 300)) {
+      var w3 = cB2.offsetWidth || cB2.parentElement.offsetWidth || 300;
+      if (w3 > 0 && w3 !== cB2.width) {
+        cB2.width = w3;
+        cB2.height = 80;
+        initSigCanvasFor('Builder');
+        // 恢复签名
+        if (proj.clientSignature && proj.clientSignature.sig) {
+          var ctx2 = cB2.getContext('2d');
+          var img2 = new Image();
+          img2.onload = function() { ctx2.drawImage(img2, 0, 0, cB2.width, cB2.height); };
+          img2.src = proj.clientSignature.sig;
+        }
+      }
+    }
+    if (cI2 && (cI2.width === 0 || cI2.width === 300)) {
+      var w4 = cI2.offsetWidth || cI2.parentElement.offsetWidth || 300;
+      if (w4 > 0 && w4 !== cI2.width) {
+        cI2.width = w4;
+        cI2.height = 80;
+        initSigCanvasFor('Inspector');
+      }
+    }
+  }, 400);
 }
 
 // 签字确认标签页 — 点击签名按钮 → 弹出全屏签名弹窗
@@ -2711,7 +2862,25 @@ function openInspectorSigSetting() {
   var header = document.querySelector('#sigModal .sig-canvas-h span');
   if (header) header.textContent = '检验人员签名设置';
   document.getElementById('sigModal').style.display = 'flex';
-  setTimeout(function() { initSigCanvas(); }, 100);
+  // 立即初始化 + 延迟再初始化，确保canvas尺寸正确
+  setTimeout(function() { initSigCanvas(); }, 50);
+  setTimeout(function() { 
+    var canvas = document.getElementById('sigCanvas');
+    var container = document.getElementById('sigCanvasC');
+    if (canvas && container && (canvas.width === 0 || canvas.width < 100)) {
+      initSigCanvas();
+      // 如果有已保存的签名，重新加载
+      if (signZoneTarget && signZoneTarget === 'inspector') {
+        var savedSig = localStorage.getItem('inspectorSignature');
+        if (savedSig) {
+          var ctx = canvas.getContext('2d');
+          var img = new Image();
+          img.onload = function() { ctx.drawImage(img, 0, 0, canvas.width, canvas.height); };
+          img.src = savedSig;
+        }
+      }
+    }
+  }, 300);
 }
 
 function openSignZoneModal(target) {
@@ -2721,7 +2890,25 @@ function openSignZoneModal(target) {
   var header = document.querySelector('#sigModal .sig-canvas-h span');
   if (header) header.textContent = titles[target] || '请签名';
   document.getElementById('sigModal').style.display = 'flex';
-  setTimeout(function() { initSigCanvas(); }, 100);
+  // 立即初始化 + 延迟再初始化，确保canvas尺寸正确
+  setTimeout(function() { initSigCanvas(); }, 50);
+  setTimeout(function() { 
+    var canvas = document.getElementById('sigCanvas');
+    var container = document.getElementById('sigCanvasC');
+    if (canvas && container && (canvas.width === 0 || canvas.width < 100)) {
+      initSigCanvas();
+      // 如果有已保存的签名，重新加载
+      if (signZoneTarget && signZoneTarget === 'inspector') {
+        var savedSig = localStorage.getItem('inspectorSignature');
+        if (savedSig) {
+          var ctx = canvas.getContext('2d');
+          var img = new Image();
+          img.onload = function() { ctx.drawImage(img, 0, 0, canvas.width, canvas.height); };
+          img.src = savedSig;
+        }
+      }
+    }
+  }, 300);
 }
 
 function saveSignZone() {
@@ -3153,8 +3340,6 @@ function closeAttModal() {
   var mo = document.getElementById('moAtt');
   if (mo) mo.style.display = 'none';
   closeMoBody();
-  // 回到附表按钮列表
-  showAttButtonsModal();
 }
 
 function closeRegionModal() {
@@ -3522,11 +3707,11 @@ function renderAttach1(container) {
   html += '<label style="flex-shrink:0;font-size:13px;font-weight:600;color:#333;">门类型</label>';
   // 中分门/旁开门按钮（紧凑样式，高度和下拉框一致）
   html += '<div style="flex:0 0 auto;display:flex;gap:4px;">';
-  html += '<div onclick="setAtt1DoorStructure(&#39;center&#39;)" style="padding:0 12px;height:30px;padding:0 8px;display:inline-flex;align-items:center;border-radius:5px;cursor:pointer;font-size:12px;font-weight:600;transition:all 0.15s;border:1.5px solid ' + (doorStruct === 'center' ? '#667eea' : '#e2e8f0') + ';background:' + (doorStruct === 'center' ? 'linear-gradient(135deg,#667eea,#764ba2)' : '#fff') + ';color:' + (doorStruct === 'center' ? '#fff' : '#718096') + ';box-sizing:border-box;">中分门</div>';
-  html += '<div onclick="setAtt1DoorStructure(&#39;side&#39;)" style="padding:0 12px;height:30px;padding:0 8px;display:inline-flex;align-items:center;border-radius:5px;cursor:pointer;font-size:12px;font-weight:600;transition:all 0.15s;border:1.5px solid ' + (doorStruct === 'side' ? '#667eea' : '#e2e8f0') + ';background:' + (doorStruct === 'side' ? 'linear-gradient(135deg,#667eea,#764ba2)' : '#fff') + ';color:' + (doorStruct === 'side' ? '#fff' : '#718096') + ';box-sizing:border-box;">旁开门</div>';
+  html += '<div onclick="setAtt1DoorStructure(&#39;center&#39;)" style="padding:0 14px;height:36px;min-width:60px;display:inline-flex;align-items:center;justify-content:center;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;transition:all 0.15s;border:1.5px solid ' + (doorStruct === 'center' ? '#667eea' : '#e2e8f0') + ';background:' + (doorStruct === 'center' ? 'linear-gradient(135deg,#667eea,#764ba2)' : '#fff') + ';color:' + (doorStruct === 'center' ? '#fff' : '#718096') + ';box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;">中分门</div>';
+  html += '<div onclick="setAtt1DoorStructure(&#39;side&#39;)" style="padding:0 14px;height:36px;min-width:60px;display:inline-flex;align-items:center;justify-content:center;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;transition:all 0.15s;border:1.5px solid ' + (doorStruct === 'side' ? '#667eea' : '#e2e8f0') + ';background:' + (doorStruct === 'side' ? 'linear-gradient(135deg,#667eea,#764ba2)' : '#fff') + ';color:' + (doorStruct === 'side' ? '#fff' : '#718096') + ';box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;">旁开门</div>';
   html += '</div>';
   // 门类型下拉框（和按钮同高）
-  html += '<select id="att1DoorType" onchange="changeAtt1DoorType(this.value)" style="flex:1;height:30px;border:1px solid #ddd;border-radius:5px;padding:0 8px;font-size:12px;min-width:0;box-sizing:border-box;">';
+  html += '<select id="att1DoorType" onchange="changeAtt1DoorType(this.value)" style="flex:1;height:36px;border:1px solid #ddd;border-radius:6px;padding:0 8px;font-size:13px;min-width:0;box-sizing:border-box;">';
   html += '<option value="cargate"' + (currentAtt1Door === 'cargate' ? ' selected' : '') + '>轿门-前门</option>';
   html += '<option value="cargated"' + (currentAtt1Door === 'cargated' ? ' selected' : '') + '>轿门-后门</option>';
   html += '<option value="laygate"' + (currentAtt1Door === 'laygate' ? ' selected' : '') + '>层门</option>';
@@ -3960,7 +4145,7 @@ function renderAttach2(container) {
   html += '</div>';
   html += '<div style="margin-bottom:8px;">';
   html += '<div style="font-size:11px;color:#666;margin-bottom:2px;">对重缓冲距最大允许值 (mm)</div>';
-  html += '<input type="text" value="' + (att2.对重最大允许值||'') + '" placeholder="手动填写，不参与计算" inputmode="decimal" onfocus="cancelAttachRender()" onblur="updateAtt2(\'对重最大允许值\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:6px;font-size:13px;text-align:center;">';
+  html += '<input type="text" value="' + (att2.对重最大允许值 || att2.最大允许值 || '') + '" placeholder="手动填写，不参与计算" inputmode="decimal" onfocus="cancelAttachRender()" onblur="updateAtt2(\'最大允许值\',this.value);updateAtt2(\'对重最大允许值\',this.value)" style="width:100%;border:1px solid #ddd;border-radius:4px;padding:6px;font-size:13px;text-align:center;">';
   html += '</div>';
   
   html += '<div style="padding:8px;background:#e6f7ff;border-radius:6px;font-size:12px;line-height:1.6;">';
@@ -5617,7 +5802,12 @@ function initSigCanvasFor(suffix) {
   if (!canvas) return;
   var ctx = canvas.getContext('2d');
   var drawing = false;
-  canvas.width = canvas.offsetWidth || 300;
+  // 确保canvas有正确的宽度：优先用offsetWidth，其次父元素宽度，最后默认300
+  var w = canvas.offsetWidth;
+  if (!w || w < 50) {
+    w = (canvas.parentElement && canvas.parentElement.offsetWidth) ? canvas.parentElement.offsetWidth - 20 : 300;
+  }
+  if (w > 0) canvas.width = w;
   canvas.height = 80;
   function getPos(e) {
     var rect = canvas.getBoundingClientRect();
@@ -5956,8 +6146,16 @@ function closeSigModal() {
 function initSigCanvas() {
   var canvas = document.getElementById('sigCanvas');
   var container = document.getElementById('sigCanvasC');
-  canvas.width = container.offsetWidth;
-  canvas.height = container.offsetHeight;
+  // 确保容器有尺寸，用getBoundingClientRect更可靠
+  var w = container.offsetWidth;
+  var h = container.offsetHeight;
+  if (!w || w < 50) {
+    var rect = container.getBoundingClientRect();
+    w = rect.width || window.innerWidth * 0.9;
+    h = rect.height || window.innerHeight * 0.6;
+  }
+  canvas.width = w || 300;
+  canvas.height = h || 200;
   sigCtx = canvas.getContext('2d');
   sigCtx.strokeStyle = '#000';
   sigCtx.lineWidth = 2;

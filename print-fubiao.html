@@ -355,11 +355,6 @@ th { font-weight: bold; background: #fff; }
             <th>对重</th>
             <th data-fb2="对重压缩行程-val">mm</th>
           </tr>
-          <tr class="small-row">
-            <th>对重缓冲距最大允许值</th>
-            <th colspan="2"></th>
-            <th colspan="2" data-fb2="对重最大允许值-val">mm</th>
-          </tr>
           <tr>
             <th rowspan="6" class="vertical-text">井道顶部空间</th>
             <th colspan="4" class="slant-header">
@@ -807,10 +802,9 @@ function fillFb2(att2) {
   // 缓冲距 - 单位mm
   setFb2Text('轿厢缓冲距-val', att2.轿厢缓冲距 || '');
   setFb2Text('对重缓冲距-val', att2.对重缓冲距 || '');
-  setFb2Text('最大允许值-val', att2.最大允许值 || '');
+  setFb2Text('最大允许值-val', att2.对重最大允许值 || att2.最大允许值 || '');
   setFb2Text('轿厢压缩行程-val', att2.轿厢压缩行程 || '');
   setFb2Text('对重压缩行程-val', att2.对重压缩行程 || '');
-  setFb2Text('对重最大允许值-val', att2.对重最大允许值 || '');
   
   // 顶部空间
   var top = att2.顶部空间 || {};
