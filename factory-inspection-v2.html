@@ -408,16 +408,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
     <div class="mb">
       <div class="fr" style="margin-bottom:8px;">
         <label>项目管理/安装人员签字</label>
-        <div style="flex:1;display:flex;flex-direction:column;gap:4px;">
-          <canvas id="sigCanvasBuilder" width="300" height="80" style="border:1px solid #ddd;border-radius:8px;background:#fff;touch-action:none;"></canvas>
+        <div style="flex:1;min-width:200px;display:flex;flex-direction:column;gap:4px;">
+          <canvas id="sigCanvasBuilder" width="300" height="80" style="border:1px solid #ddd;border-radius:8px;background:#fff;touch-action:none;display:block;width:100%;height:80px;"></canvas>
           <button onclick="clearSigCanvas('Builder')" style="font-size:11px;color:#999;background:none;border:none;cursor:pointer;text-align:right;">清除签名</button>
         </div>
       </div>
       <div class="fr" style="margin-bottom:0;">
         <label>检验人员签字</label>
-        <div style="flex:1;display:flex;flex-direction:column;gap:4px;">
-          <input type="text" id="signInspectorName" placeholder="检验人员姓名" style="font-size:13px;">
-          <canvas id="sigCanvasInspector" width="300" height="80" style="border:1px solid #ddd;border-radius:8px;background:#fff;touch-action:none;"></canvas>
+        <div style="flex:1;min-width:200px;display:flex;flex-direction:column;gap:4px;">
+          <input type="text" id="signInspectorName" placeholder="检验人员姓名" style="font-size:13px;width:100%;box-sizing:border-box;">
+          <canvas id="sigCanvasInspector" width="300" height="80" style="border:1px solid #ddd;border-radius:8px;background:#fff;touch-action:none;display:block;width:100%;height:80px;"></canvas>
           <button onclick="clearSigCanvas('Inspector')" style="font-size:11px;color:#999;background:none;border:none;cursor:pointer;text-align:right;">清除签名</button>
         </div>
       </div>
@@ -1638,20 +1638,51 @@ function closeAllPrintMenus() {
 }
 
 function printNotice(index) {
+  if (typeof currentProjectIndex === 'undefined' || currentProjectIndex < 0) {
+    if (projects && projects.length > 0) currentProjectIndex = 0;
+  }
   currentTaskIndex = index;
   closeAllPrintMenus();
-  exportNoticePDF();
+  try {
+    exportNoticePDF();
+  } catch(e) {
+    console.error('打印通知单失败:', e);
+    showToast('打印失败: ' + (e.message || e));
+  }
 }
 
 function printCheckSheet(index) {
+  // 确保在项目列表页面也能正确获取项目索引
+  if (typeof currentProjectIndex === 'undefined' || currentProjectIndex < 0) {
+    // 如果没有当前项目，尝试从URL或其他方式获取
+    if (projects && projects.length > 0) currentProjectIndex = 0;
+  }
   currentTaskIndex = index;
   closeAllPrintMenus();
-  exportCheckPDF();
+  try {
+    exportCheckPDF();
+  } catch(e) {
+    console.error('打印检查表失败:', e);
+    showToast('打印失败: ' + (e.message || e));
+  }
 }
 
 function printFubiao(index) {
+  // 确保在项目列表页面也能正确获取项目索引
+  if (typeof currentProjectIndex === 'undefined' || currentProjectIndex < 0) {
+    if (projects && projects.length > 0) currentProjectIndex = 0;
+  }
   closeAllPrintMenus();
-  window.open('print-fubiao.html?proj=' + currentProjectIndex + '&task=' + index, '_blank');
+  try {
+    var url = 'print-fubiao.html?proj=' + currentProjectIndex + '&task=' + index;
+    var win = window.open(url, '_blank');
+    if (!win) {
+      showToast('弹窗被拦截，请允许弹出窗口');
+    }
+  } catch(e) {
+    console.error('打开副表打印页失败:', e);
+    showToast('打开副表失败: ' + (e.message || e));
+  }
 }
 
 function backToProjectList() {
@@ -1911,7 +1942,12 @@ configPartsData = {};
           // "标签：值"在同一单元格
           var lv = extractLabelValue(cv);
           if (lv) {
-            if (matchKw(lv.label, kwMap['产品编号']) && !prodNo) prodNo = lv.value;
+            if (matchKw(lv.label, kwMap['产品编号']) && !prodNo) {
+              var lblNorm = normText(lv.label);
+              if (lblNorm.indexOf('型式试验') < 0 && lblNorm.indexOf('证书') < 0 && lblNorm.indexOf('tsx') < 0) {
+                prodNo = lv.value;
+              }
+            }
             if (matchKw(lv.label, kwMap['项目名称']) && !addr) addr = lv.value;
             if (matchKw(lv.label, kwMap['产品型号']) && !modelPrefix) {
               if (!/[\u4e00-\u9fa5]/.test(lv.value)) modelPrefix = lv.value;
@@ -1930,7 +1966,11 @@ configPartsData = {};
           }
           // "标签：值"在不同单元格（标签在左，值在右）
           if (!prodNo && matchKw(cv, kwMap['产品编号'])) {
-            prodNo = val(r, c+1) || val(r, c+2) || val(r+1, c) || val(r+1, c+1);
+            // 排除型式试验证书编号
+            var cvNorm = normText(cv);
+            if (cvNorm.indexOf('型式试验') < 0 && cvNorm.indexOf('证书') < 0 && cvNorm.indexOf('tsx') < 0) {
+              prodNo = val(r, c+1) || val(r, c+2) || val(r+1, c) || val(r+1, c+1);
+            }
           }
           if (!addr && matchKw(cv, kwMap['项目名称'])) {
             addr = val(r, c+1) || val(r, c+2) || val(r+1, c) || val(r+1, c+1);
@@ -2052,11 +2092,35 @@ configPartsData = {};
         // 从表头行检测列位置
         var headerRow2 = partStartRow - 1;
         if (headerRow2 >= 0 && json[headerRow2]) {
+          modelCol = -1;
+          codeCol = -1;
           for (var hc = 0; hc < json[headerRow2].length; hc++) {
             var hcell = String(json[headerRow2][hc] || '').replace(/\s/g, '').replace(/\n/g, '');
-            if (hcell.indexOf('型号') >= 0 || hcell.indexOf('规格') >= 0) modelCol = hc;
-            if (hcell.indexOf('编号') >= 0 || hcell.indexOf('批次') >= 0 || hcell.indexOf('出厂编号') >= 0) codeCol = hc;
+            // 型号列检测
+            if ((hcell.indexOf('型号') >= 0 || hcell.indexOf('规格') >= 0) && hcell.indexOf('型式试验') < 0 && hcell.indexOf('证书') < 0) {
+              if (modelCol < 0) modelCol = hc;
+            }
+            // 编号列检测：只认"编号或制造批次号"，排除型式试验证书编号等
+            // 精确匹配优先级：编号或制造批次号 > 出厂编号 > 产品编号 > 设备编号
+            // 排除包含"型式试验"、"证书编号"、"TSX"的列
+            var isCodeCol = false;
+            if (hcell === '编号或制造批次号' || hcell.indexOf('编号或制造批次号') >= 0) {
+              isCodeCol = true;
+            }
+            // 其他含编号的列必须排除型式试验/证书相关
+            if (!isCodeCol && hcell.indexOf('编号') >= 0) {
+              if (hcell.indexOf('型式试验') < 0 && hcell.indexOf('证书') < 0 && hcell.indexOf('TSX') < 0 && hcell.indexOf('tsx') < 0) {
+                // 只在没有找到精确匹配的情况下才考虑模糊匹配
+                // 但这里我们严格只认"编号或制造批次号"，所以不启用模糊匹配
+              }
+            }
+            if (isCodeCol) {
+              codeCol = hc;
+            }
           }
+          // 如果没找到精确匹配的编号列，用默认值（D列，索引3）
+          if (codeCol < 0) codeCol = 3;
+          if (modelCol < 0) modelCol = 2;
         }
         
         for (var r4 = partStartRow; r4 < Math.min(partStartRow + 25, json.length); r4++) {
@@ -2694,38 +2758,7 @@ function renderSignZoneContent(container) {
   var pmSigData = task.signatures.pmSig || '';
   var installerSigData = task.signatures.installerSig || '';
   html += '<div style="background:#f8fff8;border-radius:12px;padding:14px;margin-bottom:12px;border:1px solid #e2e8f0;">';
-    // 检验人员签名（全局级，只读预览）
-  var _gSig = null;
-  try { var _sd = localStorage.getItem(INSPECTOR_SIG_KEY); if (_sd) _gSig = JSON.parse(_sd); } catch(e) {}
-  html += '<div style="background:#f0f4ff;border-radius:10px;padding:12px;margin-bottom:12px;border:1px solid #c7d2fe;">';
-  html += '<div style="font-size:13px;font-weight:600;margin-bottom:8px;color:#4338ca;">✍️ 检验人员签名（全局）</div>';
-  if (_gSig && _gSig.sig) {
-    html += '<div style="display:flex;align-items:center;gap:10px;">';
-    html += '<div style="font-size:12px;color:#4b5563;font-weight:600;white-space:nowrap;">' + (_gSig.name || '检验员') + '：</div>';
-    html += '<div style="flex:1;border:1px solid #e2e8f0;border-radius:6px;background:#fff;padding:6px;min-height:45px;display:flex;align-items:center;justify-content:center;">';
-    html += '<img src="' + _gSig.sig + '" style="max-height:40px;max-width:100%;">';
-    html += '</div></div>';
-  } else {
-    html += '<div style="color:#9ca3af;font-size:12px;text-align:center;padding:8px;">尚未设置检验人员签名<br><span style="font-size:11px;">顶部菜单 → 厂检签字</span></div>';
-  }
-  html += '</div>';
-  
-  // 项目管理/安装人员签名（项目级，只读预览）
-  var _cp = getCurrentProject();
-  var _cs = (_cp && _cp.clientSignature) ? _cp.clientSignature : null;
-  html += '<div style="background:#f0fff4;border-radius:10px;padding:12px;margin-bottom:12px;border:1px solid #9ae6b4;">';
-  html += '<div style="font-size:13px;font-weight:600;margin-bottom:8px;color:#276749;">✍️ 项目管理/安装人员签名（项目级）</div>';
-  if (_cs && _cs.sig) {
-    html += '<div style="display:flex;align-items:center;gap:10px;">';
-    html += '<div style="font-size:12px;color:#4b5563;font-weight:600;white-space:nowrap;">' + (_cs.name || '项目管理/安装人员') + '：</div>';
-    html += '<div style="flex:1;border:1px solid #e2e8f0;border-radius:6px;background:#fff;padding:6px;min-height:45px;display:flex;align-items:center;justify-content:center;">';
-    html += '<img src="' + _cs.sig + '" style="max-height:40px;max-width:100%;">';
-    html += '</div></div>';
-  } else {
-    html += '<div style="color:#9ca3af;font-size:12px;text-align:center;padding:8px;">尚未设置项目管理/安装人员签名<br><span style="font-size:11px;">电梯列表顶部 → 项目管理/安装人员签字</span></div>';
-  }
-  html += '</div>';
-  
+  // （检验人员全局签名和项目级签名提示框已移除，签名入口在顶部菜单）
   html += '<div style="font-size:13px;font-weight:600;margin-bottom:8px;">相关人员签名</div>';
   // 安装人员姓名输入
   html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">';
@@ -2795,20 +2828,28 @@ function openClientSignature() {
   if (!proj.clientSignature) proj.clientSignature = {};
   
   // 初始化画布（使支持绘制）- 确保弹窗显示后再初始化
-  setTimeout(function() {
-    // 确保canvas有正确的尺寸
+  function _doInitSigCanvas() {
     var cB = document.getElementById('sigCanvasBuilder');
     var cI = document.getElementById('sigCanvasInspector');
     if (cB) {
-      // 用offsetWidth，如果为0则用父容器宽度或默认值
-      var w = cB.offsetWidth || cB.parentElement.offsetWidth || 300;
+      // 强制重排确保父容器有宽度
+      cB.style.display = 'block';
+      var parentW = cB.parentElement ? (cB.parentElement.offsetWidth || cB.parentElement.clientWidth) : 0;
+      var w = cB.offsetWidth || parentW || 300;
+      if (w < 50) w = 300;
       cB.width = w;
       cB.height = 80;
+      cB.style.width = w + 'px';
+      cB.style.height = '80px';
     }
     if (cI) {
-      var w2 = cI.offsetWidth || cI.parentElement.offsetWidth || 300;
+      var parentW2 = cI.parentElement ? (cI.parentElement.offsetWidth || cI.parentElement.clientWidth) : 0;
+      var w2 = cI.offsetWidth || parentW2 || 300;
+      if (w2 < 50) w2 = 300;
       cI.width = w2;
       cI.height = 80;
+      cI.style.width = w2 + 'px';
+      cI.style.height = '80px';
     }
     initSigCanvasFor('Builder');
     initSigCanvasFor('Inspector');
@@ -2818,11 +2859,22 @@ function openClientSignature() {
       if (cBuilder) {
         var ctx = cBuilder.getContext('2d');
         var img = new Image();
-        img.onload = function() { ctx.drawImage(img, 0, 0, cBuilder.width, cBuilder.height); };
+        img.onload = function() { 
+          var cb = document.getElementById('sigCanvasBuilder');
+          if (cb) {
+            var c = cb.getContext('2d');
+            c.clearRect(0, 0, cb.width, cb.height);
+            c.drawImage(img, 0, 0, cb.width, cb.height);
+          }
+        };
         img.src = proj.clientSignature.sig;
       }
     }
-  }, 100);
+  }
+  // 多阶段初始化，确保flex布局稳定后canvas有正确尺寸
+  setTimeout(_doInitSigCanvas, 50);
+  setTimeout(_doInitSigCanvas, 200);
+  setTimeout(_doInitSigCanvas, 500);
   // 第二帧再初始化一次，确保尺寸正确
   setTimeout(function() {
     var cB2 = document.getElementById('sigCanvasBuilder');
@@ -5805,10 +5857,19 @@ function initSigCanvasFor(suffix) {
   // 确保canvas有正确的宽度：优先用offsetWidth，其次父元素宽度，最后默认300
   var w = canvas.offsetWidth;
   if (!w || w < 50) {
-    w = (canvas.parentElement && canvas.parentElement.offsetWidth) ? canvas.parentElement.offsetWidth - 20 : 300;
+    // 尝试用父容器的clientWidth
+    var parent = canvas.parentElement;
+    if (parent) {
+      w = parent.clientWidth || parent.offsetWidth;
+      if (w) w = w - 10; // 留一点边距
+    }
   }
-  if (w > 0) canvas.width = w;
+  if (!w || w < 50) w = 300;
+  canvas.width = w;
   canvas.height = 80;
+  // 同步设置CSS尺寸，确保显示一致
+  canvas.style.width = w + 'px';
+  canvas.style.height = '80px';
   function getPos(e) {
     var rect = canvas.getBoundingClientRect();
     var touch = e.touches ? e.touches[0] : e;
@@ -6888,8 +6949,23 @@ function buildNoticeFullHTML(task, project, dateStr, ngItems, startIndex) {
   h += '</td></tr>';
 
   // 行34：检验人员行（B + C:E合并 + F + G，仅底部有边，内部无竖线）
-  var inspSig = (task.signatures && task.signatures.inspectorSig) || '';
-  var inspName = (task.signatures && task.signatures.inspectorName) || manager || '';
+  // 检验人员签名：优先从localStorage读取全局签名，没有则用任务级签名
+  var inspSig = '';
+  var inspName = '';
+  try {
+    var _inspStored = localStorage.getItem(INSPECTOR_SIG_KEY);
+    if (_inspStored) {
+      var _inspObj = JSON.parse(_inspStored);
+      if (_inspObj && _inspObj.sig) {
+        inspSig = _inspObj.sig;
+        inspName = _inspObj.name || '';
+      }
+    }
+  } catch(e) {}
+  if (!inspSig && task.signatures && task.signatures.inspectorSig) {
+    inspSig = task.signatures.inspectorSig;
+  }
+  if (!inspName) inspName = (task.signatures && task.signatures.inspectorName) || manager || '';
   h += '<tr>';
   h += '<td style="border:1px solid #000;border-top:none;border-right:none;padding:4px 3px;height:32px;white-space:nowrap;">检验人员：</td>';
   h += '<td style="border-top:none;border-bottom:1px solid #000;padding:4px 3px;height:32px;position:relative;text-align:center;" colspan="3">';
@@ -6902,8 +6978,17 @@ function buildNoticeFullHTML(task, project, dateStr, ngItems, startIndex) {
   h += '</tr>';
 
   // 行35：安装单位代表 / 签收日期
-  var pmSig = (task.signatures && task.signatures.pmSig) || '';
-  var pmName = (project && project.projectManagerName) || task.projectManagerName || manager || '';
+  // 安装单位代表签名：优先从项目级clientSignature读取，没有则用任务级pmSig
+  var pmSig = '';
+  var pmName = '';
+  if (project && project.clientSignature && project.clientSignature.sig) {
+    pmSig = project.clientSignature.sig;
+    pmName = project.clientSignature.name || '';
+  }
+  if (!pmSig && task.signatures && task.signatures.pmSig) {
+    pmSig = task.signatures.pmSig;
+  }
+  if (!pmName) pmName = (project && project.projectManagerName) || task.projectManagerName || manager || '';
   h += '<tr>';
   h += '<td style="border:1px solid #000;border-top:none;padding:4px 3px;height:32px;white-space:nowrap;">安装单位代表：</td>';
   h += '<td style="border:1px solid #000;padding:4px 3px;height:32px;position:relative;text-align:center;" colspan="3">';
