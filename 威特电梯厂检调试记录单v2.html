@@ -9232,8 +9232,8 @@ function loadPdfLibs(callback) {
     var deltaY = endY - touchStartY;
     var duration = Date.now() - touchStartTime;
     
-    // 只处理右→左滑动（返回手势）
-    if (deltaX >= 0) return;
+    // 只处理左→右滑动（返回手势）
+    if (deltaX <= 0) return;
     
     var screenWidth = window.innerWidth;
     var threshold = screenWidth * SWIPE_THRESHOLD_RATIO;
