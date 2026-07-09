@@ -1464,11 +1464,12 @@ function getMostRecentProjectIndex(direction) {
 }
 
 function showNewProject() {
-  editingProjectIndex = -1;
+  // 优先打开弹窗，确保即使后续代码出错也能看到弹窗
   openMoModal('moNewProject');
+  var titleEl = document.getElementById('moNewProjectTitle');
+  if (titleEl) titleEl.textContent = '新建项目';
+  editingProjectIndex = -1;
   try {
-    var titleEl = document.getElementById('moNewProjectTitle');
-    if (titleEl) titleEl.textContent = '新建项目';
     var nameEl = document.getElementById('newProjName');
     if (nameEl) nameEl.value = '';
     var instEl = document.getElementById('newProjInstaller');
@@ -1479,9 +1480,13 @@ function showNewProject() {
     if (addrEl) addrEl.value = '';
     var remarkEl = document.getElementById('newProjRemark');
     if (remarkEl) remarkEl.value = '';
+  } catch(e) {
+    console.warn('重置表单失败', e);
+  }
+  try {
     initProvinceSelect('newProjProvince', 'newProjCity', 'newProjDistrict');
   } catch(e) {
-    console.error('showNewProject init error:', e);
+    console.warn('初始化省市区下拉失败', e);
   }
 }
 
