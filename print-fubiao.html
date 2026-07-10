@@ -206,6 +206,11 @@ th { font-weight: bold; background: #fff; }
 </head>
 <body>
 
+<div id="toolbar" style="position:sticky;top:0;z-index:100;background:#fff;border-bottom:1px solid #ddd;padding:10px 15px;display:flex;gap:10px;justify-content:center;">
+  <button onclick="exportFubiaoPDF()" style="padding:10px 20px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border:none;border-radius:6px;font-size:14px;cursor:pointer;">导出PDF</button>
+  <button onclick="window.print()" style="padding:10px 20px;background:#f0f0f0;color:#333;border:none;border-radius:6px;font-size:14px;cursor:pointer;">打印</button>
+</div>
+
 <div id="content" style="width:100%;">
 
 <!-- 第1页 -->
