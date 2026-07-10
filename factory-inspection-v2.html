@@ -1751,7 +1751,8 @@ function togglePrintMenu(index) {
     setTimeout(function(){
       var rect = menu.getBoundingClientRect();
       var viewH = window.innerHeight || document.documentElement.clientHeight;
-      if (rect.bottom > viewH - 20) {
+      // 底部有"新建检查"固定按钮栏（约70px），留80px余量
+      if (rect.bottom > viewH - 80) {
         menu.classList.add('flip-up');
       }
     }, 0);
