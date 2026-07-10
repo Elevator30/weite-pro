@@ -9298,11 +9298,51 @@ function loadPdfLibs(callback) {
     return pages[0].id.replace('page-', '');
   }
 
+  var isHorizontalSwipe = false; // 是否已判定为水平滑动
+  var LOCK_THRESHOLD = 8; // 水平位移超过8px开始判断方向
+
   function handleTouchStart(e) {
     if (e.touches.length !== 1) return;
     touchStartX = e.touches[0].clientX;
     touchStartY = e.touches[0].clientY;
     touchStartTime = Date.now();
+    isHorizontalSwipe = false;
+  }
+
+  function handleTouchMove(e) {
+    if (e.touches.length !== 1) return;
+    var deltaX = e.touches[0].clientX - touchStartX;
+    var deltaY = e.touches[0].clientY - touchStartY;
+
+    // 已判定为水平滑动，直接阻止垂直滚动
+    if (isHorizontalSwipe) {
+      e.preventDefault();
+      return;
+    }
+
+    // 水平位移足够大时判断方向
+    if (Math.abs(deltaX) > LOCK_THRESHOLD) {
+      // 水平位移 > 垂直位移的1.5倍 → 判定为水平滑动，锁住垂直滚动
+      if (Math.abs(deltaX) > Math.abs(deltaY) * 1.5) {
+        // 检查是否在可横向滚动的元素内，如果是则不锁定（让元素自己滚）
+        var target = e.target;
+        var inScrollable = false;
+        while (target && target !== document.body) {
+          var style = window.getComputedStyle(target);
+          var overflowX = style.overflowX;
+          if ((overflowX === 'auto' || overflowX === 'scroll') && target.scrollWidth > target.clientWidth) {
+            inScrollable = true;
+            break;
+          }
+          target = target.parentElement;
+        }
+        if (!inScrollable) {
+          isHorizontalSwipe = true;
+          e.preventDefault();
+        }
+      }
+      // 否则判定为垂直滚动，什么都不做，让页面正常滚
+    }
   }
 
   function handleTouchEnd(e) {
@@ -9369,8 +9409,9 @@ function loadPdfLibs(callback) {
     }
   }
 
-  // 绑定到body，使用捕获阶段以提前判断
+  // 绑定到document，使用捕获阶段以提前判断
   document.addEventListener('touchstart', handleTouchStart, { passive: true });
+  document.addEventListener('touchmove', handleTouchMove, { passive: false });
   document.addEventListener('touchend', handleTouchEnd, { passive: true });
 })();
 
