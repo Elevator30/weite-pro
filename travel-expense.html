@@ -2291,7 +2291,10 @@ function openViewModal() {
     listEl.innerHTML = '<div style="color:#999;font-size:14px;">暂无项目</div>';
   } else {
     listEl.innerHTML = names.map(function(n) {
-      return '<button onclick="selectViewProject(\'' + n.replace(/'/g, "\\'") + '\')" style="padding:8px 16px;border:1.5px solid #667eea;border-radius:20px;background:#fff;color:#667eea;font-size:14px;font-weight:500;cursor:pointer;">' + n + '</button>';
+      return '<div style="display:inline-flex;align-items:center;gap:6px;padding:6px 8px 6px 16px;border:1.5px solid #667eea;border-radius:20px;background:#fff;">' +
+        '<span onclick="selectViewProject(\'' + n.replace(/'/g, "\\'") + '\')" style="color:#667eea;font-size:14px;font-weight:500;cursor:pointer;">' + n + '</span>' +
+        '<span onclick="deleteProject(\'' + n.replace(/'/g, "\\'") + '\')" style="color:#e74c3c;font-size:18px;cursor:pointer;padding:0 4px;line-height:1;">×</span>' +
+        '</div>';
     }).join('');
   }
   document.getElementById('viewModal').classList.add('active');
@@ -2312,6 +2315,30 @@ function selectViewProject(name) {
     }
   });
   renderViewExpenses();
+}
+
+function deleteProject(name) {
+  event.stopPropagation();
+  var proj = projects.find(p => p.name === name);
+  if (!proj) return;
+  var count = expenses.filter(e => e.projectId === proj.id).length;
+  var msg = count > 0
+    ? '确定删除项目"' + name + '"？该项目下' + count + '条费用记录也会一起删除，不可恢复。'
+    : '确定删除项目"' + name + '"？';
+  if (!confirm(msg)) return;
+  // 删除项目
+  projects = projects.filter(p => p.id !== proj.id);
+  localStorage.setItem('travelProjects', JSON.stringify(projects));
+  // 删除该项目下所有费用
+  expenses = expenses.filter(e => e.projectId !== proj.id);
+  localStorage.setItem('travelExpenses', JSON.stringify(expenses));
+  // 如果当前查看的就是被删的项目，清空
+  if (viewProject && viewProject.id === proj.id) {
+    viewProject = null;
+    document.getElementById('viewExpenseList').innerHTML = '';
+  }
+  showViewModal(); // 重新渲染项目列表
+  showToast('已删除项目');
 }
 
 function renderViewExpenses() {
