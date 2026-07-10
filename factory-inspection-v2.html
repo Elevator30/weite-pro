@@ -8,7 +8,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="威特厂检记录">
 <meta name="theme-color" content="#667eea">
-<title>威特电梯厂检调试记录单V2 v61</title>
+<title>威特电梯厂检调试记录单V2 v62</title>
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%231a3a6b'/%3E%3Ctext x='50' y='42' font-family='Arial' font-size='28' font-weight='900' text-anchor='middle' fill='white'%3EVEITE%3C/text%3E%3Ctext x='50' y='72' font-family='serif' font-size='16' font-weight='800' text-anchor='middle' fill='%23e63946'%3E电梯%3C/text%3E%3C/svg%3E">
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
@@ -42,18 +42,20 @@
 <!-- v50.1 -->
 <!-- v51: buildCheckItemsHTML和buildSingleAttachHTML改用纯table布局，移除所有flex/float，确保html2canvas正确渲染 -->
 <script>
-// PWA manifest & service worker
+// PWA manifest（仅用于添加到桌面的外观，不使用service worker缓存）
 (function(){
   var manifest={name:'威特电梯厂检调试记录单V2',short_name:'威特厂检',start_url:location.href,display:'standalone',background_color:'#f5f7fa',theme_color:'#667eea',icons:[{src:"data:image/webp;base64,UklGRlwFAABXRUJQVlA4WAxAAAAgBACdASqYAEAAPm0ulUYkIqIhLTN7oIANiWIA0XiYk6fAcypylKVfR8u8/Dbw+YDzgP9B6n95359z2hL9E7d/719M3U1HvX4z8e/yx1EW+/ZA9GXqr6AdtRxosfn/A9PH/M/wfnl+ov+x7h/8p/r/WV/ab2E/07SHbXhZHt4C8qbGczRQ+YhCP904TtF2T0CCKyarJnypB/hAK6gQjXC9iwsKwwC+OU9rHGVQYHoJ6rQgTA7XrCkoSqGEyqPx+s/JTspyE0a/wsHHmamelpQCinlWWUKPRRn2jng/2F6cIdPGnOlsdbXFcJsLUCwUtt4xh8NxuwH9RK03w+j532Ir+l0sI72fbPxXS3J23eO7gAD+/KharSACg7d/D3l4HJGQhCdQ227rBH9fuFBIE9S7KXkbv7srGfvvq8TrxYIaGqIqQ/b0R4LwFqs4veGNAtr2N/9XffjClI9y+Ns078yTGj+KSGmGoaW2Fg/yvd4F7TzYht4cvAZutRHBgxFjmYPyk/Z1thQLvhA7bIQJk3t7yUcjDBEsNXXBg1DpLtTLyUkG1b9F3vtmuHLAPrBInM7M7U/c1FeNzDPVV+6BRvH2iEWC6nY3/1H7aw0kAHQYdp42tv5GgpRGgiYmYUVL5Qd/4ijq3Rfbapv3bWVmxZKsplOi5YLgdbLkTcDBjYXWKam/rObme42a6zh11FrQw4NEOL27WA25k2pume6U/xMh4P/PDiwbukzK7WSnmwOFe0ciPINJrwLzrkAeD6BD0SWAq0Q1wWwnlYW3LUY/y8m3f+f/X/n/79m0bBWtpP5xqSkXsKoWDOqRiwoP0BAnzpBgbm894mRq0lIcL4xJBCo9bdnhraMV0K/QTKujLzuUPojKhYvfv/p70tbIdD3NBjM+qJFCBD9zPo9D482iTfk6qobTD32BQWLSMxicFoe6FYzy/oPmoP638ZRjj32Uz6ALnezqdAe7rPmGGNdjTIcgSEb5jx6vZjH9PD/lXhCFVeLX4LauAmPeFQ6h2f+s8cklG4i5Cq0lzmoy063xvLZoCPrQxnTlVru5RClIu5c9JB+MEPv59l/Ael7/Yx1PxGUL7lXtPJR4nJaLQfl2losnfjlp9kdVwsxXlk6+iLf0jXwxuWblGMMs8ud9+H1rRDUFRM6kdd7WGgH/nGnS9whJCrYMo6AiYO+SteHvU7UDlX1bDoZi+EzPtFErY2YzDss5BLJESpOcLeheC72VKac5Bz192vBsPf1uOnFNig0EZTR9OjSmAhxfknwgxOT47IGBghTTIbjZO6jUIanJs/JhPwzLLc2ZqbmiNX4+30SicCTM90VJVN+6i5YU4V5Puf3Asu802W45DRPchPNC9NQxrs/y3VvUDf2cqxaXmk5AP6bgaO9Ofuv5AMvDOmfSY7oDs1NLtdFkqoWjzOOax+M/uI4MHe9puGHMgqTVcP25iaQcuBHlgSqCp+iQmBoivAqM6YtWQoqlZ+fSyfSnYKbRd7DsI5CmBFvlwzdlHP1+nQybKj8mvr3IyDZpBJ10OtAnq10T2GQOXEkw1HHsm60s9vId47czppsEl+VZyrnQ5Z6i8+c1Y7m7QILvbdD+GIatZWMRNtiR+YCpX+OXp26fZTgoIjkaD3ZcEjnT4/iENcoz/7Hfq09z/newBZMpuD+1ko1UoWKpIB/jGpf/qNMYFfTe5rvRVFq+1Xdk5EsJvsgYwENrNB68IrkFpHu+2KzzABc7FqwVfAhJdqRCxeasS4dDiF0b5Lqfasg8AVMtt3biVFXL9wLKy5X69mHZaD0UtE5OafUdUcdB9xvfmW/Siv+xCmWpjo5qPnSkcOt09PGXwAYpphRp9NLPaSXlQ0XCSNh9OoC74DABb0pbu5taHZj4uzOfu9rRKUvW+fWkRUxDr2zbvFTxLY/XvUy26/eAhK9wRTlytnMF2ZwTwAA",sizes:'192x192',type:'image/webp'}]};
   var mBlob=new Blob([JSON.stringify(manifest)],{type:'application/json'});
   var mUrl=URL.createObjectURL(mBlob);
   var link=document.createElement('link');link.rel='manifest';link.href=mUrl;
   document.head.appendChild(link);
+  // 注销所有已注册的service worker，防止旧版本缓存导致页面不更新
   if('serviceWorker' in navigator){
-    var swCode="self.addEventListener('install',function(e){self.skipWaiting();});self.addEventListener('activate',function(e){e.waitUntil(clients.claim());});self.addEventListener('fetch',function(e){e.respondWith(fetch(e.request).catch(function(){return caches.match(e.request);}));});";
-    var swBlob=new Blob([swCode],{type:'application/javascript'});
-    var swUrl=URL.createObjectURL(swBlob);
-    navigator.serviceWorker.register(swUrl).catch(function(){});
+    navigator.serviceWorker.getRegistrations().then(function(registrations){
+      for(var i=0;i<registrations.length;i++){
+        registrations[i].unregister();
+      }
+    }).catch(function(){});
   }
 })();
 </script>
@@ -1759,12 +1761,14 @@ function togglePrintMenu(index) {
     menu.classList.add('show');
     var card = menu.closest('.task-card');
     if (card) card.classList.add('menu-open');
-    // 检测是否超出视口底部，超出则向上弹出
-    var rect = menu.getBoundingClientRect();
-    var viewH = window.innerHeight || document.documentElement.clientHeight;
-    if (rect.bottom > viewH - 20) {
-      menu.classList.add('flip-up');
-    }
+    // 延迟一帧再检测位置，确保浏览器完成重排，getBoundingClientRect值准确
+    setTimeout(function(){
+      var rect = menu.getBoundingClientRect();
+      var viewH = window.innerHeight || document.documentElement.clientHeight;
+      if (rect.bottom > viewH - 20) {
+        menu.classList.add('flip-up');
+      }
+    }, 0);
   }
 }
 
@@ -9416,8 +9420,8 @@ init();
       }
     }, 450);
   }
-  // 兜底：3秒后强制隐藏，防止任何异常导致用户永远卡在加载页
-  setTimeout(doHide, 3000);
+  // 兜底：1.5秒后强制隐藏，防止任何异常导致用户永远卡在加载页
+  setTimeout(doHide, 1500);
   // JS报错时也强制隐藏
   window.addEventListener('error', doHide);
   // 等待DOM和初始化完成后再隐藏，确保用户看到的是完整界面
