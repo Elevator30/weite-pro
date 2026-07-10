@@ -6463,30 +6463,30 @@ function importAllData() {
       try {
         var imported = JSON.parse(ev.target.result);
         // 兼容多种格式
-        var projects = [];
+        var parsedProjects = [];
         if (Array.isArray(imported)) {
-          projects = imported;
+          parsedProjects = imported;
         } else if (imported.projects && Array.isArray(imported.projects)) {
-          projects = imported.projects;
+          parsedProjects = imported.projects;
         } else if (imported.tasks && Array.isArray(imported.tasks)) {
-          projects = [{ name: '导入项目', tasks: imported.tasks }];
+          parsedProjects = [{ name: '导入项目', tasks: imported.tasks }];
         } else {
           var keys = Object.keys(imported);
           for (var j = 0; j < keys.length; j++) {
             if (Array.isArray(imported[keys[j]]) && imported[keys[j]].length > 0 && imported[keys[j]][0] && imported[keys[j]][0].tasks) {
-              projects = imported[keys[j]];
+              parsedProjects = imported[keys[j]];
               break;
             }
           }
         }
-        if (projects.length === 0) throw new Error('未识别到有效项目数据');
-        if (confirm('确定导入 ' + projects.length + ' 个项目？将覆盖当前全部数据！')) {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
-          projectsData = projects;
+        if (parsedProjects.length === 0) throw new Error('未识别到有效项目数据');
+        if (confirm('确定导入 ' + parsedProjects.length + ' 个项目？将覆盖当前全部数据！')) {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(parsedProjects));
+          projects = parsedProjects;
           currentProjectIndex = -1;
           currentTaskIndex = -1;
           renderProjectList();
-          showToast('导入成功，共' + projects.length + '个项目');
+          showToast('导入成功，共' + parsedProjects.length + '个项目');
         }
       } catch(err) { showToast('导入失败: ' + err.message); }
     };
