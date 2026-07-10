@@ -1529,7 +1529,11 @@ function exportFubiaoPDF() {
 // ============ 初始化 ============
 document.addEventListener('DOMContentLoaded', function() {
   fillData();
-  setTimeout(function() { window.print(); }, 300);
+  var params = new URLSearchParams(window.location.search);
+  var autoPrint = params.get('autoPrint');
+  if (autoPrint !== '0') {
+    setTimeout(function() { window.print(); }, 300);
+  }
 });
 </script>
 
