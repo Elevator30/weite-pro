@@ -443,7 +443,7 @@ function selectExpCategory(cat) {
     document.getElementById('tripFields').style.display = 'block';
     document.getElementById('cityFields').style.display = 'none';
   } else if (cat === 'local') {
-    sel.innerHTML = '<option value="taxi">打的</option><option value="didi">网约车/滴滴</option><option value="bus_local">公交</option><option value="subway">地铁</option>';
+    sel.innerHTML = '<option value="taxi">打的</option><option value="didi">网约车</option><option value="bus_local">公交</option><option value="subway">地铁</option>';
     document.getElementById('tripFields').style.display = 'none';
     document.getElementById('cityFields').style.display = 'block';
   } else {
@@ -907,7 +907,7 @@ function simulateOCR(imgData, filename) {
 }
 
 function getTypeLabel(type) {
-  const labels = { train: '高铁/火车', plane: '飞机', bus: '长途汽车', ship: '轮船', didi: '网约车/滴滴', subway: '地铁', bus_local: '公交', taxi: '打的', hotel: '住宿', meal: '餐费', subsidy: '补贴', other: '其他' };
+  const labels = { train: '高铁/火车', plane: '飞机', bus: '长途汽车', ship: '轮船', didi: '网约车', subway: '地铁', bus_local: '公交', taxi: '打的', hotel: '住宿', meal: '餐费', subsidy: '补贴', other: '其他' };
   return labels[type] || '其他';
 }
 
@@ -1147,7 +1147,7 @@ function exportExcel() {
 
   if (filteredProjects.length === 0) { showToast('选定范围内无数据'); return; }
 
-  const typeLabels = { train: '高铁/火车', plane: '飞机', bus: '长途汽车', ship: '轮船', didi: '网约车/滴滴', subway: '地铁', bus_local: '公交', taxi: '打的', hotel: '住宿', meal: '餐费', subsidy: '补贴', other: '其他' };
+  const typeLabels = { train: '高铁/火车', plane: '飞机', bus: '长途汽车', ship: '轮船', didi: '网约车', subway: '地铁', bus_local: '公交', taxi: '打的', hotel: '住宿', meal: '餐费', subsidy: '补贴', other: '其他' };
   const expTypeLabels = { train: '高铁/火车', plane: '飞机', bus: '长途汽车', ship: '轮船', didi: '打的/网约车', subway: '公交/地铁', bus_local: '公交/地铁', taxi: '打的/网约车', hotel: '住宿', meal: '餐补', subsidy: '其它', other: '其它' };
 
   let totalDays = 0, totalQty = 0, selfAmount = 0, ctripAmount = 0;
@@ -2172,7 +2172,7 @@ function importExcel(event) {
   reader.onload = function(e) {
     try {
       var wb = XLSX.read(e.target.result, { type: 'array' });
-      var typeMap = {'高铁/火车':'train','飞机':'plane','长途汽车':'bus','轮船':'ship','网约车/滴滴':'didi','地铁':'subway','公交':'bus_local','打的':'taxi','住宿':'hotel','餐费':'meal','补贴':'subsidy','其他':'other'};
+      var typeMap = {'高铁/火车':'train','飞机':'plane','长途汽车':'bus','轮船':'ship','网约车':'didi','地铁':'subway','公交':'bus_local','打的':'taxi','住宿':'hotel','餐费':'meal','补贴':'subsidy','其他':'other'};
       var payerMap = {'自付':'self','自费(报销)':'self','携程':'ctrip','携程支付':'ctrip'};
       // 读取项目明细
       var projSheet = wb.Sheets['项目明细'];
@@ -2544,7 +2544,7 @@ function editViewExpense(eid) {
   editTempReceipts = [];
   var exp = expenses.find(e => e.id === eid);
   if (!exp) return;
-  var typeLabels = {'train':'高铁/火车','plane':'飞机','bus':'长途汽车','ship':'轮船','didi':'网约车/滴滴','subway':'地铁','bus_local':'公交','taxi':'打的','hotel':'住宿','meal':'餐补','subsidy':'途中补贴','other':'其他'};
+  var typeLabels = {'train':'高铁/火车','plane':'飞机','bus':'长途汽车','ship':'轮船','didi':'网约车','subway':'地铁','bus_local':'公交','taxi':'打的','hotel':'住宿','meal':'餐补','subsidy':'途中补贴','other':'其他'};
   var payerLabels = {'self':'自费(报销)','ctrip':'携程支付'};
   // 判断当前费用属于哪个类别
   var intercityTypes = ['train','plane','bus','ship'];
@@ -2625,7 +2625,7 @@ function selectEditCategory(cat, selectedType) {
     document.getElementById('editTripFields').style.display = 'block';
     document.getElementById('editCityFields').style.display = 'none';
   } else if (cat === 'local') {
-    sel.innerHTML = '<option value="taxi">打的</option><option value="didi">网约车/滴滴</option><option value="bus_local">公交</option><option value="subway">地铁</option>';
+    sel.innerHTML = '<option value="taxi">打的</option><option value="didi">网约车</option><option value="bus_local">公交</option><option value="subway">地铁</option>';
     document.getElementById('editTripFields').style.display = 'none';
     document.getElementById('editCityFields').style.display = 'block';
   } else {
