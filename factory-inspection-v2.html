@@ -327,32 +327,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
 .notice-full-table tr:last-child td{border-bottom:none!important;}
 
 /* 标签页切换动画 */
-#zoneContent {
-  transition: transform 0.3s ease, opacity 0.3s ease;
-}
-#zoneContent {
-  transition: transform 0.28s ease, opacity 0.28s ease;
-}
-#zoneContent.slide-out-left {
-  transform: translateX(-40px);
-  opacity: 0;
-}
-#zoneContent.slide-out-right {
-  transform: translateX(40px);
-  opacity: 0;
-}
 #zoneContent.slide-in-left {
-  animation: slideInLeft 0.3s ease forwards;
+  animation: slideInLeft 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
 #zoneContent.slide-in-right {
-  animation: slideInRight 0.3s ease forwards;
+  animation: slideInRight 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
 @keyframes slideInLeft {
-  from { transform: translateX(30%); opacity: 0; }
+  from { transform: translateX(60%); opacity: 0; }
   to { transform: translateX(0); opacity: 1; }
 }
 @keyframes slideInRight {
-  from { transform: translateX(-30%); opacity: 0; }
+  from { transform: translateX(-60%); opacity: 0; }
   to { transform: translateX(0); opacity: 1; }
 }
 </style>
@@ -3412,36 +3398,7 @@ function nextZone() {
   else showToast('已经是最后一个区了');
 }
 
-// Touch swipe for zone switching
-(function() {
-  var startX = 0, startY = 0, startTime = 0;
-  var zoneContent = null;
-  document.addEventListener('DOMContentLoaded', function() {
-    zoneContent = document.getElementById('zoneContent');
-  });
-  document.addEventListener('touchstart', function(e) {
-    if (!zoneContent) return;
-    startX = e.touches[0].clientX;
-    startY = e.touches[0].clientY;
-    startTime = Date.now();
-  }, {passive: true});
-  document.addEventListener('touchend', function(e) {
-    if (!zoneContent) return;
-    var endX = e.changedTouches[0].clientX;
-    var endY = e.changedTouches[0].clientY;
-    var dx = endX - startX;
-    var dy = endY - startY;
-    var dt = Date.now() - startTime;
-    // Only trigger if horizontal swipe > 60px, faster than 500ms, and more horizontal than vertical
-    if (Math.abs(dx) > 60 && dt < 500 && Math.abs(dx) > Math.abs(dy) * 1.5) {
-      // Check we're not in a modal
-      var inModal = document.querySelector('.mo[style*="display: block"], .mo[style*="display:block"], .ng-modal[style*="flex"], .sig-modal[style*="flex"]');
-      if (inModal) return;
-      if (dx > 0) prevZone();
-      else nextZone();
-    }
-  }, {passive: true});
-})();
+
 
 
 function renderRegionGrid() {
@@ -9356,9 +9313,6 @@ function loadPdfLibs(callback) {
     var deltaY = endY - touchStartY;
     var duration = Date.now() - touchStartTime;
     
-    // 只处理左→右滑动（返回手势）
-    if (deltaX <= 0) return;
-    
     var screenWidth = window.innerWidth;
     var threshold = screenWidth * SWIPE_THRESHOLD_RATIO;
     
@@ -9369,37 +9323,49 @@ function loadPdfLibs(callback) {
     // 时间过长
     if (duration > MAX_DURATION) return;
     
-    // 判断是否在可水平滚动的元素内
+    // 判断是否在可水平滚动的元素内（根据滑动方向检查对应边界）
     var target = e.target;
     while (target && target !== document.body) {
       var style = window.getComputedStyle(target);
       var overflowX = style.overflowX;
       var scrollWidth = target.scrollWidth;
       var clientWidth = target.clientWidth;
-      // 如果元素可水平滚动且还没滑到最左边，不触发返回
       if ((overflowX === 'auto' || overflowX === 'scroll') && scrollWidth > clientWidth) {
-        if (target.scrollLeft > 0) {
-          return; // 还没到最左边，让元素自己处理滚动
+        if (deltaX > 0 && target.scrollLeft > 0) {
+          return; // 右滑但还没到最左，让元素自己处理
+        }
+        if (deltaX < 0 && target.scrollLeft < scrollWidth - clientWidth - 1) {
+          return; // 左滑但还没到最右，让元素自己处理
         }
       }
       target = target.parentElement;
     }
     
-    // 左滑 → 返回上一级
+    // 检查是否在弹窗内
+    var inModal = document.querySelector('.mo[style*="display: block"], .mo[style*="display:block"], .ng-modal[style*="flex"], .sig-modal[style*="flex"]');
+    if (inModal) return;
+    
     var currentPage = getCurrentPage();
-    if (currentPage === 'check') {
-      // 检验页：先判断当前检验项索引
-      if (typeof currentZoneIndex !== 'undefined' && currentZoneIndex > 0) {
-        // 不是第一个检验项 → 切换到上一个检验项
-        if (typeof prevZone === 'function') prevZone();
-      } else {
-        // 第一个检验项 → 返回电梯列表页
-        if (typeof saveCurrentTask === 'function') saveCurrentTask();
-        if (typeof goPage === 'function') goPage('taskList');
+    
+    if (deltaX > 0) {
+      // 右滑 → 返回上一级 / 上一个区域
+      if (currentPage === 'check') {
+        if (typeof currentZoneIndex !== 'undefined' && currentZoneIndex > 0) {
+          if (typeof prevZone === 'function') prevZone();
+        } else {
+          if (typeof saveCurrentTask === 'function') saveCurrentTask();
+          if (typeof goPage === 'function') goPage('taskList');
+        }
+      } else if (currentPage === 'taskList') {
+        if (typeof goPage === 'function') goPage('projectList');
       }
-    } else if (currentPage === 'taskList') {
-      // 电梯列表页 → 项目列表页
-      if (typeof goPage === 'function') goPage('projectList');
+    } else {
+      // 左滑 → 下一个区域
+      if (currentPage === 'check') {
+        if (typeof currentZoneIndex !== 'undefined' && typeof nextZone === 'function') {
+          nextZone();
+        }
+      }
     }
   }
 
