@@ -6830,7 +6830,8 @@ function exportNoticePDF() {
   var projName = (proj && proj.name || '未命名').replace(/[\\/:*?"<>|]/g, '');
   var checkDateStr = task.checkDate || dateStr;
   var dateForFilename = checkDateStr.replace(/[年月日/\-]/g, '');
-  var filename = dateForFilename + '_' + projName + '_整改通知.pdf';
+  var equipNo = (task.prodNo||'未编号').replace(/[\/:*?"<>|]/g, '');
+  var filename = equipNo + '_整改通知书.pdf';
 
   // 确保PDF库已加载（CDN优先，失败则加载本地文件）
   if (typeof html2canvas === 'undefined' || typeof jsPDF === 'undefined') {
@@ -7058,7 +7059,8 @@ function exportCheckPDF() {
   var projName = (proj && proj.name || '未命名').replace(/[\\/:*?"<>|]/g, '');
   var checkDateStr = task.checkDate || dateStr;
   var dateForFilename = checkDateStr.replace(/[年月日/\-]/g, '');
-  var filename = dateForFilename + '_' + projName + '_厂检记录单.pdf';
+  var equipNo = (task.prodNo||'未编号').replace(/[\/:*?"<>|]/g, '');
+  var filename = equipNo + '_厂检记录单.pdf';
 
   // 确保PDF库已加载
   if (typeof html2canvas === 'undefined' || typeof jsPDF === 'undefined') {

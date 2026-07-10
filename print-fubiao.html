@@ -1467,7 +1467,7 @@ function exportFubiaoPDF() {
   
   function addNextPage() {
     if (currentPage >= totalPages) {
-      pdf.save('副表-' + Date.now() + '.pdf');
+      var t = getCurrentTask(); var equipNo = (t && t.prodNo || '未编号').replace(/[\/:*?"<>|]/g, ''); pdf.save(equipNo + '_副表.pdf');
       btn.disabled = false;
       btn.textContent = '保存到文件(PDF)';
       return;
