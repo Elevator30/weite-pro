@@ -8,7 +8,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="威特厂检记录">
 <meta name="theme-color" content="#667eea">
-<title>威特电梯厂检调试记录单V2 v60</title>
+<title>威特电梯厂检调试记录单V2 v61</title>
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%231a3a6b'/%3E%3Ctext x='50' y='42' font-family='Arial' font-size='28' font-weight='900' text-anchor='middle' fill='white'%3EVEITE%3C/text%3E%3Ctext x='50' y='72' font-family='serif' font-size='16' font-weight='800' text-anchor='middle' fill='%23e63946'%3E电梯%3C/text%3E%3C/svg%3E">
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
@@ -113,6 +113,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
 .print-dropdown-menu.show{display:block;}
 .print-dropdown-menu div{padding:10px 12px;font-size:12px;cursor:pointer;white-space:nowrap;}
 .print-dropdown-menu div:hover{background:#f7fafc;}
+.print-dropdown-menu.flip-up{top:auto;bottom:100%;margin-top:0;margin-bottom:4px;}
 /* Region card grid */
 .region-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:12px;}
 .region-card{background:#fff;border-radius:14px;padding:20px 16px;border:1.5px solid #e2e8f0;cursor:pointer;position:relative;box-shadow:0 2px 8px rgba(0,0,0,.06);transition:all .15s;}
@@ -391,7 +392,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
 
       <div style="flex:1;min-width:0;">
         <div id="taskListTitle" style="font-size:16px;font-weight:800;color:#1a3a6b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">电梯列表</div>
-        <div class="header-sub">厂检调试记录单 V2 v59</div>
+        <div class="header-sub">厂检调试记录单 V2 v61</div>
       </div>
     </div>
     <button class="header-menu-btn" onclick="toggleHeaderMenu('task')">☰</button>
@@ -1758,6 +1759,12 @@ function togglePrintMenu(index) {
     menu.classList.add('show');
     var card = menu.closest('.task-card');
     if (card) card.classList.add('menu-open');
+    // 检测是否超出视口底部，超出则向上弹出
+    var rect = menu.getBoundingClientRect();
+    var viewH = window.innerHeight || document.documentElement.clientHeight;
+    if (rect.bottom > viewH - 20) {
+      menu.classList.add('flip-up');
+    }
   }
 }
 
@@ -1765,6 +1772,7 @@ function closeAllPrintMenus() {
   var menus = document.querySelectorAll('.print-dropdown-menu');
   for (var i = 0; i < menus.length; i++) {
     menus[i].classList.remove('show');
+    menus[i].classList.remove('flip-up');
     var card = menus[i].closest('.task-card');
     if (card) card.classList.remove('menu-open');
   }
@@ -9408,6 +9416,10 @@ init();
       }
     }, 450);
   }
+  // 兜底：3秒后强制隐藏，防止任何异常导致用户永远卡在加载页
+  setTimeout(doHide, 3000);
+  // JS报错时也强制隐藏
+  window.addEventListener('error', doHide);
   // 等待DOM和初始化完成后再隐藏，确保用户看到的是完整界面
   if (document.readyState === 'complete' || document.readyState === 'interactive') {
     setTimeout(doHide, 300);
