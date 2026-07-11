@@ -2,28 +2,47 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="威特电梯">
+<meta name="mobile-web-app-capable" content="yes">
 <link rel="apple-touch-icon" href="touch-icon.png">
 <link rel="icon" type="image/png" href="touch-icon.png">
+<link rel="manifest" href="manifest.json">
 <title>威特电梯</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-body {
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
   font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
   background: #f5f7fa;
-  min-height: 100vh;
   color: #333;
+}
+body {
+  display: flex;
+  flex-direction: column;
+  padding-top: env(safe-area-inset-top);
+}
+
+/* 首页视图 */
+.home-view {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 .hero {
   background: #fff;
-  padding: 60px 20px 40px;
+  padding: 40px 20px 30px;
   text-align: center;
   border-bottom-left-radius: 30px;
   border-bottom-right-radius: 30px;
   box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+  flex-shrink: 0;
 }
 .hero img {
   height: 50px;
@@ -43,11 +62,13 @@ body {
 }
 .card-list {
   max-width: 480px;
+  width: 100%;
   margin: 30px auto 0;
   padding: 0 20px;
   display: flex;
   flex-direction: column;
   gap: 14px;
+  flex-shrink: 0;
 }
 .card {
   background: #fff;
@@ -60,6 +81,7 @@ body {
   text-decoration: none;
   color: inherit;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
+  cursor: pointer;
 }
 .card:active {
   transform: scale(0.98);
@@ -97,53 +119,142 @@ body {
 }
 .footer {
   text-align: center;
-  margin-top: 40px;
-  padding-bottom: 30px;
+  margin-top: auto;
+  padding: 30px 20px;
   color: #bbb;
   font-size: 12px;
+  flex-shrink: 0;
+}
+
+/* 子页面视图 */
+.app-view {
+  display: none;
+  flex: 1;
+  flex-direction: column;
+  overflow: hidden;
+}
+.app-bar {
+  height: 44px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  border-bottom: 1px solid #eee;
+  flex-shrink: 0;
+  position: relative;
+}
+.back-btn {
+  font-size: 15px;
+  color: #667eea;
+  padding: 8px 12px;
+  text-decoration: none;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.back-btn:active { opacity: 0.6; }
+.back-btn::before {
+  content: '';
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-left: 2px solid #667eea;
+  border-bottom: 2px solid #667eea;
+  transform: rotate(45deg);
+  margin-right: 2px;
+}
+.app-title {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  pointer-events: none;
+}
+.app-iframe {
+  flex: 1;
+  width: 100%;
+  border: none;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
 }
 </style>
 </head>
 <body>
 
-<div class="hero">
-  <img src="data:image/webp;base64,UklGRrwFAABXRUJQVlA4ILAFAADwIACdASrYAEAAPm0ulUYkIqIhLTN7oIANiWIA0XiYk6fAcypylKVfR8u8/Dbw+YDzgP9B6n95359z2hL9E7d/719M3U1HvX4z8e/yx1EW+/ZA9GXqr6AdtRxosfn/A9PH/M/wfnl+ov+x7h/8p/r/WV/ab2E/07SHbXhZHt4C8qbGczRQ+YhCP904TtF2T0CCKyarJnypB/hAK6gQjXC9iwsKwwC+OU9rHGVQYHoJ6rQgTA7XrCkoSqGEyqPx+s/JTspyE0a/wsHHmamelpQCinlWWUKPRRn2jng/2F6cIdPGnOlsdbXFcJsLUCwUtt4xh8NxuwH9RK03w+j532Ir+l0sI72fbPxXS3J23eO7gAD+/KharSACg7d/D3l4HJGQhCdQ227rBH9fuFBIE9S7KXkbv7srGfvvq8TrxYIaGqIqQ/b0R4LwFqs4veGNAtr2N/9XffjClI9y+Ns078yTGj+KSGmGoaW2Fg/yvd4F7TzYht4cvAZutRHBgxFjmYPyk/Z1thQLvhA7bIQJk3t7yUcjDBEsNXXBg1DpLtTLyUkG1b9F3vtmuHLAPrBInM7M7U/c1FeNzDPVV+6BRvH2iEWC6nY3/1H7aw0kAHQYdp42tv5GgpRGgiYmYUVL5Qd/4ijq3Rfbapv3bWVmxZKsplOi5YLgdbLkTcDBjYXWKam/rObme42a6zh11FrQw4NEOL27WA25k2pume6U/xMh4P/PDiwbukzK7WSnmwOFe0ciPINJrwLzrkAeD6BD0SWAq0Q1wWwnlYW3LUY/y8m3f+f/X/n/79m0bBWtpP5xqSkXsKoWDOqRiwoP0BAnzpBgbm894mRq0lIcL4xJBCo9bdnhraMV0K/QTKujLzuUPojKhYvfv/p70tbIdD3NBjM+qJFCBD9zPo9D482iTfk6qobTD32BQWLSMxicFoe6FYzy/oPmoP638ZRjj32Uz6ALnezqdAe7rPmGGNdjTIcgSEb5jx6vZjH2PD/lXhCFVeLX4LauAmPeFQ6h2f+s8cklG4i5Cq0lzmoy063xvLZoCPrQxnTlVru5RClIu5c9JB+MEPv59l/Ael7/Yx1PxGUL7lXtPJR4nJaLQfl2losnfjlp9kdVwsxXlk6+iLf0jX0xuGblGMMs8ud9+H1rRDUFRM6kdd7WGgH/nGnS9whJCrYMo6AiYO+SteHvU7UDlX1bDoZi+EzPtFErY2YzD7EssR7JEWpOcLeheC72VKac5Bz192vBsPf1uOnFNig0EZTR9OjSmAhxfknwgxOT47IGBghTTIbjZO6jUIanJs/JhPwzLLc2ZqbmiNX4+30SicCTM90VJVN+6i5YU4V5Puf3Asu802W45DRPchPNC9NQxrs/y3VvUDf2cqxaXmk5AP6bgaO9Ofuv5AMvDOmfSY7oDs1NLtdFkqoWjzOOax+M/uI4MHe9puGHMgqTVcP25iaQcuBHlgSqCp+iQmBoivAqM6YtWQoqlZ+fSyfSnYKbRd7DsI5CmBFvlwzdlHP1+nQybKj8mvr3IyDZpBJ10OtAnq10T2GQOXEkw1HHsm60s9vId47czppsEl+VZyrnQ5Z6i8+c1Y7m7QILvbdD+GIatZWMRNtiR+YCpX9OUp26fZTgoIjkaD3ZcEjnT4/iENcoz/7Hfq09z/newBZMpuD+1ko1UoWKpIB/jGpf/qNMYFfTe5rvRVFq+1Xdk5EsJvsgYwENrNB68IrkFpHu+2KzzABc7FqwVfAhJdqRCxeasS4dDiF0b5Lqfasg8AVMtt3biVFXL9wLKy5X69mHZaD0UtE5OafUdUcdB9xvfmW/Siv+xCmWpjo5qPnSkcOt09PGXwAYpphRp9NLPaSXlQ0XCSNh9OoC74DABb0pbu5taHZj4uzOfu9rRKUvW+fWkRUxDr2zbvFTxLY/XvUy26/eAhK9wRTlytnMF2ZwTwAA" alt="威特电梯">
-  <h1>威特电梯</h1>
-  <p>技术服务工作台</p>
+<!-- 首页 -->
+<div class="home-view" id="homeView">
+  <div class="hero">
+    <img src="data:image/webp;base64,UklGRrwFAABXRUJQVlA4ILAFAADwIACdASrYAEAAPm0ulUYkIqIhLTN7oIANiWIA0XiYk6fAcypylKVfR8u8/Dbw+YDzgP9B6n95359z2hL9E7d/719M3U1HvX4z8e/yx1EW+/ZA9GXqr6AdtRxosfn/A9PH/M/wfnl+ov+x7h/8p/r/WV/ab2E/07SHbXhZHt4C8qbGczRQ+YhCP904TtF2T0CCKyarJnypB/hAK6gQjXC9iwsKwwC+OU9rHGVQYHoJ6rQgTA7XrCkoSqGEyqPx+s/JTspyE0a/wsHHmamelpQCinlWWUKPRRn2jng/2F6cIdPGnOlsdbXFcJsLUCwUtt4xh8NxuwH9RK03w+j532Ir+l0sI72fbPxXS3J23eO7gAD+/KharSACg7d/D3l4HJGQhCdQ227rBH9fuFBIE9S7KXkbv7srGfvvq8TrxYIaGqIqQ/b0R4LwFqs4veGNAtr2N/9XffjClI9y+Ns078yTGj+KSGmGoaW2Fg/yvd4F7TzYht4cvAZutRHBgxFjmYPyk/Z1thQLvhA7bIQJk3t7yUcjDBEsNXXBg1DpLtTLyUkG1b9F3vtmuHLAPrBInM7M7U/c1FeNzDPVV+6BRvH2iEWC6nY3/1H7aw0kAHQYdp42tv5GgpRGgiYmYUVL5Qd/4ijq3Rfbapv3bWVmxZKsplOi5YLgdbLkTcDBjYXWKam/rObme42a6zh11FrQw4NEOL27WA25k2pume6U/xMh4P/PDiwbukzK7WSnmwOFe0ciPINJrwLzrkAeD6BD0SWAq0Q1wWwnlYW3LUY/y8m3f+f/X/n/79m0bBWtpP5xqSkXsKoWDOqRiwoP0BAnzpBgbm894mRq0lIcL4xJBCo9bdnhraMV0K/QTKujLzuUPojKhYvfv/p70tbIdD3NBjM+qJFCBD9zPo9D482iTfk6qobTD32BQWLSMxicFoe6FYzy/oPmoP638ZRjj32Uz6ALnezqdAe7rPmGGNdjTIcgSEb5jx6vZjH2PD/lXhCFVeLX4LauAmPeFQ6h2f+s8cklG4i5Cq0lzmoy063xvLZoCPrQxnTlVru5RClIu5c9JB+MEPv59l/Ael7/Yx1PxGUL7lXtPJR4nJaLQfl2losnfjlp9kdVwsxXlk6+iLf0jX0xuGblGMMs8ud9+H1rRDUFRM6kdd7WGgH/nGnS9whJCrYMo6AiYO+SteHvU7UDlX1bDoZi+EzPtFErY2YzD7EssR7JEWpOcLeheC72VKac5Bz192vBsPf1uOnFNig0EZTR9OjSmAhxfknwgxOT47IGBghTTIbjZO6jUIanJs/JhPwzLLc2ZqbmiNX4+30SicCTM90VJVN+6i5YU4V5Puf3Asu802W45DRPchPNC9NQxrs/y3VvUDf2cqxaXmk5AP6bgaO9Ofuv5AMvDOmfSY7oDs1NLtdFkqoWjzOOax+M/uI4MHe9puGHMgqTVcP25iaQcuBHlgSqCp+iQmBoivAqM6YtWQoqlZ+fSyfSnYKbRd7DsI5CmBFvlwzdlHP1+nQybKj8mvr3IyDZpBJ10OtAnq10T2GQOXEkw1HHsm60s9vId47czppsEl+VZyrnQ5Z6i8+c1Y7m7QILvbdD+GIatZWMRNtiR+YCpX9OUp26fZTgoIjkaD3ZcEjnT4/iENcoz/7Hfq09z/newBZMpuD+1ko1UoWKpIB/jGpf/qNMYFfTe5rvRVFq+1Xdk5EsJvsgYwENrNB68IrkFpHu+2KzzABc7FqwVfAhJdqRCxeasS4dDiF0b5Lqfasg8AVMtt3biVFXL9wLKy5X69mHZaD0UtE5OafUdUcdB9xvfmW/Siv+xCmWpjo5qPnSkcOt09PGXwAYpphRp9NLPaSXlQ0XCSNh9OoC74DABb0pbu5taHZj4uzOfu9rRKUvW+fWkRUxDr2zbvFTxLY/XvUy26/eAhK9wRTlytnMF2ZwTwAA" alt="威特电梯">
+    <h1>威特电梯</h1>
+    <p>技术服务工作台</p>
+  </div>
+
+  <div class="card-list">
+    <div class="card" onclick="openApp('weite-service-v14.html', '威特技术服务')">
+      <div class="card-icon blue">🛠️</div>
+      <div class="card-body">
+        <div class="card-title">威特技术服务</div>
+        <div class="card-desc">电梯技术服务单管理</div>
+      </div>
+      <div class="card-arrow">›</div>
+    </div>
+
+    <div class="card" onclick="openApp('factory-inspection-v2.html', '厂检调试记录')">
+      <div class="card-icon green">📋</div>
+      <div class="card-body">
+        <div class="card-title">厂检调试记录</div>
+        <div class="card-desc">厂检调试记录单 V2</div>
+      </div>
+      <div class="card-arrow">›</div>
+    </div>
+
+    <div class="card" onclick="openApp('travel-expense.html', '差旅费报销助手')">
+      <div class="card-icon orange">💰</div>
+      <div class="card-body">
+        <div class="card-title">差旅费报销助手</div>
+        <div class="card-desc">差旅费用记录与报销</div>
+      </div>
+      <div class="card-arrow">›</div>
+    </div>
+  </div>
+
+  <div class="footer">
+    威特电梯技术服务 · v1.0
+  </div>
 </div>
 
-<div class="card-list">
-  <a href="weite-service-v14.html" class="card">
-    <div class="card-icon blue">🛠️</div>
-    <div class="card-body">
-      <div class="card-title">威特技术服务</div>
-      <div class="card-desc">电梯技术服务单管理</div>
-    </div>
-    <div class="card-arrow">›</div>
-  </a>
-
-  <a href="factory-inspection-v2.html" class="card">
-    <div class="card-icon green">📋</div>
-    <div class="card-body">
-      <div class="card-title">厂检调试记录</div>
-      <div class="card-desc">厂检调试记录单 V2</div>
-    </div>
-    <div class="card-arrow">›</div>
-  </a>
-
-  <a href="travel-expense.html" class="card">
-    <div class="card-icon orange">💰</div>
-    <div class="card-body">
-      <div class="card-title">差旅费报销助手</div>
-      <div class="card-desc">差旅费用记录与报销</div>
-    </div>
-    <div class="card-arrow">›</div>
-  </a>
+<!-- 子页面视图 -->
+<div class="app-view" id="appView">
+  <div class="app-bar">
+    <div class="back-btn" onclick="goHome()">返回</div>
+    <div class="app-title" id="appTitle"></div>
+  </div>
+  <iframe class="app-iframe" id="appIframe" src=""></iframe>
 </div>
 
-<div class="footer">
-  威特电梯技术服务 · v1.0
-</div>
+<script>
+function openApp(url, title) {
+  document.getElementById('homeView').style.display = 'none';
+  document.getElementById('appView').style.display = 'flex';
+  document.getElementById('appTitle').textContent = title;
+  // 加随机参数绕过缓存
+  var v = 'v=' + Date.now();
+  document.getElementById('appIframe').src = url + (url.indexOf('?') > -1 ? '&' : '?') + v;
+}
+
+function goHome() {
+  document.getElementById('appView').style.display = 'none';
+  document.getElementById('appIframe').src = '';
+  document.getElementById('homeView').style.display = 'flex';
+}
+</script>
 
 </body>
 </html>

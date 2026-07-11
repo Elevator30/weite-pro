@@ -1,0 +1,17 @@
+{
+  "name": "威特电梯",
+  "short_name": "威特电梯",
+  "description": "威特电梯技术服务",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1a3a6b",
+  "scope": "./",
+  "icons": [
+    {
+      "src": "touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ]
+}
