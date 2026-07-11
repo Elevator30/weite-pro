@@ -1526,6 +1526,55 @@ function exportFubiaoPDF() {
   }
 })();
 
+// ============ postMessage 导出Canvas（供主页面三合一PDF使用） ============
+window.addEventListener('message', function(e) {
+  var data = e.data;
+  if (!data || data.action !== 'exportCanvases') return;
+  
+  function ensureHtml2canvas(callback) {
+    if (typeof html2canvas !== 'undefined') { callback(); return; }
+    var s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
+    s.onload = callback;
+    s.onerror = function() {
+      parent.postMessage({ action: 'exportCanvasesResult', error: 'html2canvas加载失败' }, '*');
+    };
+    document.head.appendChild(s);
+  }
+  
+  ensureHtml2canvas(function() {
+    var pages = document.querySelectorAll('.page');
+    var results = [];
+    var idx = 0;
+    
+    function next() {
+      if (idx >= pages.length) {
+        parent.postMessage({ action: 'exportCanvasesResult', pages: results }, '*');
+        return;
+      }
+      html2canvas(pages[idx], {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        logging: false
+      }).then(function(canvas) {
+        results.push({
+          dataUrl: canvas.toDataURL('image/jpeg', 0.92),
+          width: canvas.width,
+          height: canvas.height,
+          orientation: 'landscape'
+        });
+        idx++;
+        setTimeout(next, 30);
+      }).catch(function(err) {
+        parent.postMessage({ action: 'exportCanvasesResult', error: '第' + (idx+1) + '页截图失败:' + err.message }, '*');
+      });
+    }
+    next();
+  });
+});
+
 // ============ 初始化 ============
 document.addEventListener('DOMContentLoaded', function() {
   fillData();

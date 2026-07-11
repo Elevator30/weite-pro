@@ -8,7 +8,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="威特厂检记录">
 <meta name="theme-color" content="#667eea">
-<title>威特电梯厂检调试记录单V2 v73</title>
+<title>威特电梯厂检调试记录单V2 v74</title>
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%231a3a6b'/%3E%3Ctext x='50' y='42' font-family='Arial' font-size='28' font-weight='900' text-anchor='middle' fill='white'%3EVEITE%3C/text%3E%3Ctext x='50' y='72' font-family='serif' font-size='16' font-weight='800' text-anchor='middle' fill='%23e63946'%3E电梯%3C/text%3E%3C/svg%3E">
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
@@ -380,7 +380,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
 
       <div style="flex:1;min-width:0;">
         <div id="taskListTitle" style="font-size:16px;font-weight:800;color:#1a3a6b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">电梯列表</div>
-        <div class="header-sub">厂检调试记录单 V2 v73</div>
+        <div class="header-sub">厂检调试记录单 V2 v74</div>
       </div>
     </div>
     <button class="header-menu-btn" onclick="toggleHeaderMenu('task')">☰</button>
@@ -411,7 +411,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
     <div class="logo-area">
       <img src="logo-img-2.jpg" style="height:32px;width:auto;vertical-align:middle;">
     </div>
-    <div class="header-sub" id="checkHeaderSub">厂检调试记录单V2 v73</div>
+    <div class="header-sub" id="checkHeaderSub">厂检调试记录单V2 v74</div>
     <button class="header-menu-btn no-print" onclick="toggleHeaderMenu('check')">☰</button>
     <div class="header-dropdown no-print" id="headerDropdownCheck">
       <div onclick="saveCurrentTask();goPage('taskList');closeHeaderMenu('check')">📋 返回列表</div>
@@ -1916,7 +1916,7 @@ function printFubiao(index) {
   currentTaskIndex = index;
   closeAllPrintMenus();
   try {
-    var url = 'print-fubiao.html?proj=' + currentProjectIndex + '&task=' + index + '&v=v73';
+    var url = 'print-fubiao.html?proj=' + currentProjectIndex + '&task=' + index + '&v=v74';
     var win = window.open(url, '_blank');
     if (!win) {
       showToast('弹窗被拦截，请允许弹出窗口');
@@ -1938,13 +1938,6 @@ function exportFubiaoPDF(callback, canvasCallback) {
     return; 
   }
   
-  if (typeof html2canvas === 'undefined') {
-    showToast('PDF库未加载');
-    if (callback) callback();
-    if (canvasCallback) canvasCallback([]);
-    return;
-  }
-  
   // 确保数据已保存到localStorage（副表页面从这里读取）
   saveData();
   
@@ -1955,106 +1948,112 @@ function exportFubiaoPDF(callback, canvasCallback) {
   // 创建隐藏iframe加载副表统一打印页
   var iframe = document.createElement('iframe');
   iframe.style.cssText = 'position:absolute;left:-9999px;top:0;width:1200px;height:900px;z-index:-1;opacity:0;';
-  iframe.src = 'print-fubiao.html?proj=' + currentProjectIndex + '&task=' + currentTaskIndex + '&autoPrint=0';
+  iframe.src = 'print-fubiao.html?proj=' + currentProjectIndex + '&task=' + currentTaskIndex + '&autoPrint=0&v=v74';
   document.body.appendChild(iframe);
   
-  var loaded = false;
+  var done = false;
   var timeoutId = null;
+  var msgHandler = null;
   
   function cleanup() {
     if (timeoutId) clearTimeout(timeoutId);
+    if (msgHandler) window.removeEventListener('message', msgHandler);
     if (iframe && iframe.parentNode) iframe.parentNode.removeChild(iframe);
   }
   
-  function capturePages() {
-    if (loaded) return;
-    loaded = true;
+  function finish(pages) {
+    if (done) return;
+    done = true;
     
-    try {
-      var iframeDoc = iframe.contentDocument;
-      var pages = iframeDoc.querySelectorAll('.page');
-      
-      if (pages.length === 0) {
-        showToast('副表页面渲染失败');
-        cleanup();
-        if (callback) callback();
-        if (canvasCallback) canvasCallback([]);
-        return;
-      }
-      
-      var canvases = [];
-      var idx = 0;
-      
-      function captureNext() {
-        if (idx >= pages.length) {
-          var result = canvases.map(function(c) {
-            return {canvas: c, orientation: 'landscape'};
-          });
-          
+    // 把dataURL转成canvas对象，保持和通知单/记录单一致的格式
+    var result = [];
+    var loaded = 0;
+    
+    pages.forEach(function(p, i) {
+      var canvas = document.createElement('canvas');
+      canvas.width = p.width;
+      canvas.height = p.height;
+      var ctx = canvas.getContext('2d');
+      var img = new Image();
+      img.onload = function() {
+        ctx.drawImage(img, 0, 0);
+        result[i] = { canvas: canvas, orientation: p.orientation || 'landscape' };
+        loaded++;
+        if (loaded === pages.length) {
           if (canvasCallback) {
             canvasCallback(result);
           } else {
             var JsPDF = jsPDF;
             var pdf = new JsPDF({orientation: 'l', unit: 'mm', format: 'a4'});
-            canvases.forEach(function(canvas, i) {
-              var imgData = canvas.toDataURL('image/jpeg', 0.92);
-              if (i > 0) pdf.addPage('a4', 'l');
+            result.forEach(function(item, idx) {
+              var imgData = item.canvas.toDataURL('image/jpeg', 0.92);
+              if (idx > 0) pdf.addPage('a4', 'l');
               pdf.addImage(imgData, 'JPEG', 0, 0, 297, 210);
             });
             pdf.save(filename);
-            showToast('副表导出成功！共' + canvases.length + '页');
+            showToast('副表导出成功！共' + result.length + '页');
           }
-          
           cleanup();
           if (callback) callback();
-          return;
         }
-        
-        showToast('正在渲染副表第' + (idx+1) + '/' + pages.length + '页...');
-        
-        html2canvas(pages[idx], {
-          scale: 2,
-          useCORS: true,
-          allowTaint: true,
-          backgroundColor: '#ffffff',
-          logging: false
-        }).then(function(canvas) {
-          canvases.push(canvas);
-          idx++;
-          setTimeout(captureNext, 50);
-        }).catch(function(err) {
-          console.error('副表第' + (idx+1) + '页渲染失败:', err);
-          showToast('副表第' + (idx+1) + '页渲染失败');
-          idx++;
-          captureNext();
-        });
-      }
-      
-      captureNext();
-      
-    } catch(err) {
-      console.error('副表导出异常:', err);
-      showToast('副表导出异常: ' + (err.message||err));
+      };
+      img.onerror = function() {
+        showToast('副表第' + (i+1) + '页加载失败');
+        loaded++;
+        if (loaded === pages.length) {
+          cleanup();
+          if (callback) callback();
+        }
+      };
+      img.src = p.dataUrl;
+    });
+  }
+  
+  // 监听副表发回的消息
+  msgHandler = function(e) {
+    var data = e.data;
+    if (!data || data.action !== 'exportCanvasesResult') return;
+    if (data.error) {
+      showToast('副表导出失败: ' + data.error);
+      cleanup();
+      if (callback) callback();
+      if (canvasCallback) canvasCallback([]);
+      return;
+    }
+    if (data.pages && data.pages.length > 0) {
+      finish(data.pages);
+    } else {
+      showToast('副表无内容');
       cleanup();
       if (callback) callback();
       if (canvasCallback) canvasCallback([]);
     }
-  }
+  };
+  window.addEventListener('message', msgHandler);
   
   iframe.onload = function() {
-    // 等副表页面fillData + SVG渲染
-    setTimeout(capturePages, 1200);
+    // 等副表页面fillData + SVG渲染完成后，发送导出指令
+    setTimeout(function() {
+      try {
+        iframe.contentWindow.postMessage({ action: 'exportCanvases' }, '*');
+      } catch(err) {
+        showToast('副表通信失败: ' + err.message);
+        cleanup();
+        if (callback) callback();
+        if (canvasCallback) canvasCallback([]);
+      }
+    }, 1500);
   };
   
   // 超时保护
   timeoutId = setTimeout(function() {
-    if (!loaded) {
-      showToast('副表加载超时');
+    if (!done) {
+      showToast('副表导出超时');
       cleanup();
       if (callback) callback();
       if (canvasCallback) canvasCallback([]);
     }
-  }, 20000);
+  }, 30000);
 }
 
 // 副表第1页：附表1（门系统）+ 附表2（导轨）+ 附表3（安全钳/缓冲器）
@@ -2353,7 +2352,7 @@ function openTask(index) {
     configPartsData = task.configParts;
   }
   document.getElementById('checkProdNo').textContent = task.prodNo || '未编号';
-  document.getElementById('checkHeaderSub').textContent = (task.model ? task.model + ' · v73' : '厂检调试记录单V2 v73');
+  document.getElementById('checkHeaderSub').textContent = (task.model ? task.model + ' · v74' : '厂检调试记录单V2 v74');
   goPage('check');
   renderZoneTabs();
   switchZone(0);
