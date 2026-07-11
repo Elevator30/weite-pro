@@ -197,10 +197,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helv
         </div>
         <div class="form-group">出差天数：<strong id="newDays">0</strong> 天</div>
         <div class="form-group">
-          <label>主要目的地是否省会</label>
-          <select id="newIsCapital" onchange="calcMealDays()">
-            <option value="no">非省会（20元/天）</option>
-            <option value="yes">省会（30元/天）</option>
+          <label>主要目的地城市分类</label>
+          <select id="newCityClass" onchange="calcMealDays()">
+            <option value="C">C类城市（20元/天）</option>
+            <option value="B">B类城市（30元/天）</option>
+            <option value="A">A类城市（40元/天）</option>
           </select>
         </div>
 
@@ -811,15 +812,15 @@ function calcMealDays() {
 
 function generateMealDayRows(days) {
   const container = document.getElementById('mealDays');
-  const isCapital = document.getElementById('newIsCapital').value;
+  const cityClass = document.getElementById('newCityClass').value;
   mealDaySettings = [];
   let html = '';
   for (let i = 0; i < days; i++) {
-    mealDaySettings.push(isCapital);
+    mealDaySettings.push(cityClass);
     const date = new Date(document.getElementById('newStartDate').value);
     date.setDate(date.getDate() + i);
     const dateStr = (date.getMonth() + 1) + '/' + date.getDate();
-    html += '<div class="meal-day-row"><span>第' + (i + 1) + '天 (' + dateStr + ')</span><select onchange="updateMealDay(' + i + ', this.value)"><option value="no"' + (isCapital === 'no' ? ' selected' : '') + '>非省会 20元</option><option value="yes"' + (isCapital === 'yes' ? ' selected' : '') + '>省会 30元</option></select></div>';
+    html += '<div class="meal-day-row"><span>第' + (i + 1) + '天 (' + dateStr + ')</span><select onchange="updateMealDay(' + i + ', this.value)"><option value="C"' + (cityClass === 'C' ? ' selected' : '') + '>C类 20元</option><option value="B"' + (cityClass === 'B' ? ' selected' : '') + '>B类 30元</option><option value="A"' + (cityClass === 'A' ? ' selected' : '') + '>A类 40元</option></select></div>';
   }
   container.innerHTML = html;
   document.getElementById('mealConfig').style.display = days > 0 ? 'block' : 'none';
@@ -838,7 +839,8 @@ function updateMealPreview() {
   }
   if (mealDaySettings.length === 0) calcMealDays();
   let total = 0;
-  mealDaySettings.forEach(v => { total += v === 'yes' ? 30 : 20; });
+  var mealRates = { A: 40, B: 30, C: 20, yes: 30, no: 20 };
+  mealDaySettings.forEach(v => { total += mealRates[v] || 20; });
   document.getElementById('newMealAmount').textContent = '¥' + total.toFixed(2);
 }
 
@@ -962,7 +964,8 @@ function saveExpense() {
     if (!startDate) { showToast('请填写起始日期'); return; }
     const days = calcDateDiff(startDate, endDate);
     let mealAmount = 0;
-    mealDaySettings.forEach(v => { mealAmount += v === 'yes' ? 30 : 20; });
+    var mealRates = { A: 40, B: 30, C: 20, yes: 30, no: 20 };
+    mealDaySettings.forEach(v => { mealAmount += mealRates[v] || 20; });
     const newProject = { id: 'p_' + Date.now() + '_' + Math.random().toString(36).slice(2,6), name: projName, workType: mainWorkType, quantity: totalQty, workItems: workItems, startDate, endDate, days, mealSettings: [...mealDaySettings], mealAmount, createdAt: new Date().toISOString() };
     projects.push(newProject);
     localStorage.setItem('travelProjects', JSON.stringify(projects));
@@ -2419,11 +2422,14 @@ function generateMealSubsidy() {
   if (days <= 0) { showToast('该项目没有天数信息'); return; }
   var mealSettings = viewProject.mealSettings || [];
   var totalAmount = 0;
+  var mealRates = { A: 40, B: 30, C: 20, yes: 30, no: 20 };
   if (mealSettings.length > 0) {
-    mealSettings.forEach(v => { totalAmount += v === 'yes' ? 30 : 20; });
+    mealSettings.forEach(v => { totalAmount += mealRates[v] || 20; });
   } else {
-    var isCapital = confirm('餐补标准：\n\n确定 = 省会城市（30元/天）\n取消 = 非省会城市（20元/天）\n\n默认按非省会生成，生成后可点击餐补修改金额。');
-    totalAmount = days * (isCapital ? 30 : 20);
+    var cls = prompt('请选择餐补标准（输入 A / B / C）：\n\nA类城市（北上广深）：40元/天\nB类城市（省会+天津/重庆/珠海/汕头/苏州/大连/厦门/海口）：30元/天\nC类城市（其他）：20元/天\n\n直接点确定默认B类', 'B');
+    cls = (cls || 'B').toUpperCase();
+    if (!mealRates[cls]) cls = 'B';
+    totalAmount = days * mealRates[cls];
   }
   if (totalAmount <= 0) { showToast('餐补金额为0'); return; }
   expenses.push({
