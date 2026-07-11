@@ -197,7 +197,7 @@ body {
   </div>
 
   <div class="card-list">
-    <div class="card" onclick="openApp('weite-service-v14.html', '威特技术服务')">
+    <div class="card" onclick="openApp('service', '威特技术服务')">
       <div class="card-icon blue">🛠️</div>
       <div class="card-body">
         <div class="card-title">威特技术服务</div>
@@ -206,7 +206,7 @@ body {
       <div class="card-arrow">›</div>
     </div>
 
-    <div class="card" onclick="openApp('factory-inspection-v2.html', '厂检调试记录')">
+    <div class="card" onclick="openApp('factory', '厂检调试记录')">
       <div class="card-icon green">📋</div>
       <div class="card-body">
         <div class="card-title">厂检调试记录</div>
@@ -215,7 +215,7 @@ body {
       <div class="card-arrow">›</div>
     </div>
 
-    <div class="card" onclick="openApp('travel-expense.html', '差旅费报销助手')">
+    <div class="card" onclick="openApp('travel', '差旅费报销助手')">
       <div class="card-icon orange">💰</div>
       <div class="card-body">
         <div class="card-title">差旅费报销助手</div>
@@ -236,22 +236,35 @@ body {
     <div class="back-btn" onclick="goHome()">返回</div>
     <div class="app-title" id="appTitle"></div>
   </div>
-  <iframe class="app-iframe" id="appIframe" src=""></iframe>
+  <iframe class="app-iframe" id="iframe-service" src="weite-service-v14.html" style="display:none;"></iframe>
+  <iframe class="app-iframe" id="iframe-factory" src="factory-inspection-v2.html" style="display:none;"></iframe>
+  <iframe class="app-iframe" id="iframe-travel" src="travel-expense.html" style="display:none;"></iframe>
 </div>
 
 <script>
-function openApp(url, title) {
+var currentApp = null;
+var appUrls = {
+  service: 'weite-service-v14.html',
+  factory: 'factory-inspection-v2.html',
+  travel: 'travel-expense.html'
+};
+
+function openApp(key, title) {
+  // 隐藏所有iframe
+  document.querySelectorAll('.app-iframe').forEach(function(f) { f.style.display = 'none'; });
+  // 显示目标iframe
+  var iframe = document.getElementById('iframe-' + key);
+  if (iframe) {
+    iframe.style.display = 'block';
+  }
   document.getElementById('homeView').style.display = 'none';
   document.getElementById('appView').style.display = 'flex';
   document.getElementById('appTitle').textContent = title;
-  // 加随机参数绕过缓存
-  var v = 'v=' + Date.now();
-  document.getElementById('appIframe').src = url + (url.indexOf('?') > -1 ? '&' : '?') + v;
+  currentApp = key;
 }
 
 function goHome() {
   document.getElementById('appView').style.display = 'none';
-  document.getElementById('appIframe').src = '';
   document.getElementById('homeView').style.display = 'flex';
 }
 </script>
