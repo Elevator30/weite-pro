@@ -1,5 +1,135 @@
 <!DOCTYPE html>
-<html>
-<head><meta charset="UTF-8"><meta http-equiv="refresh" content="0;url=factory-inspection-v2.html"></head>
-<body><p>正在跳转... <a href="factory-inspection-v2.html">点击这里</a></p></body>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>威特电梯</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  padding: 40px 20px;
+  color: #333;
+}
+.header {
+  text-align: center;
+  margin-bottom: 40px;
+  color: #fff;
+}
+.header h1 {
+  font-size: 28px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  letter-spacing: 2px;
+}
+.header p {
+  font-size: 14px;
+  opacity: 0.85;
+}
+.card-list {
+  max-width: 480px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  cursor: pointer;
+}
+.card:active {
+  transform: scale(0.98);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+.card-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  flex-shrink: 0;
+}
+.card-icon.blue { background: linear-gradient(135deg, #667eea, #764ba2); }
+.card-icon.green { background: linear-gradient(135deg, #11998e, #38ef7d); }
+.card-icon.orange { background: linear-gradient(135deg, #f093fb, #f5576c); }
+.card-body { flex: 1; }
+.card-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: #1a1a2e;
+}
+.card-desc {
+  font-size: 13px;
+  color: #888;
+}
+.card-arrow {
+  font-size: 20px;
+  color: #ccc;
+  flex-shrink: 0;
+}
+.footer {
+  text-align: center;
+  margin-top: 60px;
+  color: rgba(255,255,255,0.6);
+  font-size: 12px;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>威特电梯</h1>
+  <p>技术服务工作台</p>
+</div>
+
+<div class="card-list">
+  <a href="weite-service-v14.html" class="card">
+    <div class="card-icon blue">🛠️</div>
+    <div class="card-body">
+      <div class="card-title">威特技术服务</div>
+      <div class="card-desc">电梯技术服务单管理</div>
+    </div>
+    <div class="card-arrow">›</div>
+  </a>
+
+  <a href="factory-inspection-v2.html" class="card">
+    <div class="card-icon green">📋</div>
+    <div class="card-body">
+      <div class="card-title">厂检调试记录</div>
+      <div class="card-desc">厂检调试记录单 V2</div>
+    </div>
+    <div class="card-arrow">›</div>
+  </a>
+
+  <a href="travel-expense.html" class="card">
+    <div class="card-icon orange">💰</div>
+    <div class="card-body">
+      <div class="card-title">差旅费报销助手</div>
+      <div class="card-desc">差旅费用记录与报销</div>
+    </div>
+    <div class="card-arrow">›</div>
+  </a>
+</div>
+
+<div class="footer">
+  威特电梯技术服务 · v1.0
+</div>
+
+</body>
 </html>
