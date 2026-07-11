@@ -2229,10 +2229,11 @@ function exportFubiaoPDF(callback, canvasCallback) {
     funcCode = funcCode.replace(/\/\/ 加载jsPDF和html2canvas[\s\S]*?\}\)\(\);\n/, '');
     
     try {
-      // 用函数包装一下，避免变量污染全局
-      (new Function(funcCode))();
+      // 必须用eval注入，函数才能挂到全局作用域；new Function()是局部作用域，外部访问不到fillData
+      eval(funcCode);
     } catch(e) {
       console.error('副表函数注入失败:', e);
+      showToast('副表函数加载失败');
     }
     
     window.exportFubiaoPDF = origExportFubiaoPDF; // 恢复主页面的函数
@@ -2256,20 +2257,33 @@ function exportFubiaoPDF(callback, canvasCallback) {
     return el || origGEI.call(document, id);
   };
   
+  var fillError = false;
   // 执行填充
   try {
     if (typeof fillData === 'function') {
       fillData();
+    } else {
+      console.error('fillData函数未找到，函数注入失败');
+      fillError = true;
     }
   } catch(e) {
     console.error('副表填充数据失败:', e);
     showToast('副表数据填充失败');
+    fillError = true;
   }
   
   // 恢复原函数
   document.querySelector = origQS;
   document.querySelectorAll = origQSA;
   document.getElementById = origGEI;
+  
+  // 如果填充失败，直接返回空结果，保证回调链不断
+  if (fillError) {
+    cleanup();
+    if (callback) callback();
+    if (canvasCallback) canvasCallback([]);
+    return;
+  }
   
   // 等SVG渲染
   setTimeout(function() {
@@ -3148,16 +3162,16 @@ function switchZone(index) {
 function renderZoneContent(index, direction) {
   var container = document.getElementById('zoneContent');
   if (!container) return;
-  // 添加切换动画 - 左右滑入效果
-  container.classList.remove('slide-in-left', 'slide-in-right', 'slide-out-left', 'slide-out-right');
-  // 强制重排
-  void container.offsetWidth;
-  if (direction === 'left') {
-    container.classList.add('slide-in-left');
-  } else if (direction === 'right') {
-    container.classList.add('slide-in-right');
-  } else {
-    container.classList.add('slide-in-left');
+  // 只有真正切换区域时才播动画；同一区域内重绘（如点选项）不播，避免闪烁
+  if (direction === 'left' || direction === 'right') {
+    container.classList.remove('slide-in-left', 'slide-in-right', 'slide-out-left', 'slide-out-right');
+    // 强制重排
+    void container.offsetWidth;
+    if (direction === 'left') {
+      container.classList.add('slide-in-left');
+    } else {
+      container.classList.add('slide-in-right');
+    }
   }
   var region = regions[index];
   var task = getCurrentTask();
