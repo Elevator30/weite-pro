@@ -236,9 +236,9 @@ body {
     <div class="back-btn" onclick="goHome()">返回</div>
     <div class="app-title" id="appTitle"></div>
   </div>
-  <iframe class="app-iframe" id="iframe-service" src="weite-service-v14.html" style="display:none;"></iframe>
-  <iframe class="app-iframe" id="iframe-factory" src="factory-inspection-v2.html" style="display:none;"></iframe>
-  <iframe class="app-iframe" id="iframe-travel" src="travel-expense.html" style="display:none;"></iframe>
+  <iframe class="app-iframe" id="iframe-service" data-url="weite-service-v14.html" style="display:none;"></iframe>
+  <iframe class="app-iframe" id="iframe-factory" data-url="factory-inspection-v2.html" style="display:none;"></iframe>
+  <iframe class="app-iframe" id="iframe-travel" data-url="travel-expense.html" style="display:none;"></iframe>
 </div>
 
 <script>
@@ -252,9 +252,12 @@ var appUrls = {
 function openApp(key, title) {
   // 隐藏所有iframe
   document.querySelectorAll('.app-iframe').forEach(function(f) { f.style.display = 'none'; });
-  // 显示目标iframe
+  // 显示目标iframe，第一次才加载
   var iframe = document.getElementById('iframe-' + key);
   if (iframe) {
+    if (!iframe.src || iframe.src === 'about:blank') {
+      iframe.src = iframe.getAttribute('data-url');
+    }
     iframe.style.display = 'block';
   }
   document.getElementById('homeView').style.display = 'none';
