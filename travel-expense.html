@@ -197,10 +197,14 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helv
         </div>
         <div class="form-group">出差天数：<strong id="newDays">0</strong> 天</div>
         <div class="form-group">
-          <label>主要目的地城市分类</label>
+          <label>目的地城市（输入自动判断类别）</label>
+          <input type="text" id="newCityName" placeholder="如：长沙、北京、深圳" oninput="updateCityClassFromInput()">
+        </div>
+        <div class="form-group">
+          <label>城市分类（可手动调整）</label>
           <select id="newCityClass" onchange="calcMealDays()">
             <option value="C">C类城市（20元/天）</option>
-            <option value="B">B类城市（30元/天）</option>
+            <option value="B" selected>B类城市（30元/天）</option>
             <option value="A">A类城市（40元/天）</option>
           </select>
         </div>
@@ -341,6 +345,39 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helv
   </div>
 </div>
 
+<!-- 补生餐补弹窗 -->
+<div class="modal-overlay" id="genMealModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>🍱 补生餐补</h2>
+      <button class="close-btn" onclick="closeModal('genMealModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>出差城市（输入自动匹配类别）</label>
+        <input type="text" id="genMealCity" placeholder="如：长沙、北京、深圳" oninput="updateGenMealClass()">
+      </div>
+      <div class="form-group">
+        <label>默认分类（可手动调整，或逐日单独设置）</label>
+        <select id="genMealDefaultClass" onchange="applyGenMealDefault()">
+          <option value="C">C类城市（20元/天）</option>
+          <option value="B" selected>B类城市（30元/天）</option>
+          <option value="A">A类城市（40元/天）</option>
+        </select>
+      </div>
+      <div class="meal-config" style="background:#f8f9ff;border-radius:12px;padding:14px;margin-bottom:16px;">
+        <div class="mc-title" style="font-size:13px;font-weight:600;margin-bottom:10px;color:#667eea;">📅 逐日餐补设置</div>
+        <div id="genMealDays"></div>
+        <div style="margin-top:10px;font-size:14px;font-weight:600;">餐补合计：<span id="genMealTotal" style="color:#e74c3c;">¥0.00</span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button onclick="closeModal('genMealModal')" style="background:#f5f5f5;color:#666;">取消</button>
+      <button onclick="confirmGenMeal()" style="background:#ff9800;color:#fff;">确认生成</button>
+    </div>
+  </div>
+</div>
+
 <!-- Excel日期范围弹窗 -->
 <div class="modal-overlay" id="excelDateModal">
   <div class="modal-content" style="max-width:360px;">
@@ -423,7 +460,28 @@ let realCurrentMonth = currentMonth; // 实际当前月份，不可变
 let pickerYearVal = parseInt(currentMonth.split('-')[0]); // 月份选择器当前显示的年份
 let tempReceipts = [];
 let mealDaySettings = [];
+let genMealDaySettings = []; // 补生餐补的逐日设置
 let isNewProject = false;
+
+// ABC类城市名单
+const cityClassA = ['北京','上海','广州','深圳'];
+const cityClassB = ['天津','重庆','石家庄','太原','呼和浩特','沈阳','长春','哈尔滨','南京','杭州','合肥','福州','南昌','济南','郑州','武汉','长沙','南宁','海口','成都','贵阳','昆明','拉萨','西安','兰州','西宁','银川','乌鲁木齐','大连','厦门','珠海','汕头','苏州','青岛','宁波'];
+function matchCityClass(city) {
+  if (!city) return null;
+  city = city.replace(/市$/g, '').trim();
+  if (cityClassA.some(c => city.indexOf(c) >= 0)) return 'A';
+  if (cityClassB.some(c => city.indexOf(c) >= 0)) return 'B';
+  return 'C';
+}
+function updateCityClassFromInput() {
+  var input = document.getElementById('newCityName');
+  if (!input) return;
+  var cls = matchCityClass(input.value);
+  if (cls) {
+    document.getElementById('newCityClass').value = cls;
+    calcMealDays();
+  }
+}
 let currentProject = null;
 let ocrData = null;
 
@@ -2277,8 +2335,19 @@ function openExpenseModal() {
   document.getElementById('expDate').value = new Date().toISOString().slice(0, 10);
 }
 
+function openModal(id) {
+  document.getElementById(id).classList.add('active');
+}
 function closeModal(id) {
   document.getElementById(id).classList.remove('active');
+}
+function addDays(dateStr, days) {
+  if (!dateStr) return '';
+  var d = new Date(dateStr);
+  d.setDate(d.getDate() + days);
+  var m = String(d.getMonth() + 1).padStart(2, '0');
+  var day = String(d.getDate()).padStart(2, '0');
+  return m + '月' + day + '日';
 }
 
 // === 查看费用功能 ===
@@ -2413,42 +2482,108 @@ function generateMealSubsidy() {
   var hasMeal = expenses.some(e => e.projectId === viewProject.id && e.type === 'meal');
   if (hasMeal) { showToast('该项目已有餐补'); return; }
   var days = viewProject.days || 0;
-  // 保底：从日期自动算天数
   if (days <= 0 && viewProject.startDate && viewProject.endDate) {
     days = calcDateDiff(viewProject.startDate, viewProject.endDate);
     viewProject.days = days;
     localStorage.setItem('travelProjects', JSON.stringify(projects));
   }
   if (days <= 0) { showToast('该项目没有天数信息'); return; }
-  var mealSettings = viewProject.mealSettings || [];
-  var totalAmount = 0;
+  // 初始化逐日设置（默认B类）
   var mealRates = { A: 40, B: 30, C: 20, yes: 30, no: 20 };
-  if (mealSettings.length > 0) {
-    mealSettings.forEach(v => { totalAmount += mealRates[v] || 20; });
-  } else {
-    var cls = prompt('请选择餐补标准（输入 A / B / C）：\n\nA类城市（北上广深）：40元/天\nB类城市（省会+天津/重庆/珠海/汕头/苏州/大连/厦门/海口）：30元/天\nC类城市（其他）：20元/天\n\n直接点确定默认B类', 'B');
-    cls = (cls || 'B').toUpperCase();
-    if (!mealRates[cls]) cls = 'B';
-    totalAmount = days * mealRates[cls];
+  var existingSettings = viewProject.mealSettings || [];
+  genMealDaySettings = [];
+  var defaultCls = 'B';
+  // 如果项目里已经存了mealSettings，用它初始化
+  for (var i = 0; i < days; i++) {
+    if (existingSettings[i] && mealRates[existingSettings[i]]) {
+      genMealDaySettings.push(existingSettings[i]);
+    } else {
+      genMealDaySettings.push(defaultCls);
+    }
   }
-  if (totalAmount <= 0) { showToast('餐补金额为0'); return; }
+  document.getElementById('genMealCity').value = '';
+  document.getElementById('genMealDefaultClass').value = defaultCls;
+  renderGenMealDays(days);
+  openModal('genMealModal');
+}
+function renderGenMealDays(days) {
+  var html = '';
+  var startDate = viewProject.startDate || '';
+  var total = 0;
+  var mealRates = { A: 40, B: 30, C: 20, yes: 30, no: 20 };
+  for (var i = 0; i < days; i++) {
+    var dateStr = startDate ? addDays(startDate, i) : ('第' + (i+1) + '天');
+    var cls = genMealDaySettings[i] || 'B';
+    total += mealRates[cls] || 20;
+    html += '<div class="meal-day-row" style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #e8e8e8;font-size:13px;">';
+    html += '<span>' + (i+1) + '. ' + dateStr + '</span>';
+    html += '<select onchange="updateGenMealDay(' + i + ', this.value)" style="padding:4px 10px;border-radius:8px;border:1px solid #ddd;font-size:13px;">';
+    html += '<option value="C"' + (cls === 'C' ? ' selected' : '') + '>C类 20元</option>';
+    html += '<option value="B"' + (cls === 'B' ? ' selected' : '') + '>B类 30元</option>';
+    html += '<option value="A"' + (cls === 'A' ? ' selected' : '') + '>A类 40元</option>';
+    html += '</select></div>';
+  }
+  if (days > 0) {
+    // 去掉最后一个border
+    html = html.replace(/border-bottom:1px solid #e8e8e8;([^}]*meal-day-row[^}]*$)/m, '$1');
+  }
+  document.getElementById('genMealDays').innerHTML = html;
+  document.getElementById('genMealTotal').textContent = '¥' + total.toFixed(2);
+}
+function updateGenMealDay(idx, val) {
+  genMealDaySettings[idx] = val;
+  var total = 0;
+  var mealRates = { A: 40, B: 30, C: 20, yes: 30, no: 20 };
+  genMealDaySettings.forEach(function(v){ total += mealRates[v] || 20; });
+  document.getElementById('genMealTotal').textContent = '¥' + total.toFixed(2);
+}
+function updateGenMealClass() {
+  var city = document.getElementById('genMealCity').value;
+  var cls = matchCityClass(city);
+  if (cls) {
+    document.getElementById('genMealDefaultClass').value = cls;
+    applyGenMealDefault();
+  }
+}
+function applyGenMealDefault() {
+  var cls = document.getElementById('genMealDefaultClass').value;
+  for (var i = 0; i < genMealDaySettings.length; i++) {
+    genMealDaySettings[i] = cls;
+  }
+  renderGenMealDays(genMealDaySettings.length);
+}
+function confirmGenMeal() {
+  if (!viewProject) return;
+  var total = 0;
+  var mealRates = { A: 40, B: 30, C: 20, yes: 30, no: 20 };
+  genMealDaySettings.forEach(function(v){ total += mealRates[v] || 20; });
+  if (total <= 0) { showToast('餐补金额为0'); return; }
+  var days = genMealDaySettings.length;
   expenses.push({
     id: 'e_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
     projectId: viewProject.id,
     date: viewProject.startDate,
     type: 'meal',
     payer: 'self',
-    amount: totalAmount,
+    amount: total,
     receipt: 'no',
     detail: '出差餐补（' + days + '天）',
+    mealDays: days,
     receipts: [],
     createdAt: new Date().toISOString()
   });
+  // 同时把餐补设置存回项目，方便后续查看
+  if (viewProject) {
+    viewProject.mealSettings = [...genMealDaySettings];
+    var pIdx = projects.findIndex(function(p){ return p.id === viewProject.id; });
+    if (pIdx >= 0) projects[pIdx] = viewProject;
+    localStorage.setItem('travelProjects', JSON.stringify(projects));
+  }
   localStorage.setItem('travelExpenses', JSON.stringify(expenses));
-  localStorage.setItem('travelProjects', JSON.stringify(projects));
+  closeModal('genMealModal');
   renderViewExpenses();
   updateHomeStats();
-  showToast('已生成餐补 ¥' + totalAmount.toFixed(2));
+  showToast('已生成餐补 ¥' + total.toFixed(2));
 }
 
 var editWorkItemIdx = 0;
