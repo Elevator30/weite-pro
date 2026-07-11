@@ -8,7 +8,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="威特厂检记录">
 <meta name="theme-color" content="#667eea">
-<title>威特电梯厂检调试记录单V2 v74</title>
+<title>威特电梯厂检调试记录单V2 v75</title>
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%231a3a6b'/%3E%3Ctext x='50' y='42' font-family='Arial' font-size='28' font-weight='900' text-anchor='middle' fill='white'%3EVEITE%3C/text%3E%3Ctext x='50' y='72' font-family='serif' font-size='16' font-weight='800' text-anchor='middle' fill='%23e63946'%3E电梯%3C/text%3E%3C/svg%3E">
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
@@ -380,7 +380,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
 
       <div style="flex:1;min-width:0;">
         <div id="taskListTitle" style="font-size:16px;font-weight:800;color:#1a3a6b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">电梯列表</div>
-        <div class="header-sub">厂检调试记录单 V2 v74</div>
+        <div class="header-sub">厂检调试记录单 V2 v75</div>
       </div>
     </div>
     <button class="header-menu-btn" onclick="toggleHeaderMenu('task')">☰</button>
@@ -411,7 +411,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
     <div class="logo-area">
       <img src="logo-img-2.jpg" style="height:32px;width:auto;vertical-align:middle;">
     </div>
-    <div class="header-sub" id="checkHeaderSub">厂检调试记录单V2 v74</div>
+    <div class="header-sub" id="checkHeaderSub">厂检调试记录单V2 v75</div>
     <button class="header-menu-btn no-print" onclick="toggleHeaderMenu('check')">☰</button>
     <div class="header-dropdown no-print" id="headerDropdownCheck">
       <div onclick="saveCurrentTask();goPage('taskList');closeHeaderMenu('check')">📋 返回列表</div>
@@ -1916,7 +1916,7 @@ function printFubiao(index) {
   currentTaskIndex = index;
   closeAllPrintMenus();
   try {
-    var url = 'print-fubiao.html?proj=' + currentProjectIndex + '&task=' + index + '&v=v74';
+    var url = 'print-fubiao.html?proj=' + currentProjectIndex + '&task=' + index + '&v=v75';
     var win = window.open(url, '_blank');
     if (!win) {
       showToast('弹窗被拦截，请允许弹出窗口');
@@ -1938,122 +1938,222 @@ function exportFubiaoPDF(callback, canvasCallback) {
     return; 
   }
   
-  // 确保数据已保存到localStorage（副表页面从这里读取）
+  if (typeof html2canvas === 'undefined' || typeof jsPDF === 'undefined') {
+    showToast('PDF库加载中，请稍候...');
+    loadPdfLibs(function(){
+      if (typeof html2canvas === 'undefined' || typeof jsPDF === 'undefined') {
+        showToast('PDF库加载失败，请检查网络');
+        return;
+      }
+      exportFubiaoPDF(callback, canvasCallback);
+    });
+    return;
+  }
+  
+  // 确保数据已保存
   saveData();
   
   var proj = getCurrentProject();
   var projName = (proj && proj.name || '未命名').replace(/[\\/:*?"<>|]/g, '');
   var filename = projName + '_副表.pdf';
   
-  // 创建隐藏iframe加载副表统一打印页
-  var iframe = document.createElement('iframe');
-  iframe.style.cssText = 'position:absolute;left:-9999px;top:0;width:1200px;height:900px;z-index:-1;opacity:0;';
-  iframe.src = 'print-fubiao.html?proj=' + currentProjectIndex + '&task=' + currentTaskIndex + '&autoPrint=0&v=v74';
-  document.body.appendChild(iframe);
+  // 从_fubiaoHtmlContent中提取CSS、HTML、JS
+  var htmlStr = _fubiaoHtmlContent;
   
-  var done = false;
-  var timeoutId = null;
-  var msgHandler = null;
+  // 提取style内容
+  var styleMatch = htmlStr.match(/<style>([\s\S]*?)<\/style>/);
+  var cssContent = styleMatch ? styleMatch[1] : '';
   
-  function cleanup() {
-    if (timeoutId) clearTimeout(timeoutId);
-    if (msgHandler) window.removeEventListener('message', msgHandler);
-    if (iframe && iframe.parentNode) iframe.parentNode.removeChild(iframe);
-  }
+  // 提取body内的内容（id="content"的div）
+  var bodyMatch = htmlStr.match(/<div id="content"[^>]*>([\s\S]*)<\/div>\s*<\/body>/);
+  var bodyHtml = bodyMatch ? bodyMatch[1] : '';
   
-  function finish(pages) {
-    if (done) return;
-    done = true;
+  // 提取script内容（不含最后的初始化和exportFubiaoPDF函数，避免重名）
+  var scriptMatch = htmlStr.match(/<script>([\s\S]*?)<\/script>/);
+  var scriptContent = scriptMatch ? scriptMatch[1] : '';
+  
+  // CSS加前缀：给所有选择器前面加上 .fubiao-export-container
+  function prefixCSS(css, prefix) {
+    // 简单处理：按块分割，给每个选择器加前缀
+    var result = '';
+    var inBlock = 0;
+    var currentSelector = '';
+    var i = 0;
     
-    // 把dataURL转成canvas对象，保持和通知单/记录单一致的格式
-    var result = [];
-    var loaded = 0;
-    
-    pages.forEach(function(p, i) {
-      var canvas = document.createElement('canvas');
-      canvas.width = p.width;
-      canvas.height = p.height;
-      var ctx = canvas.getContext('2d');
-      var img = new Image();
-      img.onload = function() {
-        ctx.drawImage(img, 0, 0);
-        result[i] = { canvas: canvas, orientation: p.orientation || 'landscape' };
-        loaded++;
-        if (loaded === pages.length) {
-          if (canvasCallback) {
-            canvasCallback(result);
+    while (i < css.length) {
+      if (css[i] === '{') {
+        if (inBlock === 0) {
+          // 选择器结束，加前缀
+          var sel = currentSelector.trim();
+          if (sel && sel.indexOf('@') !== 0) {
+            // 多个选择器用逗号分隔，每个都加前缀
+            var parts = sel.split(',');
+            var prefixed = parts.map(function(p) {
+              return prefix + ' ' + p.trim();
+            }).join(', ');
+            result += prefixed;
           } else {
-            var JsPDF = jsPDF;
-            var pdf = new JsPDF({orientation: 'l', unit: 'mm', format: 'a4'});
-            result.forEach(function(item, idx) {
-              var imgData = item.canvas.toDataURL('image/jpeg', 0.92);
-              if (idx > 0) pdf.addPage('a4', 'l');
-              pdf.addImage(imgData, 'JPEG', 0, 0, 297, 210);
-            });
-            pdf.save(filename);
-            showToast('副表导出成功！共' + result.length + '页');
+            result += sel; // @media等不加前缀
           }
-          cleanup();
-          if (callback) callback();
+          currentSelector = '';
+        } else {
+          currentSelector += css[i];
         }
-      };
-      img.onerror = function() {
-        showToast('副表第' + (i+1) + '页加载失败');
-        loaded++;
-        if (loaded === pages.length) {
-          cleanup();
-          if (callback) callback();
+        result += '{';
+        inBlock++;
+        i++;
+      } else if (css[i] === '}') {
+        inBlock--;
+        result += '}';
+        currentSelector = '';
+        i++;
+      } else {
+        if (inBlock === 0) {
+          currentSelector += css[i];
+        } else {
+          result += css[i];
         }
-      };
-      img.src = p.dataUrl;
-    });
+        i++;
+      }
+    }
+    return result;
   }
   
-  // 监听副表发回的消息
-  msgHandler = function(e) {
-    var data = e.data;
-    if (!data || data.action !== 'exportCanvasesResult') return;
-    if (data.error) {
-      showToast('副表导出失败: ' + data.error);
+  var prefixedCSS = prefixCSS(cssContent, '.fubiao-export-container');
+  
+  // 创建容器
+  var container = document.createElement('div');
+  container.className = 'fubiao-export-container';
+  container.style.cssText = 'position:fixed;left:-9999px;top:0;width:1200px;min-height:900px;z-index:-1;opacity:0;pointer-events:none;background:#f5f5f5;padding:10px;';
+  
+  // 注入CSS
+  var styleEl = document.createElement('style');
+  styleEl.id = 'fubiao-export-style';
+  styleEl.textContent = prefixedCSS;
+  document.head.appendChild(styleEl);
+  
+  // 注入HTML
+  container.innerHTML = bodyHtml;
+  document.body.appendChild(container);
+  
+  // 注入JS函数（只执行一次，后面复用）
+  if (!window._fubiaoFunctionsLoaded) {
+    // 提取所有函数定义，但排除exportFubiaoPDF和初始化代码
+    // 简单办法：把整个script内容eval，但提前保存原exportFubiaoPDF，执行后恢复
+    var origExportFubiaoPDF = window.exportFubiaoPDF;
+    
+    // 去掉初始化代码（DOMContentLoaded那段）
+    var funcCode = scriptContent.replace(/document\.addEventListener\('DOMContentLoaded'[\s\S]*$/, '');
+    // 去掉副表自己的exportFubiaoPDF函数
+    funcCode = funcCode.replace(/\/\/ ============ 导出PDF功能 ============[\s\S]*?\n\}\n/, '');
+    // 去掉加载jsPDF/html2canvas的代码块（IIFE）
+    funcCode = funcCode.replace(/\/\/ 加载jsPDF和html2canvas[\s\S]*?\}\)\(\);\n/, '');
+    
+    try {
+      // 用函数包装一下，避免变量污染全局
+      (new Function(funcCode))();
+    } catch(e) {
+      console.error('副表函数注入失败:', e);
+    }
+    
+    window.exportFubiaoPDF = origExportFubiaoPDF; // 恢复主页面的函数
+    window._fubiaoFunctionsLoaded = true;
+  }
+  
+  // 劫持document.querySelector/querySelectorAll，让它们优先查容器内
+  var origQS = document.querySelector;
+  var origQSA = document.querySelectorAll;
+  document.querySelector = function(sel) {
+    var el = container.querySelector(sel);
+    return el || origQS.call(document, sel);
+  };
+  document.querySelectorAll = function(sel) {
+    var els = container.querySelectorAll(sel);
+    return els.length > 0 ? els : origQSA.call(document, sel);
+  };
+  
+  // 执行填充
+  try {
+    if (typeof fillData === 'function') {
+      fillData();
+    }
+  } catch(e) {
+    console.error('副表填充数据失败:', e);
+    showToast('副表数据填充失败');
+  }
+  
+  // 恢复原函数
+  document.querySelector = origQS;
+  document.querySelectorAll = origQSA;
+  
+  // 等SVG渲染
+  setTimeout(function() {
+    var pages = container.querySelectorAll('.page');
+    
+    if (pages.length === 0) {
+      showToast('副表渲染失败');
       cleanup();
       if (callback) callback();
       if (canvasCallback) canvasCallback([]);
       return;
     }
-    if (data.pages && data.pages.length > 0) {
-      finish(data.pages);
-    } else {
-      showToast('副表无内容');
-      cleanup();
-      if (callback) callback();
-      if (canvasCallback) canvasCallback([]);
-    }
-  };
-  window.addEventListener('message', msgHandler);
-  
-  iframe.onload = function() {
-    // 等副表页面fillData + SVG渲染完成后，发送导出指令
-    setTimeout(function() {
-      try {
-        iframe.contentWindow.postMessage({ action: 'exportCanvases' }, '*');
-      } catch(err) {
-        showToast('副表通信失败: ' + err.message);
+    
+    var canvases = [];
+    var idx = 0;
+    
+    function captureNext() {
+      if (idx >= pages.length) {
+        var result = canvases.map(function(c) {
+          return { canvas: c, orientation: 'landscape' };
+        });
+        
+        if (canvasCallback) {
+          canvasCallback(result);
+        } else {
+          var JsPDF = jsPDF;
+          var pdf = new JsPDF({orientation: 'l', unit: 'mm', format: 'a4'});
+          canvases.forEach(function(canvas, i) {
+            var imgData = canvas.toDataURL('image/jpeg', 0.92);
+            if (i > 0) pdf.addPage('a4', 'l');
+            pdf.addImage(imgData, 'JPEG', 0, 0, 297, 210);
+          });
+          pdf.save(filename);
+          showToast('副表导出成功！共' + canvases.length + '页');
+        }
+        
         cleanup();
         if (callback) callback();
-        if (canvasCallback) canvasCallback([]);
+        return;
       }
-    }, 1500);
-  };
-  
-  // 超时保护
-  timeoutId = setTimeout(function() {
-    if (!done) {
-      showToast('副表导出超时');
-      cleanup();
-      if (callback) callback();
-      if (canvasCallback) canvasCallback([]);
+      
+      showToast('正在渲染副表第' + (idx+1) + '/' + pages.length + '页...');
+      
+      html2canvas(pages[idx], {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        logging: false
+      }).then(function(canvas) {
+        canvases.push(canvas);
+        idx++;
+        setTimeout(captureNext, 30);
+      }).catch(function(err) {
+        console.error('副表第' + (idx+1) + '页渲染失败:', err);
+        showToast('副表第' + (idx+1) + '页渲染失败');
+        idx++;
+        captureNext();
+      });
     }
-  }, 30000);
+    
+    captureNext();
+    
+  }, 800);
+  
+  function cleanup() {
+    if (container && container.parentNode) container.parentNode.removeChild(container);
+    if (styleEl && styleEl.parentNode) styleEl.parentNode.removeChild(styleEl);
+  }
 }
 
 // 副表第1页：附表1（门系统）+ 附表2（导轨）+ 附表3（安全钳/缓冲器）
@@ -2352,7 +2452,7 @@ function openTask(index) {
     configPartsData = task.configParts;
   }
   document.getElementById('checkProdNo').textContent = task.prodNo || '未编号';
-  document.getElementById('checkHeaderSub').textContent = (task.model ? task.model + ' · v74' : '厂检调试记录单V2 v74');
+  document.getElementById('checkHeaderSub').textContent = (task.model ? task.model + ' · v75' : '厂检调试记录单V2 v75');
   goPage('check');
   renderZoneTabs();
   switchZone(0);
