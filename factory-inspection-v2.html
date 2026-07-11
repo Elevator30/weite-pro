@@ -1908,57 +1908,88 @@ function printAll(index) {
     return;
   }
 
-  var task = getCurrentTask();
-  var proj = getCurrentProject();
-  if (!task) { showToast('未找到检查数据'); return; }
-  var equipNo = (task.prodNo||'未编号').replace(/[\/:*?"<>|]/g, '');
-  var filename = equipNo + '_厂检全套.pdf';
+  try {
+    var task = getCurrentTask();
+    var proj = getCurrentProject();
+    if (!task) { showToast('未找到检查数据'); return; }
+    var equipNo = (task.prodNo||'未编号').replace(/[\/:*?"<>|]/g, '');
+    var filename = equipNo + '_厂检全套.pdf';
 
-  var result = {
-    filename: filename,
-    noticePages: 0,
-    checkPages: 0,
-    fubiaoPages: 0,
-    canvases: [],
-    noticeOk: false,
-    checkOk: false,
-    fubiaoOk: false
-  };
+    var result = {
+      filename: filename,
+      noticePages: 0,
+      checkPages: 0,
+      fubiaoPages: 0,
+      canvases: [],
+      noticeOk: false,
+      checkOk: false,
+      fubiaoOk: false,
+      error: ''
+    };
 
-  showToast('正在生成通知单... (1/3)');
+    showToast('正在生成通知单... (1/3)');
 
-  // 第一步：通知单
-  exportNoticePDF(function(noticeCanvases) {
-    if (noticeCanvases && noticeCanvases.length > 0) {
-      result.canvases = result.canvases.concat(noticeCanvases);
-      result.noticePages = noticeCanvases.length;
-      result.noticeOk = true;
-    }
-    showToast('正在生成记录单... (2/3)');
-
-    // 第二步：记录单
-    exportCheckPDF(function(checkCanvases) {
-      if (checkCanvases && checkCanvases.length > 0) {
-        result.canvases = result.canvases.concat(checkCanvases);
-        result.checkPages = checkCanvases.length;
-        result.checkOk = true;
-      }
-      showToast('正在生成副表... (3/3)');
-
-      // 第三步：副表
-      exportFubiaoPDF(null, function(fubiaoCanvases) {
-        if (fubiaoCanvases && fubiaoCanvases.length > 0) {
-          result.canvases = result.canvases.concat(fubiaoCanvases);
-          result.fubiaoPages = fubiaoCanvases.length;
-          result.fubiaoOk = true;
+    // 第一步：通知单
+    exportNoticePDF(function(noticeCanvases) {
+      try {
+        if (noticeCanvases && noticeCanvases.length > 0) {
+          result.canvases = result.canvases.concat(noticeCanvases);
+          result.noticePages = noticeCanvases.length;
+          result.noticeOk = true;
         }
+        showToast('通知单完成(' + result.noticePages + '页),正在生成记录单... (2/3)');
 
-        // 暂存并显示结果面板
+        // 第二步：记录单
+        exportCheckPDF(function(checkCanvases) {
+          try {
+            if (checkCanvases && checkCanvases.length > 0) {
+              result.canvases = result.canvases.concat(checkCanvases);
+              result.checkPages = checkCanvases.length;
+              result.checkOk = true;
+            }
+            showToast('记录单完成(' + result.checkPages + '页),正在生成副表... (3/3)');
+
+            // 第三步：副表
+            exportFubiaoPDF(null, function(fubiaoCanvases) {
+              try {
+                if (fubiaoCanvases && fubiaoCanvases.length > 0) {
+                  result.canvases = result.canvases.concat(fubiaoCanvases);
+                  result.fubiaoPages = fubiaoCanvases.length;
+                  result.fubiaoOk = true;
+                }
+
+                // 暂存并显示结果面板
+                _generatedPdfData = result;
+                showPdfResultPanel(result);
+              } catch(e3) {
+                console.error('副表回调异常:', e3);
+                result.error = '副表回调:' + e3.message;
+                _generatedPdfData = result;
+                showPdfResultPanel(result);
+              }
+            });
+          } catch(e2) {
+            console.error('记录单回调异常:', e2);
+            result.error = '记录单回调:' + e2.message;
+            _generatedPdfData = result;
+            showPdfResultPanel(result);
+          }
+        });
+      } catch(e1) {
+        console.error('通知单回调异常:', e1);
+        result.error = '通知单回调:' + e1.message;
         _generatedPdfData = result;
         showPdfResultPanel(result);
-      });
+      }
     });
-  });
+  } catch(e) {
+    console.error('printAll异常:', e);
+    showToast('生成失败:' + e.message);
+    // 异常也显示面板
+    var result = { filename: '错误.pdf', noticePages:0, checkPages:0, fubiaoPages:0, canvases:[], noticeOk:false, checkOk:false, fubiaoOk:false, error: e.message };
+    _generatedPdfData = result;
+    showPdfResultPanel(result);
+  }
 }
 
 // ===== PDF结果面板 =====
@@ -2005,6 +2036,9 @@ function showPdfResultPanel(result) {
   html += '    <span class="prp-label">合计</span>';
   html += '    <span class="prp-value">' + totalPages + '页</span>';
   html += '  </div>';
+  if (result.error) {
+    html += '  <div style="margin-top:8px;padding:8px;background:#fef0f0;color:#e74c3c;font-size:12px;border-radius:6px;word-break:break-all;">错误: ' + result.error + '</div>';
+  }
   html += '</div>';
   html += '<div class="prp-actions">';
   html += '  <button class="prp-btn prp-btn-secondary" onclick="closePdfResultPanel()">关闭</button>';
