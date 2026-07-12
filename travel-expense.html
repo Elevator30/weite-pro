@@ -453,8 +453,136 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helv
 <div class="toast" id="toast"></div>
 
 <script>
-let projects = JSON.parse(localStorage.getItem('travelProjects') || '[]');
-let expenses = JSON.parse(localStorage.getItem('travelExpenses') || '[]');
+
+// ===== IndexedDB 封装 (ES5兼容, callback风格, 带localStorage降级) =====
+var _idb = null;
+var _idbReady = false;
+var _idbQueue = [];
+function _idbInit(){
+  if (typeof indexedDB === 'undefined') { _idbReady = 'fallback'; return; }
+  var req = indexedDB.open('WeiteKV', 1);
+  req.onupgradeneeded = function(e) {
+    var db = e.target.result;
+    if (!db.objectStoreNames.contains('kv')) db.createObjectStore('kv');
+  };
+  req.onsuccess = function(e) {
+    _idb = e.target.result;
+    _idbReady = true;
+    while (_idbQueue.length > 0) {
+      try { _idbQueue.shift()(); } catch (err) { console.error('IDB队列错误', err); }
+    }
+  };
+  req.onerror = function() {
+    console.warn('IndexedDB打开失败，降级使用localStorage');
+    _idbReady = 'fallback';
+  };
+}
+function _idbExec(fn) {
+  if (_idbReady === true) { try { fn(); } catch (e) { console.error('IDB执行错误', e); } }
+  else if (_idbReady === 'fallback') { try { fn(); } catch (e) {} }
+  else { _idbQueue.push(fn); }
+}
+function dbGet(key, cb) {
+  _idbExec(function() {
+    if (_idbReady === 'fallback') {
+      try { cb(localStorage.getItem(key), null); } catch (e) { cb(null, e); }
+      return;
+    }
+    try {
+      var tx = _idb.transaction('kv', 'readonly');
+      var r = tx.objectStore('kv').get(key);
+      r.onsuccess = function() { cb(r.result !== undefined ? r.result : null, null); };
+      r.onerror = function() { cb(null, r.error); };
+    } catch (e) { cb(null, e); }
+  });
+}
+function dbSet(key, val, cb) {
+  _idbExec(function() {
+    if (_idbReady === 'fallback') {
+      try { localStorage.setItem(key, val); cb && cb(null); } catch (e) { cb && cb(e); }
+      return;
+    }
+    try {
+      var tx = _idb.transaction('kv', 'readwrite');
+      tx.objectStore('kv').put(val, key);
+      tx.oncomplete = function() { cb && cb(null); };
+      tx.onerror = function() { cb && cb(tx.error); };
+    } catch (e) { cb && cb(e); }
+  });
+}
+function dbRemove(key, cb) {
+  _idbExec(function() {
+    if (_idbReady === 'fallback') {
+      try { localStorage.removeItem(key); cb && cb(null); } catch (e) { cb && cb(e); }
+      return;
+    }
+    try {
+      var tx = _idb.transaction('kv', 'readwrite');
+      tx.objectStore('kv').delete(key);
+      tx.oncomplete = function() { cb && cb(null); };
+      tx.onerror = function() { cb && cb(tx.error); };
+    } catch (e) { cb && cb(e); }
+  });
+}
+function dbGetMulti(keys, cb) {
+  var results = {};
+  var remaining = keys.length;
+  if (remaining === 0) { cb({}); return; }
+  keys.forEach(function(k) {
+    dbGet(k, function(v, err) {
+      results[k] = v;
+      remaining--;
+      if (remaining <= 0) cb(results);
+    });
+  });
+}
+// 从localStorage迁移到IndexedDB
+function migrateFromLS(keys, cb) {
+  if (_idbReady === 'fallback') { cb && cb(0); return; }
+  var migrated = 0;
+  var remaining = keys.length;
+  if (remaining === 0) { cb && cb(0); return; }
+  function check() {
+    remaining--;
+    if (remaining <= 0) { cb && cb(migrated); }
+  }
+  keys.forEach(function(k) {
+    try {
+      var v = localStorage.getItem(k);
+      if (v !== null) {
+        dbSet(k, v, function(err) {
+          if (!err) {
+            try { localStorage.removeItem(k); } catch (e) {}
+            migrated++;
+          }
+          check();
+        });
+      } else {
+        check();
+      }
+    } catch (e) { check(); }
+  });
+}
+_idbInit();
+// ===== IndexedDB 封装结束 =====
+
+let projects = [];
+let expenses = [];
+let travelSettings = {};
+
+// ===== 存储辅助函数 =====
+function _loadTravelData(callback) {
+  dbGetMulti(['travelProjects', 'travelExpenses', 'travelSettings'], function(results) {
+    try { projects = JSON.parse(results['travelProjects'] || '[]'); } catch(e) { projects = []; }
+    try { expenses = JSON.parse(results['travelExpenses'] || '[]'); } catch(e) { expenses = []; }
+    try { travelSettings = JSON.parse(results['travelSettings'] || '{}'); } catch(e) { travelSettings = {}; }
+    callback && callback();
+  });
+}
+function _saveProjects() { dbSet('travelProjects', JSON.stringify(projects)); }
+function _saveExpenses() { dbSet('travelExpenses', JSON.stringify(expenses)); }
+function _saveSettings() { dbSet('travelSettings', JSON.stringify(travelSettings)); }
+// ===== 存储辅助函数结束 =====
 let currentMonth = new Date().toISOString().slice(0, 7);
 let realCurrentMonth = currentMonth; // 实际当前月份，不可变
 let pickerYearVal = parseInt(currentMonth.split('-')[0]); // 月份选择器当前显示的年份
@@ -523,13 +651,13 @@ function ensureUniqueIds() {
     if (!e.id || usedIds[e.id]) { e.id = 'e_' + Date.now() + '_' + i + '_' + Math.random().toString(36).slice(2,6); }
     usedIds[e.id] = true;
   });
-  localStorage.setItem('travelProjects', JSON.stringify(projects));
-  localStorage.setItem('travelExpenses', JSON.stringify(expenses));
+  _saveProjects();
+  _saveExpenses();
 }
 
 // 迁移：压缩已存储的票据大图，释放localStorage空间
 function migrateReceiptImages() {
-  var exps = JSON.parse(localStorage.getItem('travelExpenses') || '[]');
+  var exps = expenses.slice();
   var changed = false;
   var pending = 0;
   var done = false;
@@ -537,12 +665,12 @@ function migrateReceiptImages() {
     if (pending === 0 && done && changed) {
       var json = JSON.stringify(exps);
       // 先删旧数据腾空间，再写入压缩后的数据
-      localStorage.removeItem('travelExpenses');
-      try { localStorage.setItem('travelExpenses', json); } catch(e) {
+      expenses = []; dbRemove('travelExpenses');
+      try { dbSet('travelExpenses', json); } catch(e) {
         // 如果还是写不进去，说明还有其他数据占空间，尝试清理非必要数据
-        localStorage.removeItem('travelSettings');
-        try { localStorage.setItem('travelExpenses', json); } catch(e2) {}
-        try { localStorage.setItem('travelSettings', JSON.stringify({name:'',dept:'',signature:''})); } catch(e3) {}
+        travelSettings = {}; dbRemove('travelSettings');
+        try { dbSet('travelExpenses', json); } catch(e2) {}
+        try { travelSettings = JSON.parse(JSON.stringify({name:'',dept:'',signature:''})); _saveSettings(); } catch(e3) {}
       }
       // 更新内存中的expenses
       expenses = exps;
@@ -574,6 +702,24 @@ function migrateReceiptImages() {
 }
 
 function init() {
+  _appInit();
+}
+
+function _appInit() {
+  _loadTravelData(function() {
+    migrateFromLS(['travelProjects', 'travelExpenses', 'travelSettings'], function(migrated) {
+      if (migrated > 0) {
+        _loadTravelData(function() {
+          _doInit();
+        });
+      } else {
+        _doInit();
+      }
+    });
+  });
+}
+
+function _doInit() {
   ensureUniqueIds();
   migrateReceiptImages();
   updateHomeStats();
@@ -583,18 +729,18 @@ function init() {
   // PWA回到前台时自动刷新数据
   document.addEventListener('visibilitychange', function() {
     if (!document.hidden) {
-      projects = JSON.parse(localStorage.getItem('travelProjects') || '[]');
-      expenses = JSON.parse(localStorage.getItem('travelExpenses') || '[]');
-      // 更新真实当前月份（但不改变用户选择的查看月份）
-      realCurrentMonth = new Date().toISOString().slice(0, 7);
-      refreshForMonth();
+      _loadTravelData(function() {
+        // 更新真实当前月份（但不改变用户选择的查看月份）
+        realCurrentMonth = new Date().toISOString().slice(0, 7);
+        refreshForMonth();
+      });
     }
   });
   // 页面获得焦点时也刷新（iOS兼容）
   window.addEventListener('focus', function() {
-    projects = JSON.parse(localStorage.getItem('travelProjects') || '[]');
-    expenses = JSON.parse(localStorage.getItem('travelExpenses') || '[]');
-    updateHomeStats();
+    _loadTravelData(function() {
+      updateHomeStats();
+    });
   });
 }
 
@@ -706,9 +852,9 @@ function getProjectExpenses(pid) {
 }
 
 function updateHomeStats() {
-  // 始终从 localStorage 重新加载数据，确保一致性
-  projects = JSON.parse(localStorage.getItem('travelProjects') || '[]');
-  expenses = JSON.parse(localStorage.getItem('travelExpenses') || '[]');
+  // 使用内存缓存（数据一致性由存储层保证）
+  // 注：原从localStorage重新加载的逻辑已改为使用内存缓存，
+  // 因为IndexedDB是异步的，且当前页面数据始终在内存中维护
   const monthProjects = getMonthProjects();
   let totalDays = 0, totalQty = 0;
   let selfAmount = 0, ctripAmount = 0;
@@ -1026,7 +1172,7 @@ function saveExpense() {
     mealDaySettings.forEach(v => { mealAmount += mealRates[v] || 20; });
     const newProject = { id: 'p_' + Date.now() + '_' + Math.random().toString(36).slice(2,6), name: projName, workType: mainWorkType, quantity: totalQty, workItems: workItems, startDate, endDate, days, mealSettings: [...mealDaySettings], mealAmount, createdAt: new Date().toISOString() };
     projects.push(newProject);
-    localStorage.setItem('travelProjects', JSON.stringify(projects));
+    _saveProjects();
     projectId = newProject.id;
     if (mealAmount > 0) {
       expenses.push({ id: 'e_' + Date.now() + '_' + Math.random().toString(36).slice(2,6), projectId, date: startDate, type: 'meal', payer: 'self', amount: mealAmount, receipt: 'no', detail: '出差餐补（' + days + '天）', mealDays: days, receipts: [], createdAt: new Date().toISOString() });
@@ -1059,7 +1205,7 @@ function saveExpense() {
   if (expTo) expObj.to = expTo;
   if (expCity) expObj.city = expCity;
   expenses.push(expObj);
-  localStorage.setItem('travelExpenses', JSON.stringify(expenses));
+  _saveExpenses();
   closeModal('expenseModal');
   resetForm();
   updateHomeStats();
@@ -1259,7 +1405,7 @@ function exportExcel() {
 
 // === 设置功能 ===
 function getSettings() {
-  var s = localStorage.getItem('travelSettings');
+  var s = JSON.stringify(travelSettings);
   if (s) return JSON.parse(s);
   return { name: '袁章兴', dept: '工程部' };
 }
@@ -1352,11 +1498,10 @@ function openSettingsModal() {
 
 function updateStorageInfo() {
   var total = 0;
-  for (var key in localStorage) {
-    if (localStorage.hasOwnProperty(key)) {
-      total += localStorage[key].length + key.length;
-    }
-  }
+  // 基于 IndexedDB 数据估算存储空间
+  try {
+    total = JSON.stringify(projects||[]).length + JSON.stringify(expenses||[]).length + JSON.stringify(travelSettings||{}).length + 50;
+  } catch(e) { total = 0; }
   var usedKB = (total * 2 / 1024).toFixed(1); // UTF-16, 2 bytes per char
   var maxKB = 5120; // ~5MB
   var pct = Math.min(100, (total * 2 / 1024 / 1024 * 100)).toFixed(1);
@@ -1374,7 +1519,7 @@ function clearReceiptImages() {
   if (!confirm('确定清理所有票据图片吗？\n\n费用记录数据会保留，但票据图片将被永久移除。导出PDF时将不再包含图片。')) return;
   expenses.forEach(function(e) { if (e.receipts) e.receipts = []; });
   try {
-    localStorage.setItem('travelExpenses', JSON.stringify(expenses));
+    _saveExpenses();
     showToast('票据图片已清理，释放了存储空间');
     updateStorageInfo();
     updateHomeStats();
@@ -1395,7 +1540,7 @@ function saveSettings() {
     if (hasContent) signature = sigCanvas.toDataURL('image/png');
   }
   var existing = getSettings();
-  localStorage.setItem('travelSettings', JSON.stringify({ name: name, dept: dept, signature: signature || existing.signature || '' }));
+  travelSettings = JSON.parse(JSON.stringify({ name: name, dept: dept, signature: signature || existing.signature || '' })); _saveSettings();
   closeModal('settingsModal');
   showToast('设置已保存');
 }
@@ -2179,7 +2324,7 @@ async function exportPDF(projectId) {
     p.printed = true;
     p.printedAt = new Date().toISOString();
   });
-  localStorage.setItem('travelProjects', JSON.stringify(projects));
+  _saveProjects();
 
   showToast('报销单生成成功');
 }
@@ -2210,8 +2355,8 @@ function importJSON(event) {
         }
         projects = data.projects;
         expenses = data.expenses;
-        localStorage.setItem('travelProjects', JSON.stringify(projects));
-        localStorage.setItem('travelExpenses', JSON.stringify(expenses));
+        _saveProjects();
+        _saveExpenses();
         updateHomeStats();
         showToast('导入成功！已恢复' + projects.length + '个项目，' + expenses.length + '笔费用');
       } else {
@@ -2317,8 +2462,8 @@ function importExcel(event) {
           expenses.push(exp);
         });
       }
-      localStorage.setItem('travelProjects', JSON.stringify(projects));
-      localStorage.setItem('travelExpenses', JSON.stringify(expenses));
+      _saveProjects();
+      _saveExpenses();
       updateHomeStats();
       showToast('导入成功！' + projects.length + '个项目，' + expenses.length + '笔费用');
     } catch(err) {
@@ -2400,10 +2545,10 @@ function deleteProject(name) {
   if (!confirm(msg)) return;
   // 删除项目
   projects = projects.filter(p => p.id !== proj.id);
-  localStorage.setItem('travelProjects', JSON.stringify(projects));
+  _saveProjects();
   // 删除该项目下所有费用
   expenses = expenses.filter(e => e.projectId !== proj.id);
-  localStorage.setItem('travelExpenses', JSON.stringify(expenses));
+  _saveExpenses();
   // 如果当前查看的就是被删的项目，清空
   if (viewProject && viewProject.id === proj.id) {
     viewProject = null;
@@ -2485,7 +2630,7 @@ function generateMealSubsidy() {
   if (days <= 0 && viewProject.startDate && viewProject.endDate) {
     days = calcDateDiff(viewProject.startDate, viewProject.endDate);
     viewProject.days = days;
-    localStorage.setItem('travelProjects', JSON.stringify(projects));
+    _saveProjects();
   }
   if (days <= 0) { showToast('该项目没有天数信息'); return; }
   // 初始化逐日设置（默认B类）
@@ -2577,9 +2722,9 @@ function confirmGenMeal() {
     viewProject.mealSettings = [...genMealDaySettings];
     var pIdx = projects.findIndex(function(p){ return p.id === viewProject.id; });
     if (pIdx >= 0) projects[pIdx] = viewProject;
-    localStorage.setItem('travelProjects', JSON.stringify(projects));
+    _saveProjects();
   }
-  localStorage.setItem('travelExpenses', JSON.stringify(expenses));
+  _saveExpenses();
   closeModal('genMealModal');
   renderViewExpenses();
   updateHomeStats();
@@ -2660,7 +2805,7 @@ function saveViewProject() {
   viewProject.endDate = document.getElementById('editProjEnd').value;
   viewProject.days = calcDateDiff(viewProject.startDate, viewProject.endDate);
   try {
-    localStorage.setItem('travelProjects', JSON.stringify(projects));
+    _saveProjects();
   } catch(e) {
     showToast('存储空间不足，请先清理旧数据或删除不必要的票据图片');
     return;
@@ -2674,7 +2819,7 @@ function saveViewProject() {
 function deleteViewExpense(eid) {
   if (!confirm('确定删除这条费用记录？')) return;
   expenses = expenses.filter(e => e.id !== eid);
-  localStorage.setItem('travelExpenses', JSON.stringify(expenses));
+  _saveExpenses();
   renderViewExpenses();
   updateHomeStats();
   showToast('已删除');
@@ -2850,7 +2995,7 @@ function saveEditExpense(eid) {
     editTempReceipts.forEach(function(r) { exp.receipts.push(r); });
   }
   editTempReceipts = [];
-  localStorage.setItem('travelExpenses', JSON.stringify(expenses));
+  _saveExpenses();
   renderViewExpenses();
   updateHomeStats();
   showToast('已保存');
@@ -2903,7 +3048,7 @@ function removeEditReceipt(idx) {
   var exp = expenses.find(e => e.id === editExpId);
   if (!exp || !exp.receipts) return;
   exp.receipts.splice(idx, 1);
-  localStorage.setItem('travelExpenses', JSON.stringify(expenses));
+  _saveExpenses();
   // 重新渲染编辑界面
   editViewExpense(editExpId);
   showToast('已删除票据');

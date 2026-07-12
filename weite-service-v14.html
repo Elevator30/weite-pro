@@ -15,6 +15,156 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </script>
 <script>
+// ===== IndexedDB 封装 (ES5兼容, callback风格, 带localStorage降级) =====
+var _idb = null;
+var _idbReady = false;
+var _idbQueue = [];
+function _idbInit(){
+  if (typeof indexedDB === 'undefined') { _idbReady = 'fallback'; return; }
+  var req = indexedDB.open('WeiteKV', 1);
+  req.onupgradeneeded = function(e) {
+    var db = e.target.result;
+    if (!db.objectStoreNames.contains('kv')) db.createObjectStore('kv');
+  };
+  req.onsuccess = function(e) {
+    _idb = e.target.result;
+    _idbReady = true;
+    while (_idbQueue.length > 0) {
+      try { _idbQueue.shift()(); } catch (err) { console.error('IDB队列错误', err); }
+    }
+  };
+  req.onerror = function() {
+    console.warn('IndexedDB打开失败，降级使用localStorage');
+    _idbReady = 'fallback';
+  };
+}
+function _idbExec(fn) {
+  if (_idbReady === true) { try { fn(); } catch (e) { console.error('IDB执行错误', e); } }
+  else if (_idbReady === 'fallback') { try { fn(); } catch (e) {} }
+  else { _idbQueue.push(fn); }
+}
+function dbGet(key, cb) {
+  _idbExec(function() {
+    if (_idbReady === 'fallback') {
+      try { cb(localStorage.getItem(key), null); } catch (e) { cb(null, e); }
+      return;
+    }
+    try {
+      var tx = _idb.transaction('kv', 'readonly');
+      var r = tx.objectStore('kv').get(key);
+      r.onsuccess = function() { cb(r.result !== undefined ? r.result : null, null); };
+      r.onerror = function() { cb(null, r.error); };
+    } catch (e) { cb(null, e); }
+  });
+}
+function dbSet(key, val, cb) {
+  _idbExec(function() {
+    if (_idbReady === 'fallback') {
+      try { localStorage.setItem(key, val); cb && cb(null); } catch (e) { cb && cb(e); }
+      return;
+    }
+    try {
+      var tx = _idb.transaction('kv', 'readwrite');
+      tx.objectStore('kv').put(val, key);
+      tx.oncomplete = function() { cb && cb(null); };
+      tx.onerror = function() { cb && cb(tx.error); };
+    } catch (e) { cb && cb(e); }
+  });
+}
+function dbRemove(key, cb) {
+  _idbExec(function() {
+    if (_idbReady === 'fallback') {
+      try { localStorage.removeItem(key); cb && cb(null); } catch (e) { cb && cb(e); }
+      return;
+    }
+    try {
+      var tx = _idb.transaction('kv', 'readwrite');
+      tx.objectStore('kv').delete(key);
+      tx.oncomplete = function() { cb && cb(null); };
+      tx.onerror = function() { cb && cb(tx.error); };
+    } catch (e) { cb && cb(e); }
+  });
+}
+function dbGetMulti(keys, cb) {
+  var results = {};
+  var remaining = keys.length;
+  if (remaining === 0) { cb({}); return; }
+  keys.forEach(function(k) {
+    dbGet(k, function(v, err) {
+      results[k] = v;
+      remaining--;
+      if (remaining <= 0) cb(results);
+    });
+  });
+}
+// 从localStorage迁移到IndexedDB
+function migrateFromLS(keys, cb) {
+  if (_idbReady === 'fallback') { cb && cb(0); return; }
+  var migrated = 0;
+  var remaining = keys.length;
+  if (remaining === 0) { cb && cb(0); return; }
+  function check() {
+    remaining--;
+    if (remaining <= 0) { cb && cb(migrated); }
+  }
+  keys.forEach(function(k) {
+    try {
+      var v = localStorage.getItem(k);
+      if (v !== null) {
+        dbSet(k, v, function(err) {
+          if (!err) {
+            try { localStorage.removeItem(k); } catch (e) {}
+            migrated++;
+          }
+          check();
+        });
+      } else {
+        check();
+      }
+    } catch (e) { check(); }
+  });
+}
+_idbInit();
+// ===== IndexedDB 封装结束 =====
+// ===== 存储缓存层 (wtList, wtGuideShown) =====
+var _wtListCache = [];
+var _wtGuideShownCache = null;
+
+function _loadCacheFromDB(callback) {
+  dbGetMulti(['wtList', 'wtGuideShown'], function(results) {
+    try { _wtListCache = JSON.parse(results['wtList'] || '[]'); } catch(e) { _wtListCache = []; }
+    _wtGuideShownCache = results['wtGuideShown'];
+    callback && callback();
+  });
+}
+
+function _saveWtListCache() {
+  try { dbSet('wtList', JSON.stringify(_wtListCache)); } catch(e) {}
+}
+
+function _saveGuideShown(val) {
+  _wtGuideShownCache = val;
+  dbSet('wtGuideShown', val);
+}
+
+function _initStorage(callback) {
+  // 先从 DB 加载
+  _loadCacheFromDB(function() {
+    // 再尝试从 localStorage 迁移旧数据
+    migrateFromLS(['wtList', 'wtGuideShown'], function(migrated) {
+      if (migrated > 0) {
+        // 迁移后重新加载缓存
+        _loadCacheFromDB(callback);
+      } else {
+        callback && callback();
+      }
+    });
+  });
+}
+// ===== 缓存层结束 =====
+
+
+
 // PWA manifest & service worker for "Add to Home Screen"
 (function(){
   var manifest={name:'威特技术服务单',short_name:'威特服务单',start_url:location.href,display:'standalone',background_color:'#f5f5f5',theme_color:'#667eea',icons:[{src:"data:image/webp;base64,UklGRrwFAABXRUJQVlA4ILAFAADwIACdASrYAEAAPm0ulUYkIqIhLTN7oIANiWIA0XiYk6fAcypylKVfR8u8/Dbw+YDzgP9B6n95359z2hL9E7d/719M3U1HvX4z8e/yx1EW+/ZA9GXqr6AdtRxosfn/A9PH/M/wfnl+ov+x7h/8p/r/WV/ab2E/07SHbXhZHt4C8qbGczRQ+YhCP904TtF2T0CCKyarJnypB/hAK6gQjXC9iwsKwwC+OU9rHGVQYHoJ6rQgTA7XrCkoSqGEyqPx+s/JTspyE0a/wsHHmamelpQCinlWWUKPRRn2jng/2F6cIdPGnOlsdbXFcJsLUCwUtt4xh8NxuwH9RK03w+j532Ir+l0sI72fbPxXS3J23eO7gAD+/KharSACg7d/D3l4HJGQhCdQ227rBH9fuFBIE9S7KXkbv7srGfvvq8TrxYIaGqIqQ/b0R4LwFqs4veGNAtr2N/9XffjClI9y+Ns078yTGj+KSGmGoaW2Fg/yvd4F7TzYht4cvAZutRHBgxFjmYPyk/Z1thQLvhA7bIQJk3t7yUcjDBEsNXXBg1DpLtTLyUkG1b9F3vtmuHLAPrBInM7M7U/c1FeNzDPVV+6BRvH2iEWC6nY3/1H7aw0kAHQYdp42tv5GgpRGgiYmYUVL5Qd/4ijq3Rfbapv3bWVmxZKsplOi5YLgdbLkTcDBjYXWKam/rObme42a6zh11FrQw4NEOL27WA25k2pume6U/xMh4P/PDiwbukzK7WSnmwOFe0ciPINJrwLzrkAeD6BD0SWAq0Q1wWwnlYW3LUY/y8m3f+f/X/n/79m0bBWtpP5xqSkXsKoWDOqRiwoP0BAnzpBgbm894mRq0lIcL4xJBCo9bdnhraMV0K/QTKujLzuUPojKhYvfv/p70tbIdD3NBjM+qJFCBD9zPo9D482iTfk6qobTD32BQWLSMxicFoe6FYzy/oPmoP638ZRjj32Uz6ALnezqdAe7rPmGGNdjTIcgSEb5jx6vZjH2PD/lXhCFVeLX4LauAmPeFQ6h2f+s8cklG4i5Cq0lzmoy063xvLZoCPrQxnTlVru5RClIu5c9JB+MEPv59l/Ael7/Yx1PxGUL7lXtPJR4nJaLQfl2losnfjlp9kdVwsxXlk6+iLf0jX0xuGblGMMs8ud9+H1rRDUFRM6kdd7WGgH/nGnS9whJCrYMo6AiYO+SteHvU7UDlX1bDoZi+EzPtFErY2YzD7EssR7JEWpOcLeheC72VKac5Bz192vBsPf1uOnFNig0EZTR9OjSmAhxfknwgxOT47IGBghTTIbjZO6jUIanJs/JhPwzLLc2ZqbmiNX4+30SicCTM90VJVN+6i5YU4V5Puf3Asu802W45DRPchPNC9NQxrs/y3VvUDf2cqxaXmk5AP6bgaO9Ofuv5AMvDOmfSY7oDs1NLtdFkqoWjzOOax+M/uI4MHe9puGHMgqTVcP25iaQcuBHlgSqCp+iQmBoivAqM6YtWQoqlZ+fSyfSnYKbRd7DsI5CmBFvlwzdlHP1+nQybKj8mvr3IyDZpBJ10OtAnq10T2GQOXEkw1HHsm60s9vId47czppsEl+VZyrnQ5Z6i8+c1Y7m7QILvbdD+GIatZWMRNtiR+YCpX9OUp26fZTgoIjkaD3ZcEjnT4/iENcoz/7Hfq09z/newBZMpuD+1ko1UoWKpIB/jGpf/qNMYFfTe5rvRVFq+1Xdk5EsJvsgYwENrNB68IrkFpHu+2KzzABc7FqwVfAhJdqRCxeasS4dDiF0b5Lqfasg8AVMtt3biVFXL9wLKy5X69mHZaD0UtE5OafUdUcdB9xvfmW/Siv+xCmWpjo5qPnSkcOt09PGXwAYpphRp9NLPaSXlQ0XCSNh9OoC74DABb0pbu5taHZj4uzOfu9rRKUvW+fWkRUxDr2zbvFTxLY/XvUy26/eAhK9wRTlytnMF2ZwTwAA",sizes:'192x192',type:'image/jpeg'}]};
@@ -345,7 +495,7 @@ function updateBtnStatus(){
   // 签字
   s=document.getElementById('st_sign');if(s){v=0;if(typeof sig1Data!='undefined'&&sig1Data)v++;if(typeof sig2Data!='undefined'&&sig2Data)v++;s.className=v===2?'card-status filled':'card-status';if(v===2)filled++;}
   // 已保存记录
-  s=document.getElementById('st_history');if(s){var list=JSON.parse(localStorage.getItem('wtList')||'[]');s.textContent=list.length+'条';if(list.length>0)filled++;}
+  s=document.getElementById('st_history');if(s){var list=_wtListCache;s.textContent=list.length+'条';if(list.length>0)filled++;}
   // 数据迁移
   s=document.getElementById('st_data');if(s){s.className='card-status';}
   // 更新进度条
@@ -849,7 +999,7 @@ document.getElementById('saveBtn').addEventListener('click',function(){
   if(p11&&!phoneReg.test(p11)){showToast('服务电话格式不正确，请输入11位手机号');document.getElementById('f11').focus();return;}
   // 编号唯一性检查：所有电梯的编号不能重复
   var allSns=[];var dupSn='';document.querySelectorAll('.elev-row').forEach(function(row){row.querySelectorAll('.sn-input').forEach(function(inp){var v=inp.value.trim();if(v){if(allSns.indexOf(v)>=0){dupSn=v;}allSns.push(v);}});});if(dupSn){showToast('出厂编号「'+dupSn+'」重复，请修改');return;}
-  var d=collectData();d.savedAt=new Date().toLocaleString('zh-CN');d.sig1=sig1Data;d.sig2=sig2Data;d.preSaleOther=document.getElementById('preSaleOther')?document.getElementById('preSaleOther').value:'';d.duringOther=document.getElementById('duringOther')?document.getElementById('duringOther').value:'';d.afterSaleOther=document.getElementById('afterSaleOther')?document.getElementById('afterSaleOther').value:'';d.visitOther=document.getElementById('visitOther')?document.getElementById('visitOther').value:'';d.records=[];document.querySelectorAll('.ri').forEach(function(item,i){var sel=item.querySelector('select:not(.compSel)');var compSel=item.querySelector('.compSel');var inputs=item.querySelectorAll('input[type="text"]');var dt=item.querySelector('input[type="date"]');var content=inputs[0]?inputs[0].value.trim():'';if(content){d.records.push({num:d.records.length+1,type:sel?sel.value:'',content:content,completer:compSel?compSel.value:'',date:dt?dt.value:''});}});d.elevators=d.elevators.filter(function(ev){return ev.model.trim()||ev.serials.some(function(s){return s.trim();});});var list=JSON.parse(localStorage.getItem('wtList')||'[]');
+  var d=collectData();d.savedAt=new Date().toLocaleString('zh-CN');d.sig1=sig1Data;d.sig2=sig2Data;d.preSaleOther=document.getElementById('preSaleOther')?document.getElementById('preSaleOther').value:'';d.duringOther=document.getElementById('duringOther')?document.getElementById('duringOther').value:'';d.afterSaleOther=document.getElementById('afterSaleOther')?document.getElementById('afterSaleOther').value:'';d.visitOther=document.getElementById('visitOther')?document.getElementById('visitOther').value:'';d.records=[];document.querySelectorAll('.ri').forEach(function(item,i){var sel=item.querySelector('select:not(.compSel)');var compSel=item.querySelector('.compSel');var inputs=item.querySelectorAll('input[type="text"]');var dt=item.querySelector('input[type="date"]');var content=inputs[0]?inputs[0].value.trim():'';if(content){d.records.push({num:d.records.length+1,type:sel?sel.value:'',content:content,completer:compSel?compSel.value:'',date:dt?dt.value:''});}});d.elevators=d.elevators.filter(function(ev){return ev.model.trim()||ev.serials.some(function(s){return s.trim();});});var list=_wtListCache;
   // 重复检查：服务时间+设备编号
   var dKey=(d.serviceTime||'')+'_'+(d.elevators?d.elevators.map(function(e){return e.serials.join(',')}).join('|'):'');
   if(editingIdx>=0){
@@ -862,19 +1012,19 @@ document.getElementById('saveBtn').addEventListener('click',function(){
     var dup=list.some(function(item){var iKey=(item.serviceTime||'')+'_'+(item.elevators?item.elevators.map(function(e){return e.serials.join(',')}).join('|'):'');return iKey===dKey;});
     if(dup){if(!confirm('检测到相同服务时间和设备编号的记录已存在，是否仍要保存？'))return;}
     list.unshift(d);
-  }if(list.length>50)list=list.slice(0,50);try{localStorage.setItem('wtList',JSON.stringify(list));showToast('✅ 已保存');renderList();}catch(e){showToast('存储空间不足');}
+  }if(list.length>50)list=list.slice(0,50);try{_wtListCache=list;_saveWtListCache();showToast('✅ 已保存');renderList();}catch(e){showToast('存储空间不足');}
   // 保存后清空表单
   document.querySelectorAll('input[type="text"],input[type="tel"],input[type="date"],input[type="datetime-local"],input[type="number"]').forEach(function(el){el.value='';});document.querySelectorAll('select').forEach(function(el){el.selectedIndex=0;});document.querySelectorAll('input[type="checkbox"]').forEach(function(el){el.checked=false;el.parentElement.classList.remove('ck');});document.querySelectorAll('.sd').forEach(function(el){el.innerHTML='<span>点击签名</span>';});sig1Data='';sig2Data='';sig1Canvas=null;sig2Canvas=null;document.getElementById('locDisplay').value='';document.getElementById('elevBox').innerHTML='';elevN=0;addElevRow('',['']);editingIdx=-1;document.getElementById('recBox').innerHTML='';recN=0;addRec();window.scrollTo(0,0);updateBtnStatus();});
 document.getElementById('clearBtn').addEventListener('click',function(){if(!confirm('确定清空所有表单数据？'))return;document.querySelectorAll('input[type="text"],input[type="tel"],input[type="date"],input[type="datetime-local"],input[type="number"]').forEach(function(el){el.value='';});document.querySelectorAll('select').forEach(function(el){el.selectedIndex=0;});document.querySelectorAll('input[type="checkbox"]').forEach(function(el){el.checked=false;});document.querySelectorAll('.ci').forEach(function(el){el.classList.remove('ck');});document.querySelectorAll('.sd').forEach(function(el){el.innerHTML='<span>点击签名</span>';});sig1Data='';sig2Data='';sig1Canvas=null;sig2Canvas=null;document.getElementById('locDisplay').value='';document.getElementById('elevBox').innerHTML='';elevN=0;addElevRow('',['']);editingIdx=-1;document.getElementById('recBox').innerHTML='';recN=0;addRec();window.scrollTo(0,0);showToast('已清空');updateBtnStatus();});
 
-function renderList(){var list=JSON.parse(localStorage.getItem('wtList')||'[]');var box=document.getElementById('savedList');if(!list.length){box.innerHTML='<div style="text-align:center;padding:30px 10px;color:#a0aec0;font-size:13px;">暂无保存记录</div>';updateBtnStatus();return;}var html='';list.forEach(function(d,i){var stDisplay=d.serviceTime?d.serviceTime.split('T')[0]:'-';var lines=[];lines.push('服务时间: '+stDisplay);if(d.siteContact||d.sitePhone)lines.push('联系人: '+(d.siteContact||'')+(d.sitePhone?' '+d.sitePhone:''));else if(d.servicePerson||d.servicePhone)lines.push('服务人: '+(d.servicePerson||'')+(d.servicePhone?' '+d.servicePhone:''));html+='<div class="rec-card"><div class="rc-head"><span class="rc-name">'+(d.projectName||'未命名')+'</span><span class="rc-time">'+d.savedAt+'</span></div>'+lines.map(function(l){return '<div class="rc-info">'+l+'</div>';}).join('')+'<div class="rc-btns"><button class="rc-btn-view" data-idx="'+i+'">查看</button><button class="rc-btn-del" data-idx="'+i+'">删除</button></div></div>';});box.innerHTML=html;box.querySelectorAll('.rc-btn-view').forEach(function(btn){btn.addEventListener('click',function(){viewRec(parseInt(this.getAttribute('data-idx')));});});box.querySelectorAll('.rc-btn-del').forEach(function(btn){btn.addEventListener('click',function(){delRec(parseInt(this.getAttribute('data-idx')));});});updateBtnStatus();}
+function renderList(){var list=_wtListCache;var box=document.getElementById('savedList');if(!list.length){box.innerHTML='<div style="text-align:center;padding:30px 10px;color:#a0aec0;font-size:13px;">暂无保存记录</div>';updateBtnStatus();return;}var html='';list.forEach(function(d,i){var stDisplay=d.serviceTime?d.serviceTime.split('T')[0]:'-';var lines=[];lines.push('服务时间: '+stDisplay);if(d.siteContact||d.sitePhone)lines.push('联系人: '+(d.siteContact||'')+(d.sitePhone?' '+d.sitePhone:''));else if(d.servicePerson||d.servicePhone)lines.push('服务人: '+(d.servicePerson||'')+(d.servicePhone?' '+d.servicePhone:''));html+='<div class="rec-card"><div class="rc-head"><span class="rc-name">'+(d.projectName||'未命名')+'</span><span class="rc-time">'+d.savedAt+'</span></div>'+lines.map(function(l){return '<div class="rc-info">'+l+'</div>';}).join('')+'<div class="rc-btns"><button class="rc-btn-view" data-idx="'+i+'">查看</button><button class="rc-btn-del" data-idx="'+i+'">删除</button></div></div>';});box.innerHTML=html;box.querySelectorAll('.rc-btn-view').forEach(function(btn){btn.addEventListener('click',function(){viewRec(parseInt(this.getAttribute('data-idx')));});});box.querySelectorAll('.rc-btn-del').forEach(function(btn){btn.addEventListener('click',function(){delRec(parseInt(this.getAttribute('data-idx')));});});updateBtnStatus();}
 // 启动时迁移：压缩已有的旧签名数据
 (function migrateOldSignatures(){
-  var list=JSON.parse(localStorage.getItem('wtList')||'[]');
+  var list=_wtListCache;
   var changed=false;
   var pending=0;
   var done=false;
-  function trySave(){if(pending===0&&done&&changed){var json=JSON.stringify(list);localStorage.removeItem('wtList');try{localStorage.setItem('wtList',json);}catch(e){}}renderList();}
+  function trySave(){if(pending===0&&done&&changed){var json=JSON.stringify(list);_wtListCache=[];dbRemove('wtList');try{try{_wtListCache=JSON.parse(json);}catch(e){}_saveWtListCache();}catch(e){}}renderList();}
   list.forEach(function(d){
     ['sig1','sig2'].forEach(function(key){
       if(d[key]&&(d[key].indexOf('data:image/png')===0||d[key].indexOf('data:image/jpeg')===0)&&d[key].length>5000){
@@ -902,12 +1052,12 @@ function renderList(){var list=JSON.parse(localStorage.getItem('wtList')||'[]');
   if(!changed&&pending===0)renderList();
 })();
 // 导出记录
-document.getElementById('exportBtn').addEventListener('click',function(){var list=JSON.parse(localStorage.getItem('wtList')||'[]');if(!list.length){showToast('暂无记录可导出');return;}var blob=new Blob([JSON.stringify(list)],{type:'application/json'});var blobUrl=URL.createObjectURL(blob);var a=document.createElement('a');a.href=blobUrl;a.download='威特服务单记录_'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(blobUrl);showToast('已导出'+list.length+'条记录');});
+document.getElementById('exportBtn').addEventListener('click',function(){var list=_wtListCache;if(!list.length){showToast('暂无记录可导出');return;}var blob=new Blob([JSON.stringify(list)],{type:'application/json'});var blobUrl=URL.createObjectURL(blob);var a=document.createElement('a');a.href=blobUrl;a.download='威特服务单记录_'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(blobUrl);showToast('已导出'+list.length+'条记录');});
 // 导入记录
 document.getElementById('importBtn').addEventListener('click',function(){document.getElementById('importFile').click();});
-document.getElementById('importFile').addEventListener('change',function(e){var file=e.target.files[0];if(!file)return;var reader=new FileReader();reader.onload=function(ev){try{var data=JSON.parse(ev.target.result);if(!Array.isArray(data)){showToast('文件格式不正确');return;}var list=JSON.parse(localStorage.getItem('wtList')||'[]');var existKeys={};list.forEach(function(d){existKeys[d.projectName+'_'+d.savedAt]=true;});var count=0;data.forEach(function(d){var key=d.projectName+'_'+d.savedAt;if(!existKeys[key]){list.push(d);existKeys[key]=true;count++;}});if(list.length>50)list=list.slice(0,50);localStorage.setItem('wtList',JSON.stringify(list));renderList();showToast('导入了'+count+'条新记录');}catch(err){showToast('文件解析失败');}};reader.readAsText(file);e.target.value='';});
+document.getElementById('importFile').addEventListener('change',function(e){var file=e.target.files[0];if(!file)return;var reader=new FileReader();reader.onload=function(ev){try{var data=JSON.parse(ev.target.result);if(!Array.isArray(data)){showToast('文件格式不正确');return;}var list=_wtListCache;var existKeys={};list.forEach(function(d){existKeys[d.projectName+'_'+d.savedAt]=true;});var count=0;data.forEach(function(d){var key=d.projectName+'_'+d.savedAt;if(!existKeys[key]){list.push(d);existKeys[key]=true;count++;}});if(list.length>50)list=list.slice(0,50);_wtListCache=list;_saveWtListCache();renderList();showToast('导入了'+count+'条新记录');}catch(err){showToast('文件解析失败');}};reader.readAsText(file);e.target.value='';});
 
-function viewRec(idx){var list=JSON.parse(localStorage.getItem('wtList')||'[]');if(!list[idx])return;curViewIdx=idx;var d=list[idx];
+function viewRec(idx){var list=_wtListCache;if(!list[idx])return;curViewIdx=idx;var d=list[idx];
 // 计算填写进度
 var filled=0,total=8;
 if(d.initiator)filled++;if(d.projectName)filled++;if(d.siteContact)filled++;if(d.servicePerson)filled++;if(d.serviceTime)filled++;if(d.construction&&d.construction.length)filled++;if(d.flowTo&&d.flowTo.length)filled++;if(d.impact&&d.impact.length)filled++;
@@ -933,13 +1083,13 @@ document.getElementById('recMo').style.display='block';
 document.getElementById('envEditBtn').addEventListener('click',function(){document.getElementById('recMo').style.display='none';closeMo('historyMo');loadRec(curViewIdx);window.scrollTo(0,0);});
 document.getElementById('envPrintBtn').addEventListener('click',function(){document.getElementById('recMo').style.display='none';closeMo('historyMo');genPdf(d);});
 }
-function delRec(idx){var list=JSON.parse(localStorage.getItem('wtList')||'[]');list.splice(idx,1);localStorage.setItem('wtList',JSON.stringify(list));renderList();showToast('已删除');}
+function delRec(idx){var list=_wtListCache;list.splice(idx,1);_wtListCache=list;_saveWtListCache();renderList();showToast('已删除');}
 document.getElementById('recClose').addEventListener('click',function(){document.getElementById('recMo').style.display='none';});
 var editingIdx=-1,curViewIdx=-1;
 
 // 修改按钮：回填数据到表单
 function loadRec(idx){
-  var list=JSON.parse(localStorage.getItem('wtList')||'[]');
+  var list=_wtListCache;
   if(idx<0||!list[idx])return;
   var d=list[idx];
   editingIdx=idx;
@@ -1396,8 +1546,15 @@ function genPdf(d){
   }
 }
 
-// 初始化按钮状态
-setTimeout(updateBtnStatus,100);
+// 初始化：先加载存储缓存，再执行初始化
+function _appStartInit() {
+  _initStorage(function() {
+    updateBtnStatus();
+    // 如果有renderList，刷新列表显示
+    if (typeof renderList === 'function') { renderList(); }
+  });
+}
+setTimeout(_appStartInit, 50);
 
 // 为所有弹窗添加确定按钮
 document.querySelectorAll('.mo .mi').forEach(function(mi){
@@ -1414,16 +1571,16 @@ document.querySelectorAll('.mo .mi').forEach(function(mi){
 
 // 首次打开提示添加到桌面
 (function(){
-  if(localStorage.getItem('wtGuideShown'))return;
+  if(_wtGuideShownCache)return;
   var isStandalone=window.matchMedia('(display-mode:standalone)').matches||window.navigator.standalone;
-  if(isStandalone){localStorage.setItem('wtGuideShown','1');return;}
+  if(isStandalone){_saveGuideShown('1');return;}
   var overlay=document.createElement('div');
   overlay.className='guide-overlay';
   overlay.innerHTML='<div class="guide-box"><h2>添加到桌面使用</h2><div class="guide-section"><h3>iPhone 用户</h3><div class="step"><span class="step-num">1</span><p>点击 Safari 底部的分享按钮 <b>⬆️</b></p></div><div class="step"><span class="step-num">2</span><p>下滑找到并点击<b>「添加到主屏幕」</b></p></div><div class="step"><span class="step-num">3</span><p>点击右上角<b>「添加」</b>即可</p></div></div><div class="guide-section" style="border-left-color:#27ae60;"><h3>Android 用户</h3><div class="step"><span class="step-num" style="background:#27ae60;">1</span><p>点击 Chrome 右上角菜单 <b>⋮</b></p></div><div class="step"><span class="step-num" style="background:#27ae60;">2</span><p>点击<b>「添加到主屏幕」</b></p></div><div class="step"><span class="step-num" style="background:#27ae60;">3</span><p>点击<b>「添加」</b>即可</p></div></div><button class="guide-close-btn">我知道了</button></div>';
   document.body.appendChild(overlay);
   overlay.querySelector('.guide-close-btn').addEventListener('click',function(){
     overlay.remove();
-    localStorage.setItem('wtGuideShown','1');
+    _saveGuideShown('1');
   });
 })();
 })();</script>

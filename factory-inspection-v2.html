@@ -625,6 +625,120 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
 
 <script>
 // ============ DATA ============
+
+// ===== IndexedDB 封装 (ES5兼容, callback风格, 带localStorage降级) =====
+var _idb = null;
+var _idbReady = false;
+var _idbQueue = [];
+function _idbInit(){
+  if (typeof indexedDB === 'undefined') { _idbReady = 'fallback'; return; }
+  var req = indexedDB.open('WeiteKV', 1);
+  req.onupgradeneeded = function(e) {
+    var db = e.target.result;
+    if (!db.objectStoreNames.contains('kv')) db.createObjectStore('kv');
+  };
+  req.onsuccess = function(e) {
+    _idb = e.target.result;
+    _idbReady = true;
+    while (_idbQueue.length > 0) {
+      try { _idbQueue.shift()(); } catch (err) { console.error('IDB队列错误', err); }
+    }
+  };
+  req.onerror = function() {
+    console.warn('IndexedDB打开失败，降级使用localStorage');
+    _idbReady = 'fallback';
+  };
+}
+function _idbExec(fn) {
+  if (_idbReady === true) { try { fn(); } catch (e) { console.error('IDB执行错误', e); } }
+  else if (_idbReady === 'fallback') { try { fn(); } catch (e) {} }
+  else { _idbQueue.push(fn); }
+}
+function dbGet(key, cb) {
+  _idbExec(function() {
+    if (_idbReady === 'fallback') {
+      try { cb(localStorage.getItem(key), null); } catch (e) { cb(null, e); }
+      return;
+    }
+    try {
+      var tx = _idb.transaction('kv', 'readonly');
+      var r = tx.objectStore('kv').get(key);
+      r.onsuccess = function() { cb(r.result !== undefined ? r.result : null, null); };
+      r.onerror = function() { cb(null, r.error); };
+    } catch (e) { cb(null, e); }
+  });
+}
+function dbSet(key, val, cb) {
+  _idbExec(function() {
+    if (_idbReady === 'fallback') {
+      try { localStorage.setItem(key, val); cb && cb(null); } catch (e) { cb && cb(e); }
+      return;
+    }
+    try {
+      var tx = _idb.transaction('kv', 'readwrite');
+      tx.objectStore('kv').put(val, key);
+      tx.oncomplete = function() { cb && cb(null); };
+      tx.onerror = function() { cb && cb(tx.error); };
+    } catch (e) { cb && cb(e); }
+  });
+}
+function dbRemove(key, cb) {
+  _idbExec(function() {
+    if (_idbReady === 'fallback') {
+      try { localStorage.removeItem(key); cb && cb(null); } catch (e) { cb && cb(e); }
+      return;
+    }
+    try {
+      var tx = _idb.transaction('kv', 'readwrite');
+      tx.objectStore('kv').delete(key);
+      tx.oncomplete = function() { cb && cb(null); };
+      tx.onerror = function() { cb && cb(tx.error); };
+    } catch (e) { cb && cb(e); }
+  });
+}
+function dbGetMulti(keys, cb) {
+  var results = {};
+  var remaining = keys.length;
+  if (remaining === 0) { cb({}); return; }
+  keys.forEach(function(k) {
+    dbGet(k, function(v, err) {
+      results[k] = v;
+      remaining--;
+      if (remaining <= 0) cb(results);
+    });
+  });
+}
+// 从localStorage迁移到IndexedDB
+function migrateFromLS(keys, cb) {
+  if (_idbReady === 'fallback') { cb && cb(0); return; }
+  var migrated = 0;
+  var remaining = keys.length;
+  if (remaining === 0) { cb && cb(0); return; }
+  function check() {
+    remaining--;
+    if (remaining <= 0) { cb && cb(migrated); }
+  }
+  keys.forEach(function(k) {
+    try {
+      var v = localStorage.getItem(k);
+      if (v !== null) {
+        dbSet(k, v, function(err) {
+          if (!err) {
+            try { localStorage.removeItem(k); } catch (e) {}
+            migrated++;
+          }
+          check();
+        });
+      } else {
+        check();
+      }
+    } catch (e) { check(); }
+  });
+}
+_idbInit();
+// ===== IndexedDB 封装结束 =====
+
+
 var STORAGE_KEY = 'WEITE_CHECK_V4';
 var projects = [];
 
@@ -1438,10 +1552,10 @@ function getCurrentTask() {
 function saveProjects() {
   try {
     var dataStr = JSON.stringify(projects);
-    localStorage.setItem(STORAGE_KEY, dataStr);
+    dbSet(STORAGE_KEY, dataStr);
     // 【v129】自动备份
     try {
-      localStorage.setItem(STORAGE_KEY + '_backup', dataStr);
+      dbSet(STORAGE_KEY + '_backup', dataStr);
     } catch(be) { console.warn('备份保存失败', be); }
   } catch(e) {
     console.error('保存数据失败', e);
@@ -1449,61 +1563,51 @@ function saveProjects() {
 }
 
 function loadProjects() {
-  try {
-    var stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      var data = JSON.parse(stored);
-      // 判断是旧格式(任务数组)还是新格式(项目数组)
-      if (Array.isArray(data)) {
-        // 新格式特征：数组元素有 tasks 字段（项目对象）
-        // 旧格式特征：数组元素有 checks 字段（任务对象）
-        var isNewFormat = data.length > 0 && data[0] && typeof data[0] === 'object' && 'tasks' in data[0];
-        if (!isNewFormat) {
-          // 旧格式: tasks 数组，需要迁移
-          migrateOldTasks(data);
-          return;
-        }
-      }
-      projects = data;
-      // 【v129】数据异常检查：projects为空但有备份时，自动恢复
-      if (!data || !Array.isArray(data) || data.length === 0) {
-        var backupData = tryLoadBackup();
-        if (backupData) {
-          projects = backupData;
-          alert('数据已从备份恢复');
-          console.log('主数据为空，已从备份恢复');
-          return;
-        }
-      }
-      projects = data;
-    } else {
-      // 主数据不存在，尝试从备份恢复
-      var backupData = tryLoadBackup();
-      if (backupData) {
-        projects = backupData;
-        alert('数据已从备份恢复');
-        console.log('主数据不存在，已从备份恢复');
-        // 立即写回主存储
-        saveProjects();
-      }
-    }
-  } catch(e) {
-    console.error('加载数据失败，尝试从备份恢复', e);
-    var backupData = tryLoadBackup();
-    if (backupData) {
-      projects = backupData;
-      alert('数据已从备份恢复');
-      console.log('加载异常，已从备份恢复');
-    } else {
-      projects = [];
-    }
-  }
-  return projects;
+  return projects || [];
 }
+
+function _loadProjectsFromDB(callback) {
+  dbGet(STORAGE_KEY, function(stored, err) {
+    if (stored && !err) {
+      try {
+        var data = JSON.parse(stored);
+        // 判断是旧格式(任务数组)还是新格式(项目数组)
+        if (Array.isArray(data)) {
+          var isNewFormat = data.length > 0 && data[0] && typeof data[0] === 'object' && 'tasks' in data[0];
+          if (isNewFormat) {
+            projects = data;
+          } else {
+            // 旧格式(任务数组) -> 包装为项目
+            projects = [{
+              name: '旧数据',
+              installer: '',
+              installAddr: '',
+              contact: '',
+              phone: '',
+              province: '',
+              city: '',
+              district: '',
+              tasks: data
+            }];
+          }
+          callback && callback(true);
+        } else {
+          callback && callback(false);
+        }
+      } catch(pe) {
+        console.error('数据解析失败', pe);
+        callback && callback(false);
+      }
+    } else {
+      callback && callback(false);
+    }
+  });
+}
+
 
 function tryLoadBackup() {
   try {
-    var backup = localStorage.getItem(STORAGE_KEY + '_backup');
+    var backup = null; // 备份数据存储在 IndexedDB 中，异常恢复时需异步加载
     if (backup) {
       var data = JSON.parse(backup);
       if (data && Array.isArray(data) && data.length > 0) {
@@ -1521,7 +1625,7 @@ function migrateOldTasks(oldTasks) {
     return;
   }
   // 备份旧数据
-  localStorage.setItem(STORAGE_KEY + '_backup', JSON.stringify(oldTasks));
+  dbSet(STORAGE_KEY + '_backup', JSON.stringify(oldTasks));
   
   var first = oldTasks[0];
   var project = {
@@ -1540,12 +1644,50 @@ function migrateOldTasks(oldTasks) {
 
 // ============ INIT ============
 function init() {
-  try {
-    loadProjects();
-  } catch(e) {
-    console.error('初始化加载失败', e);
-    projects = [];
-  }
+  _appInit();
+}
+
+function _appInit() {
+  // 1. 加载检验员签名
+  _loadInspectorSigFromDB(function() {
+    // 2. 从 IndexedDB 加载项目数据
+    _loadProjectsFromDB(function(loaded) {
+      if (!loaded) {
+        // 3. 没有数据，尝试从 localStorage 迁移
+        migrateFromLS([
+          STORAGE_KEY,
+          STORAGE_KEY + '_backup',
+          INSPECTOR_SIG_KEY,
+          'inspectorSignature'
+        ], function(migrated) {
+          if (migrated > 0) {
+            // 迁移后重新加载
+            _loadProjectsFromDB(function() {
+              _loadInspectorSigFromDB(function() {
+                _doRenderInit();
+              });
+            });
+          } else {
+            projects = [];
+            _doRenderInit();
+          }
+        });
+      } else {
+        // 4. 已有数据，也检查一下是否有旧数据需要迁移
+        migrateFromLS([
+          STORAGE_KEY,
+          STORAGE_KEY + '_backup',
+          INSPECTOR_SIG_KEY,
+          'inspectorSignature'
+        ], function() {
+          _doRenderInit();
+        });
+      }
+    });
+  });
+}
+
+function _doRenderInit() {
   try {
     renderProjectList();
   } catch(e) {
@@ -3738,7 +3880,7 @@ function openInspectorSigSetting() {
       initSigCanvas();
       // 如果有已保存的签名，重新加载
       if (signZoneTarget && signZoneTarget === 'inspector') {
-        var savedSig = localStorage.getItem('inspectorSignature');
+        var savedSig = (_inspectorSigCache && _inspectorSigCache.sig ? _inspectorSigCache.sig : null);
         if (savedSig) {
           var ctx = canvas.getContext('2d');
           var img = new Image();
@@ -3766,7 +3908,7 @@ function openSignZoneModal(target) {
       initSigCanvas();
       // 如果有已保存的签名，重新加载
       if (signZoneTarget && signZoneTarget === 'inspector') {
-        var savedSig = localStorage.getItem('inspectorSignature');
+        var savedSig = (_inspectorSigCache && _inspectorSigCache.sig ? _inspectorSigCache.sig : null);
         if (savedSig) {
           var ctx = canvas.getContext('2d');
           var img = new Image();
@@ -6868,7 +7010,7 @@ function importAllData() {
         }
         if (parsedProjects.length === 0) throw new Error('未识别到有效项目数据');
         if (confirm('确定导入 ' + parsedProjects.length + ' 个项目？将覆盖当前全部数据！')) {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(parsedProjects));
+          projects = parsedProjects; dbSet(STORAGE_KEY, JSON.stringify(parsedProjects));
           projects = parsedProjects;
           currentProjectIndex = -1;
           currentTaskIndex = -1;
@@ -7197,12 +7339,20 @@ function showToast(msg) {
 // ============ PDF EXPORT (6 pages: html2canvas+jsPDF) ============
 // 检验人员签名持久化key
 var INSPECTOR_SIG_KEY = 'WEITE_INSPECTOR_SIGNATURE';
+var _inspectorSigCache = {};
+function _loadInspectorSigFromDB(callback) {
+  dbGet(INSPECTOR_SIG_KEY, function(val, err) {
+    try { _inspectorSigCache = JSON.parse(val || '{}'); } catch(e) { _inspectorSigCache = {}; }
+    callback && callback();
+  });
+}
 
 function getInspectorSignature() {
-  try { return JSON.parse(localStorage.getItem(INSPECTOR_SIG_KEY) || '{}'); } catch(e) { return {}; }
+  return _inspectorSigCache || {};
 }
 function saveInspectorSignature(name, sigData) {
-  localStorage.setItem(INSPECTOR_SIG_KEY, JSON.stringify({name: name, sig: sigData}));
+  _inspectorSigCache = {name: name, sig: sigData};
+  dbSet(INSPECTOR_SIG_KEY, JSON.stringify({name: name, sig: sigData}));
 }
 
 // === PDF全局字号缩放（改这个值，所有PDF字号同步变） ===
@@ -7849,7 +7999,7 @@ function buildNoticeFullHTML(task, project, dateStr, ngItems, startIndex) {
   var inspSig = '';
   var inspName = '';
   try {
-    var _inspStored = localStorage.getItem(INSPECTOR_SIG_KEY);
+    var _inspStored = JSON.stringify(_inspectorSigCache || {});
     if (_inspStored && typeof _inspStored === 'string' && _inspStored.length > 0) {
       try {
         var _inspObj = JSON.parse(_inspStored);
