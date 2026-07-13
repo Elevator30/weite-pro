@@ -2562,7 +2562,7 @@ function renderViewExpenses() {
   if (!viewProject) return;
   const projExpenses = expenses.filter(e => e.projectId === viewProject.id);
   const container = document.getElementById('viewExpenseList');
-  const typeLabels = {'train':'高铁/火车','bus':'公交/地铁','taxi':'打的/网约车','coach':'大巴','hotel':'住宿','meal':'餐补','other':'其它','flight':'飞机'};
+  const typeLabels = {'train':'高铁/火车','plane':'飞机','bus':'长途汽车','ship':'轮船','didi':'网约车','subway':'地铁','bus_local':'公交','taxi':'打的/网约车','coach':'大巴','hotel':'住宿','meal':'餐补','subsidy':'补贴','other':'其它','flight':'飞机'};
   const payerLabels = {'self':'自费(报销)','ctrip':'携程支付'};
 
   let totalSelf = 0, totalCtrip = 0;
@@ -2797,20 +2797,65 @@ function saveViewProject() {
   var workItems = getEditWorkItems();
   var totalQty = workItems.reduce((s, w) => s + w.qty, 0);
   var mainWorkType = workItems.length > 0 ? workItems[0].type : '其他';
-  viewProject.name = name;
-  viewProject.workType = mainWorkType;
-  viewProject.quantity = totalQty;
-  viewProject.workItems = workItems;
-  viewProject.startDate = document.getElementById('editProjStart').value;
-  viewProject.endDate = document.getElementById('editProjEnd').value;
-  viewProject.days = calcDateDiff(viewProject.startDate, viewProject.endDate);
+  var newStartDate = document.getElementById('editProjStart').value;
+  var newEndDate = document.getElementById('editProjEnd').value;
+  var newDays = calcDateDiff(newStartDate, newEndDate);
+  var oldDays = viewProject.days || 0;
+
+  // 找到 projects 数组中对应的项目并更新（确保引用正确）
+  var proj = projects.find(function(p) { return p.id === viewProject.id; });
+  if (!proj) { showToast('项目不存在'); return; }
+  proj.name = name;
+  proj.workType = mainWorkType;
+  proj.quantity = totalQty;
+  proj.workItems = workItems;
+  proj.startDate = newStartDate;
+  proj.endDate = newEndDate;
+  proj.days = newDays;
+  // 同步更新 viewProject 引用
+  viewProject = proj;
+
+  // 日期变化时自动调整餐补设置（仅在保存时调整，非实时）
+  var mealSettings = proj.mealSettings ? proj.mealSettings.slice() : [];
+  if (newDays !== oldDays) {
+    if (newDays > oldDays) {
+      // 天数增加：在已有餐补后面追加新天数的餐补
+      // 新追加的使用最后一天的标准（代表项目城市对应的ABC类标准）
+      var defaultSetting = mealSettings.length > 0 ? mealSettings[mealSettings.length - 1] : 'no';
+      for (var i = mealSettings.length; i < newDays; i++) {
+        mealSettings.push(defaultSetting);
+      }
+    } else if (newDays < oldDays) {
+      // 天数减少：删除超出天数的末尾餐补记录
+      mealSettings = mealSettings.slice(0, newDays);
+    }
+    proj.mealSettings = mealSettings;
+
+    // 更新已有的餐补费用记录
+    var mealExp = expenses.find(function(e) { return e.projectId === proj.id && e.type === 'meal'; });
+    if (mealExp) {
+      var mealAmount = 0;
+      if (mealSettings.length > 0) {
+        mealSettings.forEach(function(v) { mealAmount += v === 'yes' ? 30 : 20; });
+      } else {
+        mealAmount = newDays * 20;
+      }
+      mealExp.amount = mealAmount;
+      mealExp.detail = '出差餐补（' + newDays + '天）';
+      mealExp.mealDays = newDays;
+      mealExp.date = newStartDate;
+    }
+  }
+
   try {
     _saveProjects();
+    _saveExpenses();
   } catch(e) {
     showToast('存储空间不足，请先清理旧数据或删除不必要的票据图片');
     return;
   }
-  document.getElementById('viewProjectInput').value = name;
+  var vpInput = document.getElementById('viewProjectInput');
+  if (vpInput) vpInput.value = name;
   renderViewExpenses();
   updateHomeStats();
   showToast('项目已更新');
