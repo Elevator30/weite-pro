@@ -3126,11 +3126,13 @@ configPartsData = {};
             if ((hcell.indexOf('型号') >= 0 || hcell.indexOf('规格') >= 0) && hcell.indexOf('型式试验') < 0 && hcell.indexOf('证书') < 0) {
               if (modelCol < 0) modelCol = hc;
             }
-            // 编号列检测：只认"编号或制造批次号"，排除型式试验证书编号等
+            // 编号列检测：识别"编号或制造批次号"及其带括号的变体，排除型式试验证书编号等
+            // 兼容写法：编号或制造批次号、编号（或制造批次号）、编号(或制造批次号)
             // 精确匹配优先级：编号或制造批次号 > 出厂编号 > 产品编号 > 设备编号
             // 排除包含"型式试验"、"证书编号"、"TSX"的列
             var isCodeCol = false;
-            if (hcell === '编号或制造批次号' || hcell.indexOf('编号或制造批次号') >= 0) {
+            var codeHeaderPattern = /编号[（(]?或制造批次号[）)]?/;
+            if (codeHeaderPattern.test(hcell)) {
               isCodeCol = true;
             }
             // 其他含编号的列必须排除型式试验/证书相关
