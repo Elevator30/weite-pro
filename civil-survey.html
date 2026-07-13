@@ -1,0 +1,2022 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#667eea">
+<title>土建勘测 - 垂直电梯 V1</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',sans-serif;background:#f5f7fa;-webkit-overflow-scrolling:touch;overflow:hidden;height:100vh;}
+
+/* ===== 主布局：左侧项目树 + 右侧内容区 ===== */
+.app-container{display:flex;height:100vh;overflow:hidden;}
+
+/* 左侧边栏 */
+.sidebar{width:280px;background:#fff;border-right:1px solid #e2e8f0;display:flex;flex-direction:column;flex-shrink:0;}
+.sidebar-header{padding:14px 16px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;flex-shrink:0;}
+.sidebar-title{font-size:16px;font-weight:700;margin-bottom:2px;}
+.sidebar-sub{font-size:11px;opacity:.85;letter-spacing:1px;}
+.sidebar-actions{display:flex;gap:6px;margin-top:10px;}
+.sidebar-btn{flex:1;padding:7px 0;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);border-radius:6px;color:#fff;font-size:12px;font-weight:600;cursor:pointer;}
+.sidebar-btn:active{background:rgba(255,255,255,.35);}
+
+/* 项目树 */
+.project-tree{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:8px 0;}
+.tree-project{padding:8px 12px;cursor:pointer;position:relative;}
+.tree-project:active{background:#f7fafc;}
+.tree-project.active{background:#edf2ff;}
+.tree-project.active::before{content:'';position:absolute;left:0;top:8px;bottom:8px;width:3px;background:linear-gradient(180deg,#667eea,#764ba2);border-radius:0 3px 3px 0;}
+.tree-proj-top{display:flex;align-items:center;justify-content:space-between;gap:6px;}
+.tree-proj-name{font-size:13px;font-weight:600;color:#2d3748;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.tree-proj-arrow{font-size:10px;color:#a0aec0;flex-shrink:0;transition:transform .2s;}
+.tree-proj-arrow.expanded{transform:rotate(90deg);}
+.tree-proj-meta{font-size:11px;color:#a0aec0;margin-top:2px;}
+.tree-building{padding:6px 12px 6px 28px;cursor:pointer;position:relative;}
+.tree-building:active{background:#f7fafc;}
+.tree-building.active{background:#edf2ff;}
+.tree-bldg-top{display:flex;align-items:center;justify-content:space-between;gap:6px;}
+.tree-bldg-name{font-size:12px;font-weight:500;color:#4a5568;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.tree-bldg-arrow{font-size:9px;color:#a0aec0;flex-shrink:0;transition:transform .2s;}
+.tree-bldg-arrow.expanded{transform:rotate(90deg);}
+.tree-elevator{padding:5px 12px 5px 44px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:6px;}
+.tree-elevator:active{background:#f7fafc;}
+.tree-elevator.active{background:#edf2ff;}
+.tree-elev-name{font-size:12px;color:#718096;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.tree-elev-type{font-size:10px;color:#a0aec0;flex-shrink:0;}
+.tree-add-btn{padding:6px 12px 6px 24px;font-size:12px;color:#667eea;cursor:pointer;font-weight:500;}
+.tree-add-btn:active{background:#f0f4ff;}
+.tree-add-btn.building-level{padding-left:28px;}
+.tree-add-btn.elevator-level{padding-left:44px;font-size:11px;color:#764ba2;}
+.tree-context-menu{position:absolute;background:#fff;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.15);z-index:999;overflow:hidden;display:none;min-width:120px;}
+.tree-context-menu div{padding:10px 14px;font-size:13px;cursor:pointer;}
+.tree-context-menu div:active{background:#f7fafc;}
+.tree-context-menu .danger{color:#e53e3e;}
+
+/* 右侧主内容区 */
+.main-content{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
+
+/* 顶部工具栏 */
+.toolbar{padding:10px 16px;background:#fff;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-shrink:0;}
+.toolbar-left{display:flex;align-items:center;gap:10px;flex:1;min-width:0;}
+.menu-toggle{width:36px;height:36px;border:none;background:#f7fafc;border-radius:8px;cursor:pointer;font-size:18px;color:#4a5568;flex-shrink:0;display:none;}
+.toolbar-title{font-size:16px;font-weight:700;color:#2d3748;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.toolbar-right{display:flex;gap:8px;flex-shrink:0;}
+.toolbar-btn{padding:8px 14px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px;}
+.toolbar-btn.primary{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;box-shadow:0 2px 8px rgba(102,126,234,.25);}
+.toolbar-btn.primary:active{opacity:.85;}
+.toolbar-btn.secondary{background:#f7fafc;color:#4a5568;border:1.5px solid #e2e8f0;}
+.toolbar-btn.secondary:active{background:#edf2f7;}
+.toolbar-btn.danger{background:#fff5f5;color:#e53e3e;border:1.5px solid #fed7d7;}
+
+/* 内容区域 */
+.content-area{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px;}
+.content-area::-webkit-scrollbar{width:6px;}
+.content-area::-webkit-scrollbar-thumb{background:#cbd5e0;border-radius:3px;}
+
+/* 空状态 */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#a0aec0;text-align:center;padding:40px 20px;}
+.empty-icon{font-size:48px;margin-bottom:16px;opacity:.5;}
+.empty-text{font-size:14px;margin-bottom:20px;}
+.empty-btn{padding:10px 24px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;}
+
+/* ===== 卡片式设计 ===== */
+.card{background:#fff;border-radius:12px;padding:16px;margin-bottom:14px;border:1.5px solid #e2e8f0;box-shadow:0 1px 4px rgba(0,0,0,.04);}
+.card-title{font-size:15px;font-weight:700;color:#2d3748;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;}
+.card-title .badge{font-size:11px;font-weight:500;padding:2px 8px;border-radius:10px;background:#edf2ff;color:#667eea;}
+.card-subtitle{font-size:12px;color:#718096;margin-bottom:10px;}
+
+/* 表单行 */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.form-row{margin-bottom:12px;}
+.form-row.full{grid-column:1/-1;}
+.form-row label{display:block;font-size:12px;color:#4a5568;margin-bottom:4px;font-weight:500;}
+.form-row input,.form-row select,.form-row textarea{width:100%;border:1.5px solid #e2e8f0;border-radius:8px;padding:9px 10px;font-size:13px;background:#fafafa;transition:all .15s;}
+.form-row input:focus,.form-row select:focus,.form-row textarea:focus{border-color:#667eea;background:#fff;outline:none;}
+.form-row textarea{min-height:60px;resize:vertical;font-family:inherit;}
+.form-hint{font-size:11px;color:#a0aec0;margin-top:3px;}
+
+/* 分组标题 */
+.section-header{font-size:13px;font-weight:700;color:#fff;padding:8px 12px;background:linear-gradient(135deg,#667eea,#764ba2);border-radius:8px 8px 0 0;margin:-16px -16px 12px;display:flex;align-items:center;justify-content:space-between;}
+.section-header .section-count{font-size:11px;font-weight:500;opacity:.85;}
+
+/* ===== 分层测量表 ===== */
+.floor-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid #e2e8f0;border-radius:8px;}
+.floor-table{width:100%;border-collapse:collapse;min-width:900px;font-size:12px;}
+.floor-table th{background:#f7fafc;font-weight:600;color:#4a5568;padding:8px 6px;text-align:center;border-bottom:2px solid #e2e8f0;position:sticky;top:0;white-space:nowrap;}
+.floor-table td{padding:6px 4px;text-align:center;border-bottom:1px solid #edf2f7;}
+.floor-table input{width:100%;border:1px solid #e2e8f0;border-radius:5px;padding:5px 4px;font-size:12px;text-align:center;background:#fff;}
+.floor-table input:focus{border-color:#667eea;outline:none;}
+.floor-table .floor-no{width:70px;}
+.floor-table .del-col{width:40px;}
+.floor-del-btn{background:none;border:none;color:#e53e3e;cursor:pointer;font-size:16px;padding:4px;}
+.floor-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
+.floor-btn{padding:7px 12px;border:none;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px;}
+.floor-btn.primary{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;}
+.floor-btn.secondary{background:#f7fafc;color:#4a5568;border:1.5px solid #e2e8f0;}
+.floor-btn.danger{background:#fff5f5;color:#e53e3e;border:1.5px solid #fed7d7;}
+.floor-stats{display:flex;gap:16px;margin-top:10px;padding:10px 12px;background:#f7fafc;border-radius:8px;font-size:12px;}
+.floor-stat-item{display:flex;align-items:center;gap:6px;}
+.floor-stat-label{color:#718096;}
+.floor-stat-value{font-weight:700;color:#2d3748;}
+.floor-stat-value.min{color:#38a169;}
+.floor-stat-value.max{color:#e53e3e;}
+
+/* 开门位置选择器 */
+.door-pos-select{display:flex;gap:4px;}
+.door-pos-btn{flex:1;padding:4px 2px;border:1px solid #e2e8f0;border-radius:5px;font-size:11px;cursor:pointer;background:#fff;color:#718096;}
+.door-pos-btn.active{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border-color:transparent;}
+
+/* ===== 示意图上传 ===== */
+.sketch-area{display:flex;flex-wrap:wrap;gap:10px;}
+.sketch-thumb{width:90px;height:90px;border-radius:8px;overflow:hidden;position:relative;border:1.5px solid #e2e8f0;cursor:pointer;}
+.sketch-thumb img{width:100%;height:100%;object-fit:cover;}
+.sketch-del{position:absolute;top:0;right:0;background:rgba(229,62,62,.9);color:#fff;border:none;border-radius:0 7px 0 7px;font-size:14px;cursor:pointer;padding:2px 8px;line-height:1.2;}
+.sketch-add{width:90px;height:90px;border:2px dashed #cbd5e0;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;background:#fafafa;gap:2px;}
+.sketch-add:active{background:#f0f0f0;border-color:#a0aec0;}
+.sketch-add-icon{font-size:28px;color:#a0aec0;line-height:1;}
+.sketch-add-text{font-size:11px;color:#a0aec0;}
+
+/* ===== 签字区域 ===== */
+.signature-section{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.sig-item{text-align:center;}
+.sig-item label{display:block;font-size:12px;color:#4a5568;margin-bottom:6px;font-weight:500;}
+.sig-area{border:2px dashed #cbd5e0;border-radius:8px;height:80px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:#fafafa;}
+.sig-area:active{background:#f0f4f8;}
+.sig-area img{max-height:75px;max-width:95%;}
+.sig-area span{font-size:12px;color:#aaa;}
+.sig-clear-btn{margin-top:4px;font-size:11px;color:#a0aec0;background:none;border:none;cursor:pointer;}
+
+/* ===== 模态框 ===== */
+.modal-mask{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:999;align-items:center;justify-content:center;padding:20px;}
+.modal-mask.show{display:flex;}
+.modal-box{background:#fff;border-radius:14px;width:100%;max-width:420px;overflow:hidden;max-height:90vh;display:flex;flex-direction:column;}
+.modal-header{padding:14px 16px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.modal-header h3{font-size:15px;font-weight:600;}
+.modal-close{background:none;border:none;color:#fff;font-size:22px;cursor:pointer;line-height:1;}
+.modal-body{flex:1;overflow-y:auto;padding:16px;-webkit-overflow-scrolling:touch;}
+.modal-footer{display:flex;gap:10px;padding:12px 16px;border-top:1px solid #edf2f7;flex-shrink:0;}
+.modal-btn{flex:1;padding:11px;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;}
+.modal-btn.cancel{background:#f7fafc;color:#718096;border:1.5px solid #e2e8f0;}
+.modal-btn.confirm{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;}
+
+/* 签字模态框 */
+.sig-modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.6);z-index:2999;align-items:center;justify-content:center;}
+.sig-modal.show{display:flex;}
+.sig-canvas-wrap{background:#fff;width:95%;max-width:800px;border-radius:12px;overflow:hidden;}
+.sig-canvas-header{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;}
+.sig-canvas-header h3{font-size:15px;font-weight:600;}
+.sig-canvas-header button{background:none;border:none;color:#fff;font-size:20px;cursor:pointer;}
+.sig-canvas-body{background:#fff;height:280px;touch-action:none;padding:10px;}
+.sig-canvas-body canvas{width:100%;height:100%;display:block;border:2px solid #e2e8f0;border-radius:8px;}
+.sig-canvas-footer{display:flex;gap:10px;padding:12px;background:#fff;}
+.sig-canvas-footer button{flex:1;padding:12px;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;}
+.sig-clear{background:#f7fafc;color:#666;border:1.5px solid #e2e8f0;}
+.sig-save{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;}
+
+/* Toast */
+.toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.75);color:#fff;padding:12px 24px;border-radius:8px;font-size:14px;z-index:9999;display:none;}
+
+/* ===== 打印区域 ===== */
+.print-area{display:none;}
+
+/* ===== 响应式：移动端 ===== */
+@media (max-width: 768px){
+  .sidebar{position:fixed;left:0;top:0;bottom:0;z-index:100;transform:translateX(-100%);transition:transform .3s;width:80%;max-width:320px;box-shadow:2px 0 12px rgba(0,0,0,.1);}
+  .sidebar.show{transform:translateX(0);}
+  .sidebar-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.4);z-index:99;}
+  .sidebar-overlay.show{display:block;}
+  .menu-toggle{display:block;}
+  .form-grid{grid-template-columns:1fr;}
+  .signature-section{grid-template-columns:1fr;}
+  .content-area{padding:12px;}
+  .card{padding:14px;margin-bottom:12px;}
+  .section-header{margin:-14px -14px 12px;}
+  .toolbar-title{font-size:15px;}
+  .toolbar-btn{padding:7px 10px;font-size:12px;}
+  .floor-stats{flex-wrap:wrap;gap:10px;}
+}
+
+/* ===== 打印样式 ===== */
+@media print{
+  body{background:#fff;padding:0;overflow:visible;height:auto;}
+  .no-print{display:none!important;}
+  .print-area{display:block;}
+  .app-container{display:none;}
+}
+</style>
+</head>
+<body>
+
+<div class="app-container no-print">
+  <!-- 左侧边栏 -->
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-title">🏗️ 土建勘测</div>
+      <div class="sidebar-sub">垂直电梯 V1.0</div>
+      <div class="sidebar-actions">
+        <button class="sidebar-btn" onclick="showNewProject()">+ 新建</button>
+      </div>
+    </div>
+    <div class="project-tree" id="projectTree"></div>
+  </aside>
+
+  <!-- 右侧主内容区 -->
+  <main class="main-content">
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+        <div class="toolbar-title" id="toolbarTitle">请选择项目</div>
+      </div>
+      <div class="toolbar-right">
+        <button class="toolbar-btn secondary" id="saveBtn" onclick="saveData()" style="display:none;">💾 保存</button>
+        <button class="toolbar-btn primary" id="printBtn" onclick="openPrintPreview()" style="display:none;">🖨️ 打印</button>
+      </div>
+    </div>
+    <div class="content-area" id="contentArea">
+      <div class="empty-state" id="emptyState">
+        <div class="empty-icon">🏗️</div>
+        <div class="empty-text">暂无项目，点击下方按钮创建第一个勘测项目</div>
+        <button class="empty-btn" onclick="showNewProject()">+ 新建项目</button>
+      </div>
+      <div id="elevatorContent" style="display:none;"></div>
+    </div>
+  </main>
+</div>
+
+<!-- 新建项目模态框 -->
+<div class="modal-mask" id="newProjectModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>新建项目</h3>
+      <button class="modal-close" onclick="closeModal('newProjectModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <label>项目名称 *</label>
+        <input type="text" id="np_name" placeholder="请输入项目名称">
+      </div>
+      <div class="form-row">
+        <label>项目所在地</label>
+        <input type="text" id="np_location" placeholder="请输入项目地址">
+      </div>
+      <div class="form-grid">
+        <div class="form-row">
+          <label>测量人员</label>
+          <input type="text" id="np_surveyor" placeholder="测量人员">
+        </div>
+        <div class="form-row">
+          <label>联系电话</label>
+          <input type="tel" id="np_phone" placeholder="联系电话">
+        </div>
+      </div>
+      <div class="form-row">
+        <label>销售</label>
+        <input type="text" id="np_sales" placeholder="销售人员">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-btn cancel" onclick="closeModal('newProjectModal')">取消</button>
+      <button class="modal-btn confirm" onclick="createProject()">创建</button>
+    </div>
+  </div>
+</div>
+
+<!-- 新建楼栋模态框 -->
+<div class="modal-mask" id="newBuildingModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>新建楼栋</h3>
+      <button class="modal-close" onclick="closeModal('newBuildingModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <label>楼号 *</label>
+        <input type="text" id="nb_name" placeholder="如：1#楼、A栋">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-btn cancel" onclick="closeModal('newBuildingModal')">取消</button>
+      <button class="modal-btn confirm" onclick="createBuilding()">添加</button>
+    </div>
+  </div>
+</div>
+
+<!-- 新建电梯模态框 -->
+<div class="modal-mask" id="newElevatorModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>新建电梯</h3>
+      <button class="modal-close" onclick="closeModal('newElevatorModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-row">
+          <label>梯号 *</label>
+          <input type="text" id="ne_elevatorNo" placeholder="如：1#梯">
+        </div>
+        <div class="form-row">
+          <label>单元号</label>
+          <input type="text" id="ne_unit" placeholder="如：1单元">
+        </div>
+      </div>
+      <div class="form-row">
+        <label>安装地址</label>
+        <input type="text" id="ne_address" placeholder="安装地址">
+      </div>
+      <div class="form-grid">
+        <div class="form-row">
+          <label>梯型</label>
+          <select id="ne_elevatorType">
+            <option value="客梯">客梯</option>
+            <option value="货梯">货梯</option>
+            <option value="医用梯">医用梯</option>
+            <option value="观光梯">观光梯</option>
+            <option value="杂物梯">杂物梯</option>
+            <option value="其他">其他</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label>开门方式</label>
+          <select id="ne_doorType">
+            <option value="中分">中分</option>
+            <option value="旁开">旁开</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-row">
+          <label>载重(kg)</label>
+          <input type="number" id="ne_load" placeholder="如：1000">
+        </div>
+        <div class="form-row">
+          <label>速度(m/s)</label>
+          <input type="number" step="0.1" id="ne_speed" placeholder="如：1.6">
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-row">
+          <label>层数</label>
+          <input type="number" id="ne_floors" placeholder="层数">
+        </div>
+        <div class="form-row">
+          <label>站数</label>
+          <input type="number" id="ne_stops" placeholder="站数">
+        </div>
+        <div class="form-row">
+          <label>门数</label>
+          <input type="number" id="ne_doors" placeholder="门数">
+        </div>
+        <div class="form-row">
+          <label>有无机房</label>
+          <select id="ne_hasMachineRoom">
+            <option value="有">有机房</option>
+            <option value="无">无机房</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-btn cancel" onclick="closeModal('newElevatorModal')">取消</button>
+      <button class="modal-btn confirm" onclick="createElevator()">创建</button>
+    </div>
+  </div>
+</div>
+
+<!-- 批量生成楼层模态框 -->
+<div class="modal-mask" id="batchFloorModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>批量生成楼层</h3>
+      <button class="modal-close" onclick="closeModal('batchFloorModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-row">
+          <label>起始楼层</label>
+          <input type="number" id="bf_start" value="-2" placeholder="起始层（支持负数）">
+        </div>
+        <div class="form-row">
+          <label>结束楼层</label>
+          <input type="number" id="bf_end" value="10" placeholder="结束层">
+        </div>
+      </div>
+      <div class="form-row">
+        <label>默认层高(mm)</label>
+        <input type="number" id="bf_height" value="3000" placeholder="默认层高">
+      </div>
+      <div class="form-hint">将从起始层到结束层生成所有楼层（含两端），跳过0层</div>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-btn cancel" onclick="closeModal('batchFloorModal')">取消</button>
+      <button class="modal-btn confirm" onclick="batchGenerateFloors()">生成</button>
+    </div>
+  </div>
+</div>
+
+<!-- 重命名模态框 -->
+<div class="modal-mask" id="renameModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3 id="renameTitle">重命名</h3>
+      <button class="modal-close" onclick="closeModal('renameModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <label>名称 *</label>
+        <input type="text" id="renameInput" placeholder="请输入名称">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-btn cancel" onclick="closeModal('renameModal')">取消</button>
+      <button class="modal-btn confirm" onclick="confirmRename()">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- 确认删除模态框 -->
+<div class="modal-mask" id="confirmModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>确认删除</h3>
+      <button class="modal-close" onclick="closeModal('confirmModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div id="confirmMessage" style="font-size:14px;color:#4a5568;line-height:1.6;"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-btn cancel" onclick="closeModal('confirmModal')">取消</button>
+      <button class="modal-btn confirm" style="background:linear-gradient(135deg,#e53e3e,#c53030);" onclick="confirmDelete()">删除</button>
+    </div>
+  </div>
+</div>
+
+<!-- 查看示意图大图模态框 -->
+<div class="modal-mask" id="sketchViewModal" style="background:rgba(0,0,0,.85);">
+  <div style="position:relative;max-width:95vw;max-height:90vh;">
+    <img id="sketchViewImg" style="max-width:95vw;max-height:90vh;border-radius:8px;" src="" alt="示意图">
+    <button onclick="closeModal('sketchViewModal')" style="position:absolute;top:-40px;right:0;background:none;border:none;color:#fff;font-size:28px;cursor:pointer;">×</button>
+  </div>
+</div>
+
+<!-- 签字模态框 -->
+<div class="sig-modal" id="sigModal">
+  <div class="sig-canvas-wrap">
+    <div class="sig-canvas-header">
+      <h3 id="sigModalTitle">手写签名</h3>
+      <button onclick="closeSigModal()">×</button>
+    </div>
+    <div class="sig-canvas-body" id="sigCanvasBody">
+      <canvas id="sigCanvas"></canvas>
+    </div>
+    <div class="sig-canvas-footer">
+      <button class="sig-clear" onclick="clearSigCanvas()">清除</button>
+      <button class="sig-save" onclick="saveSigCanvas()">确认</button>
+    </div>
+  </div>
+</div>
+
+<!-- 打印区域（隐藏） -->
+<div class="print-area" id="printArea"></div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== IndexedDB 封装 (带localStorage降级, 内存缓存) =====
+var _idb = null;
+var _idbReady = false;
+var _idbQueue = [];
+var DB_NAME = 'WeiteCivil';
+var DB_VERSION = 1;
+var STORE_NAME = 'civilProjects';
+
+function _idbInit(){
+  if (typeof indexedDB === 'undefined') { _idbReady = 'fallback'; return; }
+  var req = indexedDB.open(DB_NAME, DB_VERSION);
+  req.onupgradeneeded = function(e) {
+    var db = e.target.result;
+    if (!db.objectStoreNames.contains(STORE_NAME)) {
+      var store = db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+      store.createIndex('updateTime', 'updateTime', { unique: false });
+    }
+  };
+  req.onsuccess = function(e) {
+    _idb = e.target.result;
+    _idbReady = true;
+    while (_idbQueue.length > 0) {
+      try { _idbQueue.shift()(); } catch (err) { console.error('IDB队列错误', err); }
+    }
+  };
+  req.onerror = function() {
+    console.warn('IndexedDB打开失败，降级使用localStorage');
+    _idbReady = 'fallback';
+  };
+}
+function _idbExec(fn) {
+  if (_idbReady === true) { try { fn(); } catch (e) { console.error('IDB执行错误', e); } }
+  else if (_idbReady === 'fallback') { try { fn(); } catch (e) {} }
+  else { _idbQueue.push(fn); }
+}
+function dbGetAll(cb) {
+  _idbExec(function() {
+    if (_idbReady === 'fallback') {
+      try {
+        var raw = localStorage.getItem('civilProjects');
+        cb(raw ? JSON.parse(raw) : [], null);
+      } catch (e) { cb([], e); }
+      return;
+    }
+    try {
+      var tx = _idb.transaction(STORE_NAME, 'readonly');
+      var r = tx.objectStore(STORE_NAME).getAll();
+      r.onsuccess = function() { cb(r.result || [], null); };
+      r.onerror = function() { cb([], r.error); };
+    } catch (e) { cb([], e); }
+  });
+}
+function dbPut(item, cb) {
+  _idbExec(function() {
+    if (_idbReady === 'fallback') {
+      try {
+        var all = [];
+        var raw = localStorage.getItem('civilProjects');
+        if (raw) all = JSON.parse(raw);
+        var idx = -1;
+        for (var i = 0; i < all.length; i++) {
+          if (all[i].id === item.id) { idx = i; break; }
+        }
+        if (idx >= 0) all[idx] = item; else all.push(item);
+        localStorage.setItem('civilProjects', JSON.stringify(all));
+        cb && cb(null);
+      } catch (e) { cb && cb(e); }
+      return;
+    }
+    try {
+      var tx = _idb.transaction(STORE_NAME, 'readwrite');
+      tx.objectStore(STORE_NAME).put(item);
+      tx.oncomplete = function() { cb && cb(null); };
+      tx.onerror = function() { cb && cb(tx.error); };
+    } catch (e) { cb && cb(e); }
+  });
+}
+function dbDelete(id, cb) {
+  _idbExec(function() {
+    if (_idbReady === 'fallback') {
+      try {
+        var all = [];
+        var raw = localStorage.getItem('civilProjects');
+        if (raw) all = JSON.parse(raw);
+        all = all.filter(function(p) { return p.id !== id; });
+        localStorage.setItem('civilProjects', JSON.stringify(all));
+        cb && cb(null);
+      } catch (e) { cb && cb(e); }
+      return;
+    }
+    try {
+      var tx = _idb.transaction(STORE_NAME, 'readwrite');
+      tx.objectStore(STORE_NAME).delete(id);
+      tx.oncomplete = function() { cb && cb(null); };
+      tx.onerror = function() { cb && cb(tx.error); };
+    } catch (e) { cb && cb(e); }
+  });
+}
+_idbInit();
+
+// ===== 内存缓存层 =====
+var projects = []; // 内存缓存：项目列表（含完整数据）
+var currentProjectId = null;
+var currentBuildingId = null;
+var currentElevatorId = null;
+var expandedProjects = {}; // 项目展开状态
+var expandedBuildings = {}; // 楼栋展开状态
+
+// 待删除项缓存
+var pendingDelete = { type: null, projectId: null, buildingId: null, elevatorId: null };
+
+// 重命名缓存
+var renameTarget = { type: null, projectId: null, buildingId: null, elevatorId: null };
+
+// 签字状态
+var currentSigField = null;
+var sigCtx = null;
+var isDrawing = false;
+
+// ===== 工具函数 =====
+function genId() {
+  return Date.now().toString(36) + Math.random().toString(36).substr(2, 6);
+}
+function showToast(msg, duration) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(function() { t.style.display = 'none'; }, duration || 2000);
+}
+function showModal(id) {
+  document.getElementById(id).classList.add('show');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('show');
+}
+function toggleSidebar() {
+  var sb = document.getElementById('sidebar');
+  var ov = document.getElementById('sidebarOverlay');
+  sb.classList.toggle('show');
+  ov.classList.toggle('show');
+}
+
+// ===== 数据加载与保存 =====
+function loadAllProjects(cb) {
+  dbGetAll(function(list, err) {
+    if (err) { console.error('加载失败', err); showToast('数据加载失败'); }
+    projects = list || [];
+    // 按更新时间倒序
+    projects.sort(function(a, b) { return (b.updateTime || 0) - (a.updateTime || 0); });
+    renderProjectTree();
+    cb && cb();
+  });
+}
+
+function saveCurrentProject() {
+  var proj = getProject(currentProjectId);
+  if (!proj) return;
+  proj.updateTime = Date.now();
+  dbPut(proj, function(err) {
+    if (err) showToast('保存失败');
+  });
+}
+
+function saveData() {
+  saveCurrentProject();
+  showToast('已保存');
+}
+
+// ===== 数据访问辅助函数 =====
+function getProject(id) {
+  for (var i = 0; i < projects.length; i++) {
+    if (projects[i].id === id) return projects[i];
+  }
+  return null;
+}
+function getBuilding(proj, bldgId) {
+  if (!proj || !proj.buildings) return null;
+  for (var i = 0; i < proj.buildings.length; i++) {
+    if (proj.buildings[i].id === bldgId) return proj.buildings[i];
+  }
+  return null;
+}
+function getElevator(bldg, elevId) {
+  if (!bldg || !bldg.elevators) return null;
+  for (var i = 0; i < bldg.elevators.length; i++) {
+    if (bldg.elevators[i].id === elevId) return bldg.elevators[i];
+  }
+  return null;
+}
+function getCurrentElevator() {
+  var proj = getProject(currentProjectId);
+  if (!proj) return null;
+  var bldg = getBuilding(proj, currentBuildingId);
+  if (!bldg) return null;
+  return getElevator(bldg, currentElevatorId);
+}
+
+// ===== 项目树渲染 =====
+function renderProjectTree() {
+  var tree = document.getElementById('projectTree');
+  if (!projects.length) {
+    tree.innerHTML = '<div style="padding:30px 20px;text-align:center;color:#a0aec0;font-size:12px;">暂无项目<br>点击上方"新建"创建</div>';
+    return;
+  }
+  var html = '';
+  for (var i = 0; i < projects.length; i++) {
+    var p = projects[i];
+    var isProjActive = p.id === currentProjectId;
+    var isExpanded = !!expandedProjects[p.id];
+    html += '<div class="tree-project ' + (isProjActive ? 'active' : '') + '" onclick="selectProject(\'' + p.id + '\')" oncontextmenu="showProjMenu(event,\'' + p.id + '\');return false;">';
+    html += '<div class="tree-proj-top">';
+    html += '<span class="tree-proj-arrow ' + (isExpanded ? 'expanded' : '') + '" onclick="event.stopPropagation();toggleProject(\'' + p.id + '\')">▶</span>';
+    html += '<span class="tree-proj-name">' + escapeHtml(p.name) + '</span>';
+    html += '</div>';
+    html += '<div class="tree-proj-meta">' + (p.location || '未设置地址') + '</div>';
+    html += '</div>';
+    
+    if (isExpanded && p.buildings && p.buildings.length) {
+      for (var j = 0; j < p.buildings.length; j++) {
+        var b = p.buildings[j];
+        var isBldgActive = b.id === currentBuildingId && isProjActive;
+        var isBldgExpanded = !!expandedBuildings[b.id];
+        html += '<div class="tree-building ' + (isBldgActive ? 'active' : '') + '" onclick="event.stopPropagation();selectBuilding(\'' + p.id + '\',\'' + b.id + '\')" oncontextmenu="showBldgMenu(event,\'' + p.id + '\',\'' + b.id + '\');return false;">';
+        html += '<div class="tree-bldg-top">';
+        html += '<span class="tree-bldg-arrow ' + (isBldgExpanded ? 'expanded' : '') + '" onclick="event.stopPropagation();toggleBuilding(\'' + b.id + '\')">▶</span>';
+        html += '<span class="tree-bldg-name">' + escapeHtml(b.name) + '</span>';
+        html += '</div>';
+        html += '</div>';
+        
+        if (isBldgExpanded && b.elevators && b.elevators.length) {
+          for (var k = 0; k < b.elevators.length; k++) {
+            var e = b.elevators[k];
+            var isElevActive = e.id === currentElevatorId && isBldgActive;
+            html += '<div class="tree-elevator ' + (isElevActive ? 'active' : '') + '" onclick="event.stopPropagation();selectElevator(\'' + p.id + '\',\'' + b.id + '\',\'' + e.id + '\')" oncontextmenu="showElevMenu(event,\'' + p.id + '\',\'' + b.id + '\',\'' + e.id + '\');return false;">';
+            html += '<span class="tree-elev-name">' + escapeHtml(e.elevatorNo || '未命名') + '</span>';
+            html += '<span class="tree-elev-type">' + escapeHtml(e.elevatorType || '') + '</span>';
+            html += '</div>';
+          }
+        }
+        html += '<div class="tree-add-btn elevator-level" onclick="event.stopPropagation();openNewElevator(\'' + p.id + '\',\'' + b.id + '\')">+ 添加电梯</div>';
+      }
+    }
+    if (isExpanded) {
+      html += '<div class="tree-add-btn building-level" onclick="event.stopPropagation();openNewBuilding(\'' + p.id + '\')">+ 添加楼栋</div>';
+    }
+  }
+  tree.innerHTML = html;
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  var div = document.createElement('div');
+  div.appendChild(document.createTextNode(str));
+  return div.innerHTML;
+}
+
+function toggleProject(id) {
+  expandedProjects[id] = !expandedProjects[id];
+  renderProjectTree();
+}
+function toggleBuilding(id) {
+  expandedBuildings[id] = !expandedBuildings[id];
+  renderProjectTree();
+}
+
+// ===== 项目/楼栋/电梯选择 =====
+function selectProject(id) {
+  currentProjectId = id;
+  if (!expandedProjects[id]) {
+    expandedProjects[id] = true;
+  }
+  renderProjectTree();
+  updateToolbar();
+  renderEmptyOrContent();
+  if (window.innerWidth <= 768) toggleSidebar();
+}
+
+function selectBuilding(projId, bldgId) {
+  currentProjectId = projId;
+  currentBuildingId = bldgId;
+  currentElevatorId = null;
+  if (!expandedProjects[projId]) expandedProjects[projId] = true;
+  if (!expandedBuildings[bldgId]) expandedBuildings[bldgId] = true;
+  renderProjectTree();
+  updateToolbar();
+  renderEmptyOrContent();
+}
+
+function selectElevator(projId, bldgId, elevId) {
+  currentProjectId = projId;
+  currentBuildingId = bldgId;
+  currentElevatorId = elevId;
+  if (!expandedProjects[projId]) expandedProjects[projId] = true;
+  if (!expandedBuildings[bldgId]) expandedBuildings[bldgId] = true;
+  renderProjectTree();
+  updateToolbar();
+  renderElevatorContent();
+  if (window.innerWidth <= 768) toggleSidebar();
+}
+
+function updateToolbar() {
+  var title = document.getElementById('toolbarTitle');
+  var saveBtn = document.getElementById('saveBtn');
+  var printBtn = document.getElementById('printBtn');
+  var proj = getProject(currentProjectId);
+  
+  if (!proj) {
+    title.textContent = '请选择项目';
+    saveBtn.style.display = 'none';
+    printBtn.style.display = 'none';
+    return;
+  }
+  
+  var bldg = getBuilding(proj, currentBuildingId);
+  var elev = getCurrentElevator();
+  
+  if (elev) {
+    title.textContent = proj.name + ' / ' + (bldg ? bldg.name : '') + ' / ' + (elev.elevatorNo || '未命名');
+    saveBtn.style.display = 'flex';
+    printBtn.style.display = 'flex';
+  } else if (bldg) {
+    title.textContent = proj.name + ' / ' + bldg.name;
+    saveBtn.style.display = 'none';
+    printBtn.style.display = 'none';
+  } else {
+    title.textContent = proj.name;
+    saveBtn.style.display = 'none';
+    printBtn.style.display = 'none';
+  }
+}
+
+function renderEmptyOrContent() {
+  var empty = document.getElementById('emptyState');
+  var content = document.getElementById('elevatorContent');
+  var elev = getCurrentElevator();
+  
+  if (elev) {
+    empty.style.display = 'none';
+    content.style.display = 'block';
+    renderElevatorContent();
+  } else {
+    content.style.display = 'none';
+    empty.style.display = 'flex';
+    var proj = getProject(currentProjectId);
+    if (proj) {
+      var bldg = getBuilding(proj, currentBuildingId);
+      if (bldg) {
+        empty.querySelector('.empty-text').textContent = '当前楼栋暂无电梯，点击添加电梯';
+        empty.querySelector('.empty-btn').textContent = '+ 添加电梯';
+        empty.querySelector('.empty-btn').onclick = function() { openNewElevator(currentProjectId, currentBuildingId); };
+      } else {
+        empty.querySelector('.empty-text').textContent = '当前项目暂无楼栋，点击添加楼栋';
+        empty.querySelector('.empty-btn').textContent = '+ 添加楼栋';
+        empty.querySelector('.empty-btn').onclick = function() { openNewBuilding(currentProjectId); };
+      }
+    } else {
+      empty.querySelector('.empty-text').textContent = '暂无项目，点击下方按钮创建第一个勘测项目';
+      empty.querySelector('.empty-btn').textContent = '+ 新建项目';
+      empty.querySelector('.empty-btn').onclick = showNewProject;
+    }
+  }
+}
+
+// ===== 项目管理 =====
+function showNewProject() {
+  document.getElementById('np_name').value = '';
+  document.getElementById('np_location').value = '';
+  document.getElementById('np_surveyor').value = '';
+  document.getElementById('np_phone').value = '';
+  document.getElementById('np_sales').value = '';
+  showModal('newProjectModal');
+  setTimeout(function() { document.getElementById('np_name').focus(); }, 100);
+}
+
+function createProject() {
+  var name = document.getElementById('np_name').value.trim();
+  if (!name) { showToast('请输入项目名称'); return; }
+  
+  var proj = {
+    id: genId(),
+    name: name,
+    location: document.getElementById('np_location').value.trim(),
+    surveyor: document.getElementById('np_surveyor').value.trim(),
+    sales: document.getElementById('np_sales').value.trim(),
+    phone: document.getElementById('np_phone').value.trim(),
+    surveyCount: '首勘1次',
+    buildings: [],
+    createTime: Date.now(),
+    updateTime: Date.now()
+  };
+  
+  projects.unshift(proj);
+  expandedProjects[proj.id] = true;
+  dbPut(proj, function(err) {
+    if (err) showToast('保存失败');
+  });
+  
+  currentProjectId = proj.id;
+  currentBuildingId = null;
+  currentElevatorId = null;
+  
+  closeModal('newProjectModal');
+  renderProjectTree();
+  updateToolbar();
+  renderEmptyOrContent();
+  showToast('项目创建成功');
+}
+
+// ===== 楼栋管理 =====
+var newBuildingProjId = null;
+function openNewBuilding(projId) {
+  newBuildingProjId = projId;
+  document.getElementById('nb_name').value = '';
+  showModal('newBuildingModal');
+  setTimeout(function() { document.getElementById('nb_name').focus(); }, 100);
+}
+
+function createBuilding() {
+  var name = document.getElementById('nb_name').value.trim();
+  if (!name) { showToast('请输入楼号'); return; }
+  
+  var proj = getProject(newBuildingProjId);
+  if (!proj) return;
+  
+  var bldg = {
+    id: genId(),
+    name: name,
+    elevators: []
+  };
+  
+  proj.buildings.push(bldg);
+  proj.updateTime = Date.now();
+  expandedBuildings[bldg.id] = true;
+  
+  dbPut(proj, function(err) {
+    if (err) showToast('保存失败');
+  });
+  
+  currentProjectId = newBuildingProjId;
+  currentBuildingId = bldg.id;
+  currentElevatorId = null;
+  
+  closeModal('newBuildingModal');
+  renderProjectTree();
+  updateToolbar();
+  renderEmptyOrContent();
+  showToast('楼栋添加成功');
+}
+
+// ===== 电梯管理 =====
+var newElevProjId = null;
+var newElevBldgId = null;
+function openNewElevator(projId, bldgId) {
+  newElevProjId = projId;
+  newElevBldgId = bldgId;
+  document.getElementById('ne_elevatorNo').value = '';
+  document.getElementById('ne_unit').value = '';
+  document.getElementById('ne_address').value = '';
+  document.getElementById('ne_elevatorType').value = '客梯';
+  document.getElementById('ne_doorType').value = '中分';
+  document.getElementById('ne_load').value = '';
+  document.getElementById('ne_speed').value = '';
+  document.getElementById('ne_floors').value = '';
+  document.getElementById('ne_stops').value = '';
+  document.getElementById('ne_doors').value = '';
+  document.getElementById('ne_hasMachineRoom').value = '有';
+  showModal('newElevatorModal');
+  setTimeout(function() { document.getElementById('ne_elevatorNo').focus(); }, 100);
+}
+
+function createElevator() {
+  var elevatorNo = document.getElementById('ne_elevatorNo').value.trim();
+  if (!elevatorNo) { showToast('请输入梯号'); return; }
+  
+  var proj = getProject(newElevProjId);
+  if (!proj) return;
+  var bldg = getBuilding(proj, newElevBldgId);
+  if (!bldg) return;
+  
+  var elev = {
+    id: genId(),
+    elevatorNo: elevatorNo,
+    unit: document.getElementById('ne_unit').value.trim(),
+    address: document.getElementById('ne_address').value.trim(),
+    pitDepth: '',
+    topHeight: '',
+    floors: document.getElementById('ne_floors').value || '',
+    stops: document.getElementById('ne_stops').value || '',
+    doors: document.getElementById('ne_doors').value || '',
+    load: document.getElementById('ne_load').value || '',
+    speed: document.getElementById('ne_speed').value || '',
+    elevatorType: document.getElementById('ne_elevatorType').value,
+    doorType: document.getElementById('ne_doorType').value,
+    hasMachineRoom: document.getElementById('ne_hasMachineRoom').value,
+    roomWidth: '',
+    roomDepth: '',
+    roomHeight: '',
+    ringBeamSpec: '',
+    headerBeamHeight: '',
+    headerBeamLength: '',
+    floorData: [],
+    specialNotes: '',
+    sketches: [],
+    signatures: { surveyor: '', reviewer: '', draftsman: '' }
+  };
+  
+  bldg.elevators.push(elev);
+  proj.updateTime = Date.now();
+  
+  dbPut(proj, function(err) {
+    if (err) showToast('保存失败');
+  });
+  
+  currentProjectId = newElevProjId;
+  currentBuildingId = newElevBldgId;
+  currentElevatorId = elev.id;
+  
+  closeModal('newElevatorModal');
+  renderProjectTree();
+  updateToolbar();
+  renderEmptyOrContent();
+  showToast('电梯创建成功');
+}
+
+// ===== 右键菜单（简化为长按/确认删除） =====
+function showProjMenu(e, projId) {
+  pendingDelete = { type: 'project', projectId: projId };
+  document.getElementById('confirmMessage').innerHTML = '确定要删除项目 <strong>' + escapeHtml(getProject(projId).name) + '</strong> 吗？<br><br>该项目下所有楼栋、电梯和测量数据都将被删除，且无法恢复。';
+  showModal('confirmModal');
+}
+function showBldgMenu(e, projId, bldgId) {
+  pendingDelete = { type: 'building', projectId: projId, buildingId: bldgId };
+  var proj = getProject(projId);
+  var bldg = getBuilding(proj, bldgId);
+  document.getElementById('confirmMessage').innerHTML = '确定要删除楼栋 <strong>' + escapeHtml(bldg.name) + '</strong> 吗？<br><br>该楼栋下所有电梯和测量数据都将被删除，且无法恢复。';
+  showModal('confirmModal');
+}
+function showElevMenu(e, projId, bldgId, elevId) {
+  pendingDelete = { type: 'elevator', projectId: projId, buildingId: bldgId, elevatorId: elevId };
+  var proj = getProject(projId);
+  var bldg = getBuilding(proj, bldgId);
+  var elev = getElevator(bldg, elevId);
+  document.getElementById('confirmMessage').innerHTML = '确定要删除电梯 <strong>' + escapeHtml(elev.elevatorNo || '未命名') + '</strong> 吗？<br><br>该电梯的所有测量数据、示意图和签字都将被删除，且无法恢复。';
+  showModal('confirmModal');
+}
+
+function confirmDelete() {
+  var pd = pendingDelete;
+  if (pd.type === 'project') {
+    var idx = -1;
+    for (var i = 0; i < projects.length; i++) {
+      if (projects[i].id === pd.projectId) { idx = i; break; }
+    }
+    if (idx >= 0) projects.splice(idx, 1);
+    dbDelete(pd.projectId);
+    if (currentProjectId === pd.projectId) {
+      currentProjectId = null;
+      currentBuildingId = null;
+      currentElevatorId = null;
+    }
+    showToast('项目已删除');
+  } else if (pd.type === 'building') {
+    var proj = getProject(pd.projectId);
+    if (proj && proj.buildings) {
+      proj.buildings = proj.buildings.filter(function(b) { return b.id !== pd.buildingId; });
+      proj.updateTime = Date.now();
+      dbPut(proj);
+    }
+    if (currentBuildingId === pd.buildingId) {
+      currentBuildingId = null;
+      currentElevatorId = null;
+    }
+    showToast('楼栋已删除');
+  } else if (pd.type === 'elevator') {
+    var proj2 = getProject(pd.projectId);
+    var bldg2 = getBuilding(proj2, pd.buildingId);
+    if (bldg2 && bldg2.elevators) {
+      bldg2.elevators = bldg2.elevators.filter(function(e) { return e.id !== pd.elevatorId; });
+      proj2.updateTime = Date.now();
+      dbPut(proj2);
+    }
+    if (currentElevatorId === pd.elevatorId) {
+      currentElevatorId = null;
+    }
+    showToast('电梯已删除');
+  }
+  
+  closeModal('confirmModal');
+  pendingDelete = { type: null };
+  renderProjectTree();
+  updateToolbar();
+  renderEmptyOrContent();
+}
+
+// ===== 电梯内容渲染 =====
+function renderElevatorContent() {
+  var elev = getCurrentElevator();
+  if (!elev) return;
+  
+  var html = '';
+  
+  // 基本参数卡片
+  html += renderBasicInfoCard(elev);
+  
+  // 分层测量表卡片
+  html += renderFloorTableCard(elev);
+  
+  // 示意图卡片
+  html += renderSketchesCard(elev);
+  
+  // 特殊说明卡片
+  html += renderNotesCard(elev);
+  
+  // 签字卡片
+  html += renderSignatureCard(elev);
+  
+  document.getElementById('elevatorContent').innerHTML = html;
+  updateFloorStats();
+}
+
+function renderBasicInfoCard(elev) {
+  var html = '<div class="card">';
+  html += '<div class="section-header">';
+  html += '<span>📋 基本参数</span>';
+  html += '<span class="section-count">' + (elev.elevatorType || '客梯') + ' · ' + (elev.load || '--') + 'kg · ' + (elev.speed || '--') + 'm/s</span>';
+  html += '</div>';
+  
+  html += '<div class="form-grid">';
+  html += formField('梯号', 'elev_elevatorNo', elev.elevatorNo || '', 'text', 'updateElevField');
+  html += formField('单元号', 'elev_unit', elev.unit || '', 'text', 'updateElevField');
+  html += formField('安装地址', 'elev_address', elev.address || '', 'text', 'updateElevField', true);
+  html += '</div>';
+  
+  html += '<div class="form-grid">';
+  html += formField('梯型', 'elev_elevatorType', elev.elevatorType || '客梯', 'select', 'updateElevField', false, 
+    [['客梯','客梯'],['货梯','货梯'],['医用梯','医用梯'],['观光梯','观光梯'],['杂物梯','杂物梯'],['其他','其他']]);
+  html += formField('开门方式', 'elev_doorType', elev.doorType || '中分', 'select', 'updateElevField', false,
+    [['中分','中分'],['旁开','旁开']]);
+  html += formField('有无机房', 'elev_hasMachineRoom', elev.hasMachineRoom || '有', 'select', 'updateElevField', false,
+    [['有','有机房'],['无','无机房']]);
+  html += formField('勘测次数', 'elev_surveyCount', '', 'select', 'updateSurveyCount', false,
+    [['首勘1次','首勘1次'],['复勘1次','复勘1次'],['复勘2次','复勘2次'],['复勘3次','复勘3次']]);
+  html += '</div>';
+  
+  html += '<div class="card-subtitle" style="margin-top:4px;">层站门参数</div>';
+  html += '<div class="form-grid">';
+  html += formField('层数', 'elev_floors', elev.floors || '', 'number', 'updateElevField');
+  html += formField('站数', 'elev_stops', elev.stops || '', 'number', 'updateElevField');
+  html += formField('门数', 'elev_doors', elev.doors || '', 'number', 'updateElevField');
+  html += formField('载重(kg)', 'elev_load', elev.load || '', 'number', 'updateElevField');
+  html += formField('速度(m/s)', 'elev_speed', elev.speed || '', 'number', 'updateElevField', false, null, '0.1');
+  html += formField('底坑深(mm)', 'elev_pitDepth', elev.pitDepth || '', 'number', 'updateElevField');
+  html += '</div>';
+  
+  html += '<div class="form-grid">';
+  html += formField('顶层高(mm)', 'elev_topHeight', elev.topHeight || '', 'number', 'updateElevField');
+  html += formField('圈梁规格', 'elev_ringBeamSpec', elev.ringBeamSpec || '', 'text', 'updateElevField');
+  html += formField('门头梁高(mm)', 'elev_headerBeamHeight', elev.headerBeamHeight || '', 'number', 'updateElevField');
+  html += formField('门头梁长(mm)', 'elev_headerBeamLength', elev.headerBeamLength || '', 'number', 'updateElevField');
+  html += '</div>';
+  
+  html += '<div class="card-subtitle" style="margin-top:4px;">机房尺寸（有机房填写）</div>';
+  html += '<div class="form-grid">';
+  html += formField('机房宽(mm)', 'elev_roomWidth', elev.roomWidth || '', 'number', 'updateElevField');
+  html += formField('机房深(mm)', 'elev_roomDepth', elev.roomDepth || '', 'number', 'updateElevField');
+  html += formField('机房高(mm)', 'elev_roomHeight', elev.roomHeight || '', 'number', 'updateElevField');
+  html += '</div>';
+  
+  html += '</div>';
+  return html;
+}
+
+function formField(label, id, value, type, onChange, fullWidth, options, step) {
+  var fullCls = fullWidth ? ' full' : '';
+  var html = '<div class="form-row' + fullCls + '">';
+  html += '<label>' + label + '</label>';
+  if (type === 'select') {
+    html += '<select id="' + id + '" onchange="' + onChange + '(\'' + id + '\', this.value)">';
+    for (var i = 0; i < options.length; i++) {
+      var sel = value === options[i][0] ? 'selected' : '';
+      html += '<option value="' + options[i][0] + '" ' + sel + '>' + options[i][1] + '</option>';
+    }
+    html += '</select>';
+  } else if (type === 'textarea') {
+    html += '<textarea id="' + id + '" onblur="' + onChange + '(\'' + id + '\', this.value)" placeholder="请输入' + label + '">' + value + '</textarea>';
+  } else {
+    var stepAttr = step ? ' step="' + step + '"' : '';
+    html += '<input type="' + type + '" id="' + id + '" value="' + escapeHtml(value) + '" onblur="' + onChange + '(\'' + id + '\', this.value)"' + stepAttr + ' placeholder="请输入' + label + '">';
+  }
+  html += '</div>';
+  return html;
+}
+
+// 字段名映射
+var fieldMap = {
+  'elev_elevatorNo': 'elevatorNo',
+  'elev_unit': 'unit',
+  'elev_address': 'address',
+  'elev_elevatorType': 'elevatorType',
+  'elev_doorType': 'doorType',
+  'elev_hasMachineRoom': 'hasMachineRoom',
+  'elev_floors': 'floors',
+  'elev_stops': 'stops',
+  'elev_doors': 'doors',
+  'elev_load': 'load',
+  'elev_speed': 'speed',
+  'elev_pitDepth': 'pitDepth',
+  'elev_topHeight': 'topHeight',
+  'elev_ringBeamSpec': 'ringBeamSpec',
+  'elev_headerBeamHeight': 'headerBeamHeight',
+  'elev_headerBeamLength': 'headerBeamLength',
+  'elev_roomWidth': 'roomWidth',
+  'elev_roomDepth': 'roomDepth',
+  'elev_roomHeight': 'roomHeight'
+};
+
+function updateElevField(fieldId, value) {
+  var elev = getCurrentElevator();
+  if (!elev) return;
+  var prop = fieldMap[fieldId];
+  if (!prop) return;
+  elev[prop] = value;
+  saveCurrentProject();
+  updateToolbar();
+  // 更新项目树显示
+  if (prop === 'elevatorNo' || prop === 'elevatorType') {
+    renderProjectTree();
+  }
+}
+
+function updateSurveyCount(fieldId, value) {
+  var proj = getProject(currentProjectId);
+  if (!proj) return;
+  proj.surveyCount = value;
+  saveCurrentProject();
+}
+
+// ===== 分层测量表 =====
+function renderFloorTableCard(elev) {
+  var html = '<div class="card">';
+  html += '<div class="section-header">';
+  html += '<span>📐 分层测量表</span>';
+  html += '<span class="section-count" id="floorCountBadge">共 ' + (elev.floorData ? elev.floorData.length : 0) + ' 层</span>';
+  html += '</div>';
+  
+  html += '<div class="floor-table-wrap">';
+  html += '<table class="floor-table" id="floorTable">';
+  html += '<thead><tr>';
+  html += '<th class="floor-no">楼层号</th>';
+  html += '<th>层高(mm)</th>';
+  html += '<th>井道宽(mm)</th>';
+  html += '<th>井道深(mm)</th>';
+  html += '<th>门洞宽(mm)</th>';
+  html += '<th>门洞高(mm)</th>';
+  html += '<th>门垛左(mm)</th>';
+  html += '<th>门垛右(mm)</th>';
+  html += '<th>过梁高(mm)</th>';
+  html += '<th>过梁宽(mm)</th>';
+  html += '<th>开门位置</th>';
+  html += '<th>备注</th>';
+  html += '<th class="del-col">操作</th>';
+  html += '</tr></thead>';
+  html += '<tbody id="floorTableBody">';
+  
+  if (elev.floorData && elev.floorData.length) {
+    // 按楼层排序（负数在前，从下到上）
+    var sorted = elev.floorData.slice().sort(function(a, b) {
+      return parseFloat(a.floorNo) - parseFloat(b.floorNo);
+    });
+    for (var i = 0; i < sorted.length; i++) {
+      html += renderFloorRow(sorted[i], i);
+    }
+  }
+  
+  html += '</tbody></table></div>';
+  
+  // 统计信息
+  html += '<div class="floor-stats" id="floorStats">';
+  html += '<div class="floor-stat-item"><span class="floor-stat-label">井道宽最小:</span><span class="floor-stat-value min" id="statWidthMin">--</span></div>';
+  html += '<div class="floor-stat-item"><span class="floor-stat-label">井道宽最大:</span><span class="floor-stat-value max" id="statWidthMax">--</span></div>';
+  html += '<div class="floor-stat-item"><span class="floor-stat-label">井道深最小:</span><span class="floor-stat-value min" id="statDepthMin">--</span></div>';
+  html += '<div class="floor-stat-item"><span class="floor-stat-label">井道深最大:</span><span class="floor-stat-value max" id="statDepthMax">--</span></div>';
+  html += '</div>';
+  
+  // 操作按钮
+  html += '<div class="floor-actions">';
+  html += '<button class="floor-btn primary" onclick="addFloorRow()">+ 添加楼层</button>';
+  html += '<button class="floor-btn secondary" onclick="showBatchFloorModal()">⚡ 批量生成</button>';
+  html += '<button class="floor-btn secondary" onclick="sortFloors()">↕️ 排序</button>';
+  html += '<button class="floor-btn danger" onclick="clearAllFloors()">🗑️ 清空</button>';
+  html += '</div>';
+  
+  html += '</div>';
+  return html;
+}
+
+function renderFloorRow(floor, idx) {
+  var html = '<tr data-idx="' + idx + '">';
+  html += '<td><input type="text" value="' + escapeHtml(floor.floorNo || '') + '" onblur="updateFloorField(\'' + idx + '\',\'floorNo\',this.value)"></td>';
+  html += '<td><input type="number" value="' + (floor.floorHeight || '') + '" onblur="updateFloorField(\'' + idx + '\',\'floorHeight\',this.value)"></td>';
+  html += '<td><input type="number" value="' + (floor.shaftWidth || '') + '" onblur="updateFloorField(\'' + idx + '\',\'shaftWidth\',this.value)"></td>';
+  html += '<td><input type="number" value="' + (floor.shaftDepth || '') + '" onblur="updateFloorField(\'' + idx + '\',\'shaftDepth\',this.value)"></td>';
+  html += '<td><input type="number" value="' + (floor.doorWidth || '') + '" onblur="updateFloorField(\'' + idx + '\',\'doorWidth\',this.value)"></td>';
+  html += '<td><input type="number" value="' + (floor.doorHeight || '') + '" onblur="updateFloorField(\'' + idx + '\',\'doorHeight\',this.value)"></td>';
+  html += '<td><input type="number" value="' + (floor.pierLeft || '') + '" onblur="updateFloorField(\'' + idx + '\',\'pierLeft\',this.value)"></td>';
+  html += '<td><input type="number" value="' + (floor.pierRight || '') + '" onblur="updateFloorField(\'' + idx + '\',\'pierRight\',this.value)"></td>';
+  html += '<td><input type="number" value="' + (floor.lintelHeight || '') + '" onblur="updateFloorField(\'' + idx + '\',\'lintelHeight\',this.value)"></td>';
+  html += '<td><input type="number" value="' + (floor.lintelWidth || '') + '" onblur="updateFloorField(\'' + idx + '\',\'lintelWidth\',this.value)"></td>';
+  html += '<td><div class="door-pos-select">';
+  html += '<button type="button" class="door-pos-btn ' + (floor.doorPosition === '前门' ? 'active' : '') + '" onclick="setDoorPosition(\'' + idx + '\',\'前门\',this)">前</button>';
+  html += '<button type="button" class="door-pos-btn ' + (floor.doorPosition === '后门' ? 'active' : '') + '" onclick="setDoorPosition(\'' + idx + '\',\'后门\',this)">后</button>';
+  html += '<button type="button" class="door-pos-btn ' + (floor.doorPosition === '贯通' ? 'active' : '') + '" onclick="setDoorPosition(\'' + idx + '\',\'贯通\',this)">贯</button>';
+  html += '</div></td>';
+  html += '<td><input type="text" value="' + escapeHtml(floor.remark || '') + '" onblur="updateFloorField(\'' + idx + '\',\'remark\',this.value)"></td>';
+  html += '<td><button class="floor-del-btn" onclick="deleteFloorRow(\'' + idx + '\')">×</button></td>';
+  html += '</tr>';
+  return html;
+}
+
+function getSortedFloorData() {
+  var elev = getCurrentElevator();
+  if (!elev || !elev.floorData) return [];
+  return elev.floorData.slice().sort(function(a, b) {
+    return parseFloat(a.floorNo) - parseFloat(b.floorNo);
+  });
+}
+
+function updateFloorField(idx, field, value) {
+  var elev = getCurrentElevator();
+  if (!elev) return;
+  if (!elev.floorData) elev.floorData = [];
+  var sorted = getSortedFloorData();
+  var origIdx = elev.floorData.indexOf(sorted[idx]);
+  if (origIdx >= 0) {
+    elev.floorData[origIdx][field] = value;
+  }
+  saveCurrentProject();
+  updateFloorStats();
+}
+
+function setDoorPosition(idx, pos, btn) {
+  var elev = getCurrentElevator();
+  if (!elev) return;
+  var sorted = getSortedFloorData();
+  var origIdx = elev.floorData.indexOf(sorted[idx]);
+  if (origIdx >= 0) {
+    elev.floorData[origIdx].doorPosition = pos;
+  }
+  // 更新按钮状态
+  var tr = btn.closest('tr');
+  var btns = tr.querySelectorAll('.door-pos-btn');
+  for (var i = 0; i < btns.length; i++) btns[i].classList.remove('active');
+  btn.classList.add('active');
+  saveCurrentProject();
+}
+
+function addFloorRow() {
+  var elev = getCurrentElevator();
+  if (!elev) return;
+  if (!elev.floorData) elev.floorData = [];
+  elev.floorData.push({
+    floorNo: '',
+    floorHeight: '3000',
+    shaftWidth: '',
+    shaftDepth: '',
+    doorWidth: '',
+    doorHeight: '',
+    pierLeft: '',
+    pierRight: '',
+    lintelHeight: '',
+    lintelWidth: '',
+    doorPosition: '前门',
+    remark: ''
+  });
+  saveCurrentProject();
+  renderElevatorContent();
+}
+
+function deleteFloorRow(idx) {
+  var elev = getCurrentElevator();
+  if (!elev || !elev.floorData) return;
+  var sorted = getSortedFloorData();
+  var origIdx = elev.floorData.indexOf(sorted[idx]);
+  if (origIdx >= 0) {
+    elev.floorData.splice(origIdx, 1);
+  }
+  saveCurrentProject();
+  renderElevatorContent();
+}
+
+function clearAllFloors() {
+  var elev = getCurrentElevator();
+  if (!elev || !elev.floorData || !elev.floorData.length) return;
+  if (!confirm('确定要清空所有楼层数据吗？')) return;
+  elev.floorData = [];
+  saveCurrentProject();
+  renderElevatorContent();
+  showToast('已清空');
+}
+
+function sortFloors() {
+  var elev = getCurrentElevator();
+  if (!elev || !elev.floorData) return;
+  elev.floorData.sort(function(a, b) {
+    return parseFloat(a.floorNo) - parseFloat(b.floorNo);
+  });
+  saveCurrentProject();
+  renderElevatorContent();
+  showToast('已按楼层号排序');
+}
+
+function showBatchFloorModal() {
+  showModal('batchFloorModal');
+}
+
+function batchGenerateFloors() {
+  var start = parseInt(document.getElementById('bf_start').value);
+  var end = parseInt(document.getElementById('bf_end').value);
+  var height = parseInt(document.getElementById('bf_height').value) || 3000;
+  
+  if (isNaN(start) || isNaN(end)) {
+    showToast('请输入有效的楼层范围');
+    return;
+  }
+  if (start >= end) {
+    showToast('起始楼层必须小于结束楼层');
+    return;
+  }
+  
+  var elev = getCurrentElevator();
+  if (!elev) return;
+  if (!elev.floorData) elev.floorData = [];
+  
+  var newCount = 0;
+  for (var f = start; f <= end; f++) {
+    if (f === 0) continue; // 跳过0层
+    // 检查是否已存在
+    var exists = false;
+    for (var i = 0; i < elev.floorData.length; i++) {
+      if (parseFloat(elev.floorData[i].floorNo) === f) { exists = true; break; }
+    }
+    if (!exists) {
+      elev.floorData.push({
+        floorNo: f.toString(),
+        floorHeight: height.toString(),
+        shaftWidth: '',
+        shaftDepth: '',
+        doorWidth: '',
+        doorHeight: '',
+        pierLeft: '',
+        pierRight: '',
+        lintelHeight: '',
+        lintelWidth: '',
+        doorPosition: '前门',
+        remark: ''
+      });
+      newCount++;
+    }
+  }
+  
+  saveCurrentProject();
+  closeModal('batchFloorModal');
+  renderElevatorContent();
+  showToast('已生成 ' + newCount + ' 个楼层');
+}
+
+function updateFloorStats() {
+  var elev = getCurrentElevator();
+  if (!elev || !elev.floorData || !elev.floorData.length) return;
+  
+  var widths = [], depths = [];
+  for (var i = 0; i < elev.floorData.length; i++) {
+    var f = elev.floorData[i];
+    if (f.shaftWidth && !isNaN(parseFloat(f.shaftWidth))) widths.push(parseFloat(f.shaftWidth));
+    if (f.shaftDepth && !isNaN(parseFloat(f.shaftDepth))) depths.push(parseFloat(f.shaftDepth));
+  }
+  
+  var widthMin = widths.length ? Math.min.apply(null, widths) : null;
+  var widthMax = widths.length ? Math.max.apply(null, widths) : null;
+  var depthMin = depths.length ? Math.min.apply(null, depths) : null;
+  var depthMax = depths.length ? Math.max.apply(null, depths) : null;
+  
+  var wMinEl = document.getElementById('statWidthMin');
+  var wMaxEl = document.getElementById('statWidthMax');
+  var dMinEl = document.getElementById('statDepthMin');
+  var dMaxEl = document.getElementById('statDepthMax');
+  var countEl = document.getElementById('floorCountBadge');
+  
+  if (wMinEl) wMinEl.textContent = widthMin !== null ? widthMin + ' mm' : '--';
+  if (wMaxEl) wMaxEl.textContent = widthMax !== null ? widthMax + ' mm' : '--';
+  if (dMinEl) dMinEl.textContent = depthMin !== null ? depthMin + ' mm' : '--';
+  if (dMaxEl) dMaxEl.textContent = depthMax !== null ? depthMax + ' mm' : '--';
+  if (countEl) countEl.textContent = '共 ' + elev.floorData.length + ' 层';
+}
+
+// ===== 示意图 =====
+function renderSketchesCard(elev) {
+  var html = '<div class="card">';
+  html += '<div class="section-header">';
+  html += '<span>🖼️ 示意图</span>';
+  html += '<span class="section-count">' + (elev.sketches ? elev.sketches.length : 0) + ' 张</span>';
+  html += '</div>';
+  
+  html += '<div class="sketch-area">';
+  
+  if (elev.sketches && elev.sketches.length) {
+    for (var i = 0; i < elev.sketches.length; i++) {
+      var sk = elev.sketches[i];
+      html += '<div class="sketch-thumb">';
+      html += '<img src="' + sk.data + '" alt="' + escapeHtml(sk.name || '示意图') + '" onclick="viewSketch(' + i + ')">';
+      html += '<button class="sketch-del" onclick="deleteSketch(' + i + ')">×</button>';
+      html += '</div>';
+    }
+  }
+  
+  html += '<div class="sketch-add" onclick="addSketch(true)" title="拍照">';
+  html += '<div class="sketch-add-icon">📷</div>';
+  html += '<div class="sketch-add-text">拍照</div>';
+  html += '</div>';
+  html += '<div class="sketch-add" onclick="addSketch(false)" title="从相册选择">';
+  html += '<div class="sketch-add-icon">🖼️</div>';
+  html += '<div class="sketch-add-text">上传</div>';
+  html += '</div>';
+  
+  html += '</div>';
+  html += '<div class="form-hint" style="margin-top:8px;">图片将自动压缩（最长边1280px，质量80%），点击图片可查看大图</div>';
+  html += '</div>';
+  return html;
+}
+
+function addSketch(useCamera) {
+  var input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'image/*';
+  if (useCamera) input.capture = 'environment';
+  input.onchange = function(e) {
+    var file = e.target.files[0];
+    if (!file) return;
+    processSketchFile(file);
+  };
+  input.click();
+}
+
+function processSketchFile(file) {
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    var img = new Image();
+    img.onload = function() {
+      var canvas = document.createElement('canvas');
+      var maxSize = 1280;
+      var w = img.width, h = img.height;
+      if (w > h) {
+        if (w > maxSize) { h = h * maxSize / w; w = maxSize; }
+      } else {
+        if (h > maxSize) { w = w * maxSize / h; h = maxSize; }
+      }
+      canvas.width = w;
+      canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      var dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+      
+      var elev = getCurrentElevator();
+      if (!elev) return;
+      if (!elev.sketches) elev.sketches = [];
+      elev.sketches.push({
+        name: '示意图' + (elev.sketches.length + 1),
+        data: dataUrl
+      });
+      saveCurrentProject();
+      renderElevatorContent();
+      showToast('示意图已添加');
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function deleteSketch(idx) {
+  var elev = getCurrentElevator();
+  if (!elev || !elev.sketches) return;
+  if (!confirm('确定删除这张示意图吗？')) return;
+  elev.sketches.splice(idx, 1);
+  saveCurrentProject();
+  renderElevatorContent();
+}
+
+function viewSketch(idx) {
+  var elev = getCurrentElevator();
+  if (!elev || !elev.sketches || !elev.sketches[idx]) return;
+  document.getElementById('sketchViewImg').src = elev.sketches[idx].data;
+  showModal('sketchViewModal');
+}
+
+// ===== 特殊说明 =====
+function renderNotesCard(elev) {
+  var html = '<div class="card">';
+  html += '<div class="section-header"><span>📝 特殊说明</span></div>';
+  html += '<textarea id="elev_specialNotes" style="width:100%;min-height:80px;border:1.5px solid #e2e8f0;border-radius:8px;padding:10px;font-size:13px;font-family:inherit;resize:vertical;" onblur="updateSpecialNotes(this.value)" placeholder="填写特殊情况说明...">' + escapeHtml(elev.specialNotes || '') + '</textarea>';
+  html += '</div>';
+  return html;
+}
+
+function updateSpecialNotes(value) {
+  var elev = getCurrentElevator();
+  if (!elev) return;
+  elev.specialNotes = value;
+  saveCurrentProject();
+}
+
+// ===== 签字区域 =====
+function renderSignatureCard(elev) {
+  var sigs = elev.signatures || {};
+  var html = '<div class="card">';
+  html += '<div class="section-header"><span>✍️ 签字确认</span></div>';
+  html += '<div class="signature-section">';
+  
+  html += '<div class="sig-item">';
+  html += '<label>测量及申请人</label>';
+  html += '<div class="sig-area" onclick="openSigModal(\'surveyor\')">';
+  if (sigs.surveyor) {
+    html += '<img src="' + sigs.surveyor + '" alt="签名">';
+  } else {
+    html += '<span>点击签名</span>';
+  }
+  html += '</div>';
+  html += '<button class="sig-clear-btn" onclick="event.stopPropagation();clearSig(\'surveyor\')">清除</button>';
+  html += '</div>';
+  
+  html += '<div class="sig-item">';
+  html += '<label>审核</label>';
+  html += '<div class="sig-area" onclick="openSigModal(\'reviewer\')">';
+  if (sigs.reviewer) {
+    html += '<img src="' + sigs.reviewer + '" alt="签名">';
+  } else {
+    html += '<span>点击签名</span>';
+  }
+  html += '</div>';
+  html += '<button class="sig-clear-btn" onclick="event.stopPropagation();clearSig(\'reviewer\')">清除</button>';
+  html += '</div>';
+  
+  html += '<div class="sig-item">';
+  html += '<label>绘图接收人</label>';
+  html += '<div class="sig-area" onclick="openSigModal(\'draftsman\')">';
+  if (sigs.draftsman) {
+    html += '<img src="' + sigs.draftsman + '" alt="签名">';
+  } else {
+    html += '<span>点击签名</span>';
+  }
+  html += '</div>';
+  html += '<button class="sig-clear-btn" onclick="event.stopPropagation();clearSig(\'draftsman\')">清除</button>';
+  html += '</div>';
+  
+  html += '</div></div>';
+  return html;
+}
+
+// ===== 签字功能 =====
+var sigTitles = {
+  surveyor: '测量及申请人签字',
+  reviewer: '审核签字',
+  draftsman: '绘图接收人签字'
+};
+
+function openSigModal(field) {
+  currentSigField = field;
+  document.getElementById('sigModalTitle').textContent = sigTitles[field] || '手写签名';
+  document.getElementById('sigModal').classList.add('show');
+  setTimeout(initSigCanvas, 50);
+}
+
+function closeSigModal() {
+  document.getElementById('sigModal').classList.remove('show');
+}
+
+function initSigCanvas() {
+  var canvas = document.getElementById('sigCanvas');
+  var container = document.getElementById('sigCanvasBody');
+  var w = container.offsetWidth - 20;
+  var h = container.offsetHeight - 20;
+  if (!w || w < 50) {
+    var rect = container.getBoundingClientRect();
+    w = rect.width - 20 || window.innerWidth * 0.9;
+    h = rect.height - 20 || 260;
+  }
+  canvas.width = w || 300;
+  canvas.height = h || 200;
+  sigCtx = canvas.getContext('2d');
+  sigCtx.strokeStyle = '#000';
+  sigCtx.lineWidth = 2;
+  sigCtx.lineCap = 'round';
+  sigCtx.lineJoin = 'round';
+  
+  // 如果已有签名，先画上去
+  var elev = getCurrentElevator();
+  if (elev && elev.signatures && elev.signatures[currentSigField]) {
+    var img = new Image();
+    img.onload = function() {
+      sigCtx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    };
+    img.src = elev.signatures[currentSigField];
+  }
+  
+  canvas.onmousedown = startDraw;
+  canvas.onmousemove = draw;
+  canvas.onmouseup = stopDraw;
+  canvas.onmouseleave = stopDraw;
+  canvas.ontouchstart = function(e) { e.preventDefault(); startDraw(e.touches[0]); };
+  canvas.ontouchmove = function(e) { e.preventDefault(); draw(e.touches[0]); };
+  canvas.ontouchend = stopDraw;
+}
+
+function startDraw(e) {
+  isDrawing = true;
+  var rect = sigCtx.canvas.getBoundingClientRect();
+  var x = (e.clientX || e.pageX) - rect.left;
+  var y = (e.clientY || e.pageY) - rect.top;
+  sigCtx.beginPath();
+  sigCtx.moveTo(x, y);
+}
+
+function draw(e) {
+  if (!isDrawing) return;
+  var rect = sigCtx.canvas.getBoundingClientRect();
+  var x = (e.clientX || e.pageX) - rect.left;
+  var y = (e.clientY || e.pageY) - rect.top;
+  sigCtx.lineTo(x, y);
+  sigCtx.stroke();
+}
+
+function stopDraw() {
+  isDrawing = false;
+}
+
+function clearSigCanvas() {
+  var canvas = document.getElementById('sigCanvas');
+  sigCtx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+function saveSigCanvas() {
+  var canvas = document.getElementById('sigCanvas');
+  // 检查是否有内容
+  var dataUrl = canvas.toDataURL('image/png');
+  
+  var elev = getCurrentElevator();
+  if (!elev) return;
+  if (!elev.signatures) elev.signatures = {};
+  elev.signatures[currentSigField] = dataUrl;
+  saveCurrentProject();
+  closeSigModal();
+  renderElevatorContent();
+  showToast('签名已保存');
+}
+
+function clearSig(field) {
+  if (!confirm('确定清除该签名吗？')) return;
+  var elev = getCurrentElevator();
+  if (!elev || !elev.signatures) return;
+  elev.signatures[field] = '';
+  saveCurrentProject();
+  renderElevatorContent();
+}
+
+// ===== 打印功能 =====
+function openPrintPreview() {
+  var elev = getCurrentElevator();
+  var proj = getProject(currentProjectId);
+  var bldg = getBuilding(proj, currentBuildingId);
+  if (!elev || !proj || !bldg) { showToast('请选择电梯'); return; }
+  
+  buildPrintContent(proj, bldg, elev);
+  setTimeout(function() { window.print(); }, 200);
+}
+
+function buildPrintContent(proj, bldg, elev) {
+  var printArea = document.getElementById('printArea');
+  var sortedFloors = (elev.floorData || []).slice().sort(function(a, b) {
+    return parseFloat(a.floorNo) - parseFloat(b.floorNo);
+  });
+  
+  // 计算井道尺寸最小值（用于打印表）
+  var widths = [], depths = [];
+  for (var i = 0; i < sortedFloors.length; i++) {
+    var f = sortedFloors[i];
+    if (f.shaftWidth && !isNaN(parseFloat(f.shaftWidth))) widths.push(parseFloat(f.shaftWidth));
+    if (f.shaftDepth && !isNaN(parseFloat(f.shaftDepth))) depths.push(parseFloat(f.shaftDepth));
+  }
+  var shaftWidthMin = widths.length ? Math.min.apply(null, widths) : '';
+  var shaftDepthMin = depths.length ? Math.min.apply(null, depths) : '';
+  
+  var sigs = elev.signatures || {};
+  
+  var html = '';
+  html += '<style>';
+  html += '.print-page{width:210mm;min-height:297mm;padding:15mm 12mm;box-sizing:border-box;font-family:"SimSun","宋体",serif;font-size:10.5pt;color:#000;margin:0 auto;background:#fff;}';
+  html += '.print-title{text-align:center;font-size:18pt;font-weight:bold;margin-bottom:4px;letter-spacing:4px;}';
+  html += '.print-subtitle{text-align:center;font-size:12pt;margin-bottom:10px;}';
+  html += '.print-table{width:100%;border-collapse:collapse;font-size:10.5pt;margin-bottom:8px;table-layout:fixed;}';
+  html += '.print-table th,.print-table td{border:1px solid #333;padding:4px 6px;text-align:center;vertical-align:middle;word-break:break-all;}';
+  html += '.print-table th{font-weight:bold;background:#f5f5f5;}';
+  html += '.print-table .align-left{text-align:left;padding-left:8px;}';
+  html += '.print-table .label-cell{background:#fafafa;font-weight:bold;width:18%;}';
+  html += '.print-table .value-cell{width:32%;}';
+  html += '.info-row{display:flex;justify-content:space-between;font-size:10.5pt;margin-bottom:6px;}';
+  html += '.section-title{font-size:12pt;font-weight:bold;margin:10px 0 6px;padding-left:8px;border-left:3px solid #333;}';
+  html += '.sig-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;margin-top:16px;}';
+  html += '.sig-item{text-align:center;}';
+  html += '.sig-label{font-size:10.5pt;margin-bottom:4px;}';
+  html += '.sig-box{height:60px;border-bottom:1px solid #333;display:flex;align-items:center;justify-content:center;}';
+  html += '.sig-box img{max-height:55px;max-width:90%;}';
+  html += '.sketch-section{margin-top:10px;}';
+  html += '.sketch-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}';
+  html += '.sketch-item{border:1px solid #333;height:80px;display:flex;align-items:center;justify-content:center;}';
+  html += '.sketch-item img{max-height:75px;max-width:95%;}';
+  html += '.notes-area{border:1px solid #333;min-height:60px;padding:6px 8px;font-size:10.5pt;}';
+  html += '@page{size:A4 portrait;margin:10mm 8mm;}';
+  html += '</style>';
+  
+  html += '<div class="print-page">';
+  
+  // 标题
+  html += '<div class="print-title">垂直电梯土建确认表</div>';
+  html += '<div class="print-subtitle">Vertical Elevator Civil Works Confirmation Form</div>';
+  
+  // 基本信息行
+  html += '<div class="info-row">';
+  html += '<span>楼号：' + escapeHtml(bldg.name || '') + '</span>';
+  html += '<span>梯号：' + escapeHtml(elev.elevatorNo || '') + '</span>';
+  html += '<span>No.：________</span>';
+  html += '</div>';
+  html += '<div class="info-row">';
+  html += '<span>项目名称：' + escapeHtml(proj.name || '') + '</span>';
+  html += '<span>勘测次数：' + escapeHtml(proj.surveyCount || '首勘1次') + '</span>';
+  html += '</div>';
+  html += '<div class="info-row">';
+  html += '<span>安装地址：' + escapeHtml(elev.address || proj.location || '') + '</span>';
+  html += '</div>';
+  
+  // 基本参数表
+  html += '<table class="print-table">';
+  html += '<tr><th class="label-cell">使用单位</th><td class="align-left" colspan="3">' + escapeHtml(proj.name || '') + '</td></tr>';
+  html += '<tr>';
+  html += '<th class="label-cell">产品型号</th><td class="value-cell align-left">' + escapeHtml(elev.elevatorType || '') + '</td>';
+  html += '<th class="label-cell">控制方式</th><td class="value-cell align-left">________</td>';
+  html += '</tr>';
+  html += '<tr>';
+  html += '<th class="label-cell">载重(kg)</th><td class="value-cell">' + escapeHtml(elev.load || '') + '</td>';
+  html += '<th class="label-cell">速度(m/s)</th><td class="value-cell">' + escapeHtml(elev.speed || '') + '</td>';
+  html += '</tr>';
+  html += '<tr>';
+  html += '<th class="label-cell">层/站/门</th><td class="value-cell">' + escapeHtml(elev.floors || '') + ' / ' + escapeHtml(elev.stops || '') + ' / ' + escapeHtml(elev.doors || '') + '</td>';
+  html += '<th class="label-cell">开门方式</th><td class="value-cell">' + escapeHtml(elev.doorType || '') + '</td>';
+  html += '</tr>';
+  html += '</table>';
+  
+  // 井道参数表
+  html += '<div class="section-title">井道参数</div>';
+  html += '<table class="print-table">';
+  html += '<tr>';
+  html += '<th class="label-cell">井道宽(mm)</th><td class="value-cell">' + shaftWidthMin + '</td>';
+  html += '<th class="label-cell">井道深(mm)</th><td class="value-cell">' + shaftDepthMin + '</td>';
+  html += '</tr>';
+  html += '<tr>';
+  html += '<th class="label-cell">底坑深度(mm)</th><td class="value-cell">' + escapeHtml(elev.pitDepth || '') + '</td>';
+  html += '<th class="label-cell">顶层高度(mm)</th><td class="value-cell">' + escapeHtml(elev.topHeight || '') + '</td>';
+  html += '</tr>';
+  html += '<tr>';
+  html += '<th class="label-cell">轿厢宽(mm)</th><td class="value-cell">________</td>';
+  html += '<th class="label-cell">轿厢深(mm)</th><td class="value-cell">________</td>';
+  html += '</tr>';
+  html += '<tr>';
+  html += '<th class="label-cell">门洞宽(mm)</th><td class="value-cell">________</td>';
+  html += '<th class="label-cell">门洞高(mm)</th><td class="value-cell">________</td>';
+  html += '</tr>';
+  html += '</table>';
+  
+  // 楼层开门表
+  html += '<div class="section-title">楼层开门表</div>';
+  html += '<table class="print-table">';
+  
+  // 计算列数（按4列一组，便于排版）
+  var floorCount = sortedFloors.length;
+  var cols = 4;
+  var rows = Math.ceil(floorCount / cols);
+  
+  for (var r = 0; r < rows; r++) {
+    var rowHtml = '';
+    for (var c = 0; c < cols; c++) {
+      var idx = r + c * rows;
+      if (idx < floorCount) {
+        var f = sortedFloors[idx];
+        rowHtml += '<th style="width:' + (100/cols) + '%;">';
+        var floorLabel = f.floorNo;
+        if (parseFloat(f.floorNo) > 0) floorLabel = f.floorNo + 'F';
+        else if (parseFloat(f.floorNo) < 0) floorLabel = 'B' + Math.abs(parseFloat(f.floorNo));
+        rowHtml += floorLabel;
+        rowHtml += '</th>';
+      } else {
+        rowHtml += '<th style="width:' + (100/cols) + '%;"></th>';
+      }
+    }
+    html += '<tr>' + rowHtml + '</tr>';
+    
+    var doorRow = '';
+    for (var c2 = 0; c2 < cols; c2++) {
+      var idx2 = r + c2 * rows;
+      if (idx2 < floorCount) {
+        var f2 = sortedFloors[idx2];
+        var doorPos = f2.doorPosition || '—';
+        doorRow += '<td>' + doorPos + '</td>';
+      } else {
+        doorRow += '<td></td>';
+      }
+    }
+    html += '<tr>' + doorRow + '</tr>';
+  }
+  
+  if (floorCount === 0) {
+    html += '<tr><td colspan="4" style="padding:20px;color:#999;">暂无楼层数据</td></tr>';
+  }
+  html += '</table>';
+  
+  // 井道结构四面墙
+  html += '<div class="section-title">井道结构四面墙（手填）</div>';
+  html += '<table class="print-table">';
+  html += '<tr><th style="width:25%;">前墙</th><th style="width:25%;">后墙</th><th style="width:25%;">左墙</th><th style="width:25%;">右墙</th></tr>';
+  html += '<tr><td style="height:40px;"></td><td></td><td></td><td></td></tr>';
+  html += '</table>';
+  
+  // 机房参数
+  html += '<div class="section-title">机房参数</div>';
+  html += '<table class="print-table">';
+  html += '<tr>';
+  html += '<th class="label-cell">有机房/无机房</th><td class="value-cell">' + escapeHtml(elev.hasMachineRoom || '') + '</td>';
+  html += '<th class="label-cell">圈梁规格</th><td class="value-cell">' + escapeHtml(elev.ringBeamSpec || '') + '</td>';
+  html += '</tr>';
+  if (elev.hasMachineRoom === '有') {
+    html += '<tr>';
+    html += '<th class="label-cell">机房宽(mm)</th><td class="value-cell">' + escapeHtml(elev.roomWidth || '') + '</td>';
+    html += '<th class="label-cell">机房深(mm)</th><td class="value-cell">' + escapeHtml(elev.roomDepth || '') + '</td>';
+    html += '</tr>';
+    html += '<tr>';
+    html += '<th class="label-cell">机房高(mm)</th><td class="value-cell">' + escapeHtml(elev.roomHeight || '') + '</td>';
+    html += '<th class="label-cell">门头梁高/长(mm)</th><td class="value-cell">' + escapeHtml(elev.headerBeamHeight || '') + ' / ' + escapeHtml(elev.headerBeamLength || '') + '</td>';
+    html += '</tr>';
+  }
+  html += '<tr>';
+  html += '<th class="label-cell">动力电源</th><td class="value-cell">________ V</td>';
+  html += '<th class="label-cell">照明电源</th><td class="value-cell">________ V</td>';
+  html += '</tr>';
+  html += '</table>';
+  
+  // 示意图区域
+  html += '<div class="section-title">示意图</div>';
+  html += '<div class="sketch-section">';
+  if (elev.sketches && elev.sketches.length) {
+    html += '<div class="sketch-grid">';
+    var displayCount = Math.min(elev.sketches.length, 4);
+    for (var s = 0; s < displayCount; s++) {
+      html += '<div class="sketch-item"><img src="' + elev.sketches[s].data + '"></div>';
+    }
+    for (var s = displayCount; s < 4; s++) {
+      html += '<div class="sketch-item" style="color:#aaa;font-size:9pt;">示意图 ' + (s+1) + '</div>';
+    }
+    html += '</div>';
+  } else {
+    html += '<div class="sketch-grid">';
+    for (var s2 = 0; s2 < 4; s2++) {
+      html += '<div class="sketch-item" style="color:#aaa;font-size:9pt;">示意图 ' + (s2+1) + '</div>';
+    }
+    html += '</div>';
+  }
+  html += '</div>';
+  
+  // 特殊说明
+  html += '<div class="section-title">特殊说明</div>';
+  html += '<div class="notes-area">' + escapeHtml(elev.specialNotes || '') + '&nbsp;</div>';
+  
+  // 签字区域
+  html += '<div class="sig-row">';
+  html += '<div class="sig-item">';
+  html += '<div class="sig-label">测量及申请人：</div>';
+  html += '<div class="sig-box">';
+  if (sigs.surveyor) html += '<img src="' + sigs.surveyor + '">';
+  html += '</div>';
+  html += '</div>';
+  html += '<div class="sig-item">';
+  html += '<div class="sig-label">审核：</div>';
+  html += '<div class="sig-box">';
+  if (sigs.reviewer) html += '<img src="' + sigs.reviewer + '">';
+  html += '</div>';
+  html += '</div>';
+  html += '<div class="sig-item">';
+  html += '<div class="sig-label">绘图接收人：</div>';
+  html += '<div class="sig-box">';
+  if (sigs.draftsman) html += '<img src="' + sigs.draftsman + '">';
+  html += '</div>';
+  html += '</div>';
+  html += '</div>';
+  
+  html += '<div style="text-align:right;margin-top:20px;font-size:9pt;color:#666;">测量日期：' + formatDate(new Date()) + '</div>';
+  
+  html += '</div>'; // print-page
+  
+  printArea.innerHTML = html;
+}
+
+function formatDate(d) {
+  return d.getFullYear() + '年' + (d.getMonth()+1) + '月' + d.getDate() + '日';
+}
+
+// ===== 初始化 =====
+document.addEventListener('DOMContentLoaded', function() {
+  loadAllProjects(function() {
+    // 如果有项目，默认选中第一个
+    if (projects.length > 0) {
+      // 不自动选中，显示空状态
+    }
+    renderEmptyOrContent();
+  });
+});
+
+// 点击模态框外部关闭
+document.querySelectorAll('.modal-mask').forEach(function(mask) {
+  mask.addEventListener('click', function(e) {
+    if (e.target === mask) {
+      mask.classList.remove('show');
+    }
+  });
+});
+</script>
+</body>
+</html>
