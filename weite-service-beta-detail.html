@@ -183,10 +183,10 @@ function _initStorage(callback) {
 <style>
 /* ===== 基础重置 ===== */
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',sans-serif;background:#f5f7fa;padding-bottom:70px;-webkit-overflow-scrolling:touch;}
+body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',sans-serif;background:#f5f7fa;padding-top:145px;padding-bottom:70px;-webkit-overflow-scrolling:touch;}
 
 /* ===== 顶部Header ===== */
-.header{padding:8px 16px 6px;background:#fff;position:sticky;top:0;z-index:50;}
+.header{padding:8px 16px 6px;background:#fff;position:fixed;top:0;left:0;right:0;z-index:50;-webkit-backface-visibility:hidden;will-change:transform;}
 .logo-area{display:flex;align-items:flex-end;gap:0;}
 .logo-img{height:32px;width:auto;display:block;}
 .logo-elev{font-size:18px;font-weight:900;color:#0d2137;letter-spacing:0px;margin-left:1px;font-family:'PingFang SC','Heiti SC','Microsoft YaHei',sans-serif;line-height:1;padding-bottom:1px;}
@@ -194,7 +194,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
 .header-sub .hl{flex:1;height:1px;background:#999;min-width:20px;}
 
 /* ===== 进度条 ===== */
-.progress-container{padding:12px 16px 10px;background:#fff;position:sticky;top:55px;z-index:49;border-bottom:1px solid #edf2f7;}
+.progress-container{padding:12px 16px 10px;background:#fff;position:fixed;top:55px;left:0;right:0;z-index:49;border-bottom:1px solid #edf2f7;-webkit-backface-visibility:hidden;will-change:transform;}
 .progress-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
 .progress-title{font-size:12px;font-weight:600;color:#718096;}
 .progress-percent{font-size:15px;font-weight:800;background:linear-gradient(135deg,#667eea,#764ba2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
@@ -203,7 +203,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
 
 /* ===== Tab分区栏 ===== */
 .zone-tabs{display:flex;gap:0;padding:0 12px;background:#fff;overflow-x:auto;flex-shrink:0;
-  -webkit-overflow-scrolling:touch;border-bottom:2px solid #edf2f7;position:sticky;top:101px;z-index:48;
+  -webkit-overflow-scrolling:touch;border-bottom:2px solid #edf2f7;position:fixed;top:101px;left:0;right:0;z-index:48;
   -webkit-backface-visibility:hidden;will-change:transform;}
 .zone-tabs::-webkit-scrollbar{display:none;}
 .zone-tab{padding:12px 18px;white-space:nowrap;font-size:14px;font-weight:600;color:#718096;
@@ -212,12 +212,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
 .zone-tab.active{color:#667eea;border-bottom-color:#667eea;font-weight:700;}
 
 /* ===== 内容区容器：固定高度防抖动 ===== */
-.zone-content{position:relative;overflow:hidden;min-height:60vh;}
+.zone-content{position:relative;overflow:hidden;min-height:calc(100vh - 215px);}
 .zone-panel{display:none;padding:12px;}
 .zone-panel.active{display:block;}
 
 /* ===== 改进的Tab滑动动画 ===== */
-.zone-content{position:relative;overflow:hidden;min-height:60vh;}
+.zone-content{position:relative;overflow:hidden;min-height:calc(100vh - 215px);}
 .zone-panel{display:none;padding:12px;width:100%;}
 .zone-panel.active{display:block;}
 .zone-content.animating .zone-panel.slide-in{display:block;position:absolute;top:0;left:0;right:0;}
@@ -311,7 +311,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
 .ci{display:flex;align-items:center;gap:4px;font-size:13px;background:#f0f4f8;padding:5px 10px;border-radius:15px;cursor:pointer;}
 .ci input{width:16px;height:16px;accent-color:#667eea;}
 .ci.ck{background:#d4e6f1;}
-.ri{background:#f8f9fa;border-radius:8px;padding:10px;margin-bottom:8px;border-left:3px solid #667eea;}
+.ri{background:#fff;border:1.5px solid #e2e8f0;border-radius:10px;padding:12px;margin-bottom:10px;
+  box-shadow:0 1px 3px rgba(0,0,0,.03);position:relative;border-left:3px solid #667eea;}
+.ri .ri-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;
+  padding-bottom:6px;border-bottom:1px dashed #edf2f7;}
+.ri .ri-num{font-size:12px;font-weight:700;color:#667eea;}
+.ri .ri-type{font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px;}
+.ri .ri-type.completed{background:#e6fffa;color:#27ae60;}
+.ri .ri-type.required{background:#fef3c7;color:#d69e2e;}
+.ri .ri-del-btn{background:none;border:none;color:#e53e3e;cursor:pointer;font-size:14px;padding:2px 6px;line-height:1;}
+.ri input[type="text"]{width:100%;border:1.5px solid #e2e8f0;border-radius:6px;padding:8px 10px;font-size:13px;background:#fafafa;margin-bottom:6px;}
+.ri input[type="text"]:focus{border-color:#667eea;background:#fff;outline:none;}
+.ri .ri-row{display:flex;gap:6px;margin-bottom:4px;}
+.ri .ri-row select{flex:1;padding:6px 4px;font-size:12px;border:1.5px solid #e2e8f0;border-radius:6px;background:#fafafa;}
+.ri .ri-row select:focus{border-color:#667eea;outline:none;}
 .ri input{width:100%;border:1px solid #e0e0e0;border-radius:4px;padding:6px 8px;font-size:13px;margin-bottom:4px;word-break:break-all;}
 .ri select{border:1px solid #e0e0e0;border-radius:4px;padding:6px 8px;font-size:13px;}
 .ar{text-align:center;padding:8px;color:#667eea;font-size:13px;cursor:pointer;border:1px dashed #667eea;border-radius:6px;margin-top:5px;}
@@ -388,7 +401,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
 
 /* ===== 手风琴标题吸顶 ===== */
 .zone-panel{position:relative;}
-.accordion-header.sticky-acc{position:sticky;top:145px;z-index:5;background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.06);}
+.accordion-header.sticky-acc{position:sticky;top:145px;z-index:5;background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.06);-webkit-backface-visibility:hidden;}
 .accordion.active .accordion-header.sticky-acc{background:linear-gradient(135deg,#f8f9ff,#f5f3ff);}
 
 /* ===== 顶部更多菜单 ===== */
@@ -675,7 +688,7 @@ function updateBtnStatus(){
 <div class="zone-content" id="zoneContent">
   <!-- Tab 1: 基本信息（手风琴） -->
   <div class="zone-panel active" id="zonePanel_0">
-    <div class="zone-section-title">基础资料</div>
+    
     <!-- 申请人 -->
     <div class="accordion active" data-acc="basic">
       <div class="accordion-header sticky-acc" onclick="toggleAccordion('basic')">
@@ -748,7 +761,7 @@ function updateBtnStatus(){
 
   <!-- Tab 2: 服务详情（手风琴） -->
   <div class="zone-panel" id="zonePanel_1">
-    <div class="zone-section-title">服务信息</div>
+    
     <!-- 服务类别 -->
     <div class="accordion active" data-acc-svc="svcCategory">
       <div class="accordion-header sticky-acc" onclick="toggleSvcAccordion('svcCategory')">
@@ -760,9 +773,6 @@ function updateBtnStatus(){
       </div>
       <div class="accordion-body">
         <div id="svcCatsBody"></div>
-        <div style="text-align:center;margin-top:10px;">
-          <button style="background:linear-gradient(135deg,#e74c3c,#c0392b);color:#fff;border:none;border-radius:8px;padding:8px 20px;font-size:13px;font-weight:600;cursor:pointer;" onclick="openMo('serviceMo')">编辑服务类别</button>
-        </div>
       </div>
     </div>
     <!-- 服务节点 -->
@@ -776,9 +786,6 @@ function updateBtnStatus(){
       </div>
       <div class="accordion-body">
         <div class="cg" id="cgFlowBody"></div>
-        <div style="text-align:center;margin-top:10px;">
-          <button style="background:linear-gradient(135deg,#f39c12,#f1c40f);color:#fff;border:none;border-radius:8px;padding:8px 20px;font-size:13px;font-weight:600;cursor:pointer;" onclick="openMo('flowMo')">编辑服务节点</button>
-        </div>
       </div>
     </div>
     <!-- 服务内容/记录 -->
@@ -791,33 +798,27 @@ function updateBtnStatus(){
         </div>
       </div>
       <div class="accordion-body">
-        <div id="recListSummary" style="margin-bottom:8px;"></div>
-        <div style="text-align:center;">
-          <button style="background:linear-gradient(135deg,#2ecc71,#27ae60);color:#fff;border:none;border-radius:8px;padding:8px 20px;font-size:13px;font-weight:600;cursor:pointer;" onclick="openMo('recordMo')">编辑记录</button>
-        </div>
+        <div id="recBox"></div>
+        <div class="ar" id="addRecBtn">+ 添加一条记录</div>
       </div>
     </div>
   </div>
 
   <!-- Tab 3: 签字确认 -->
   <div class="zone-panel" id="zonePanel_2">
-    <div class="zone-section-title">签字确认</div>
     
-    <!-- 服务说明（从服务详情移过来） -->
+    
+    <!-- 服务说明 -->
     <div class="sign-section">
-      <h4 style="display:flex;align-items:center;justify-content:space-between;">
+      <h4 style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
         <span>⚠️ 服务说明</span>
         <span class="card-status" id="st_impact"></span>
       </h4>
       <div class="sign-note">需尽快处理的事项及影响说明</div>
-      <div id="impactSummary" style="font-size:13px;color:#4a5568;margin-bottom:8px;">
-        <div style="margin-bottom:6px;"><span style="color:#718096;">紧急事项：</span><span id="impactUrgent">未填写</span></div>
-        <div style="margin-bottom:6px;"><span style="color:#718096;">影响范围：</span><span id="impactScope">未选择</span></div>
-        <div id="impactStopDate" style="display:none;"><span style="color:#718096;">停梯日期：</span><span id="impactStopDateVal"></span></div>
-      </div>
-      <div style="text-align:center;">
-        <button style="background:linear-gradient(135deg,#34495e,#2c3e50);color:#fff;border:none;border-radius:8px;padding:8px 20px;font-size:13px;font-weight:600;cursor:pointer;" onclick="openMo('impactMo')">编辑服务说明</button>
-      </div>
+      <div class="fr" style="margin-top:8px;"><label>需尽快处理项</label><input type="text" id="f13" placeholder="填写序号" oninput="updateBtnStatus()"></div>
+      <div style="font-size:12px;color:#666;margin:8px 0 6px;">否则将影响：</div>
+      <div class="cg" id="cgImpact"></div>
+      <div class="fr" id="stopRow" style="display:none;margin-top:8px;"><label>停梯日期</label><input type="date" id="f14"></div>
     </div>
     
     <!-- 签字确认区 -->
@@ -861,12 +862,12 @@ function updateBtnStatus(){
 </div>
 </div></div>
 
-<!-- 沟通记录弹窗 -->
+<!-- 沟通记录弹窗（已废弃，改用手风琴内编辑） -->
 <div class="mo" id="recordMo"><div class="mi" style="max-height:85vh;">
 <div class="mh" style="background:linear-gradient(135deg,#2ecc71,#27ae60);"><h3>💬 服务内容/记录</h3><button onclick="closeMo('recordMo')" style="background:none;border:none;font-size:22px;cursor:pointer;color:#fff;">✅</button></div>
 <div class="mb" style="padding:14px;">
-  <div id="recBox"></div>
-  <div class="ar" id="addRecBtn">+ 添加一条记录</div>
+  <div id="recBoxModal"></div>
+  <div class="ar" id="addRecBtnModal">+ 添加一条记录</div>
 </div>
 </div></div>
 
@@ -876,8 +877,8 @@ function updateBtnStatus(){
 <div class="mb" style="padding:14px;">
   <div class="fr"><label>需尽快处理项</label><input type="text" id="f13" placeholder="填写序号" oninput="updateBtnStatus()"></div>
   <div style="font-size:12px;color:#666;margin-bottom:8px;">否则将影响：</div>
-  <div class="cg" id="cgImpact"></div>
-  <div class="fr" id="stopRow" style="display:none;"><label>停梯日期</label><input type="date" id="f14"></div>
+  <div class="cg" id="cgImpactModal"></div>
+  <div class="fr" id="stopRowModal" style="display:none;"><label>停梯日期</label><input type="date" id="f14"></div>
 </div>
 </div></div>
 
@@ -1038,12 +1039,7 @@ function switchTab(index){
     _tabAnimating = false;
   }
   
-  // 滚动到tab栏位置
-  var tabBar = document.getElementById('zoneTabs');
-  if(tabBar){
-    var tabTop = tabBar.getBoundingClientRect().top + window.scrollY;
-    window.scrollTo({top: tabTop, behavior: 'smooth'});
-  }
+  // tab栏已fixed固定，无需滚动
   
   // 刷新服务详情手风琴的汇总显示
   if(index === 1){
@@ -1080,106 +1076,19 @@ window.toggleSvcAccordion = toggleSvcAccordion;
 
 // 更新服务详情手风琴的汇总显示
 function updateSvcAccordionSummary(){
-  // 服务类别汇总
-  var svcCatsBody = document.getElementById('svcCatsBody');
-  if(svcCatsBody){
-    var html = '';
-    var catLabels = [
-      {key: 'preSale', label: '售前/中工程支持'},
-      {key: 'during', label: '施工前后工程支持'},
-      {key: 'afterSale', label: '售后工程支持'},
-      {key: 'visit', label: '客户回访'}
-    ];
-    catLabels.forEach(function(cat){
-      var checked = [];
-      document.querySelectorAll('input[name="' + cat.key + '"]:checked').forEach(function(cb){
-        if(cb.value !== '其他') checked.push(cb.value);
-      });
-      var otherInput = document.getElementById(cat.key + 'Other');
-      if(otherInput && otherInput.value && checked.indexOf('其他') < 0){
-        var otherChecked = document.querySelector('input[name="' + cat.key + '"][value="其他"]:checked');
-        if(otherChecked) checked.push(otherInput.value);
-      }
-      if(checked.length > 0){
-        html += '<div style="margin-bottom:8px;">';
-        html += '<div style="font-size:12px;font-weight:600;color:#667eea;margin-bottom:3px;">' + cat.label + '</div>';
-        html += '<div style="font-size:13px;color:#4a5568;">' + checked.join('、') + '</div>';
-        html += '</div>';
-      }
-    });
-    if(!html){
-      html = '<div style="text-align:center;color:#a0aec0;font-size:13px;padding:10px;">尚未选择服务类别</div>';
-    }
-    svcCatsBody.innerHTML = html;
-  }
-  
-  // 服务节点汇总 - 直接复制cgFlow的内容
-  var cgFlowBody = document.getElementById('cgFlowBody');
-  var cgFlow = document.getElementById('cgFlow');
-  if(cgFlowBody && cgFlow){
-    var items = [];
-    cgFlow.querySelectorAll('input:checked').forEach(function(cb){
-      items.push(cb.value);
-    });
-    if(items.length > 0){
-      cgFlowBody.innerHTML = '<div style="font-size:13px;color:#4a5568;">' + items.join('、') + '</div>';
-    } else {
-      cgFlowBody.innerHTML = '<div style="text-align:center;color:#a0aec0;font-size:13px;padding:10px;">尚未选择服务节点</div>';
-    }
-  }
-  
-  // 服务记录汇总
-  var recListSummary = document.getElementById('recListSummary');
-  if(recListSummary){
-    var recs = document.querySelectorAll('#recBox .ri');
-    var html = '';
-    var count = 0;
-    recs.forEach(function(r, i){
-      var inp = r.querySelector('input[type="text"]');
-      if(inp && inp.value.trim()){
-        count++;
-        var sel = r.querySelector('select:not(.compSel)');
-        var type = sel ? sel.value : '';
-        html += '<div style="background:#f8f9fa;border-radius:6px;padding:8px 10px;margin-bottom:6px;border-left:3px solid ' + (type === '完成项' ? '#27ae60' : '#667eea') + ';">';
-        html += '<div style="font-size:12px;color:#718096;margin-bottom:2px;">第' + (i+1) + '条 · ' + (type || '未分类') + '</div>';
-        html += '<div style="font-size:13px;color:#2d3748;">' + inp.value.trim() + '</div>';
-        html += '</div>';
-      }
-    });
-    if(count === 0){
-      html = '<div style="text-align:center;color:#a0aec0;font-size:13px;padding:10px;">暂无记录</div>';
-    }
-    recListSummary.innerHTML = html;
-  }
+  // 选项直接展示在手风琴内，无需更新汇总显示
+  // 确保状态指示器正确
+  if(typeof updateBtnStatus === 'function') updateBtnStatus();
 }
 
 // 更新签字确认tab的服务说明汇总
 function updateImpactSummary(){
-  var urgentEl = document.getElementById('impactUrgent');
-  var scopeEl = document.getElementById('impactScope');
-  var stopRow = document.getElementById('impactStopDate');
-  var stopVal = document.getElementById('impactStopDateVal');
-  
-  if(urgentEl){
-    var f13 = document.getElementById('f13');
-    urgentEl.textContent = f13 && f13.value ? f13.value : '未填写';
-  }
-  if(scopeEl){
-    var items = [];
-    document.querySelectorAll('input[name="impact"]:checked').forEach(function(cb){
-      items.push(cb.value);
-    });
-    scopeEl.textContent = items.length > 0 ? items.join('、') : '未选择';
-  }
-  if(stopRow && stopVal){
-    var f14 = document.getElementById('f14');
+  // 服务说明直接展示表单，无需更新汇总显示
+  // 确保停梯日期行显示正确
+  var stopRow = document.getElementById('stopRow');
+  if(stopRow){
     var hasUser = document.querySelector('input[name="impact"][value="用户正常用梯"]:checked');
-    if(hasUser && f14 && f14.value){
-      stopRow.style.display = '';
-      stopVal.textContent = f14.value;
-    } else {
-      stopRow.style.display = 'none';
-    }
+    stopRow.style.display = hasUser ? 'flex' : 'none';
   }
 }
 
@@ -1344,11 +1253,10 @@ function toggleAccordion(name){
     setTimeout(function(){
       var header = target.querySelector('.accordion-header');
       if(header){
-        var tabBar = document.getElementById('zoneTabs');
-        var tabBottom = tabBar ? tabBar.getBoundingClientRect().bottom : 145;
         var headerTop = header.getBoundingClientRect().top + window.scrollY;
-        var targetScroll = headerTop - tabBottom - 5;
-        if(targetScroll < window.scrollY - 10){
+        // tab栏底部在145px，标题吸顶在145px位置
+        var targetScroll = headerTop - 145 - 5;
+        if(targetScroll > 0 && (targetScroll < window.scrollY - 10 || targetScroll > window.scrollY + 50)){
           window.scrollTo({top: targetScroll, behavior: 'smooth'});
         }
       }
@@ -1565,19 +1473,32 @@ document.getElementById('addElevBtn').addEventListener('click',function(){addEle
 
 function mkCg(cid,name,items){var c=document.getElementById(cid);items.forEach(function(v){var lb=document.createElement('label');lb.className='ci';var cb=document.createElement('input');cb.type='checkbox';cb.name=name;cb.value=v;cb.addEventListener('change',function(){lb.classList.toggle('ck',this.checked);togOther(name);updateBtnStatus();});lb.appendChild(cb);lb.appendChild(document.createTextNode(' '+v));c.appendChild(lb);});}
 mkCg('cgBuild','construction',['安装','改造','重大修理','一般修理','保养']);
-mkCg('cgFlow','flowTo',['工程部','销售部','技术部','安装队','代理商/用户','其他']);
+mkCg('cgFlowBody','flowTo',['工程部','销售部','技术部','安装队','代理商/用户','其他']);
 mkCg('cgImpact','impact',['电梯安装进度','电梯维修进度','电梯改造进度','电梯验收进度','用户正常用梯']);
 document.addEventListener('change',function(e){if(e.target.name==='impact'&&e.target.value==='用户正常用梯')document.getElementById('stopRow').style.display=e.target.checked?'flex':'none';});
 var svcCats=[{name:'preSale',label:'售前/中工程支持',items:['初勘','复勘','用户确认','其他']},{name:'during',label:'施工前后工程支持',items:['进场前确认','进场告知','撤场告知','其他']},{name:'afterSale',label:'售后工程支持',items:['厂检','调试','解决现场问题','其他']},{name:'visit',label:'客户回访',items:['产品','款项','工程进度','培训','其他']}];
-var svcBox=document.getElementById('svcCats');
+var svcBox=document.getElementById('svcCatsBody');
 svcCats.forEach(function(cat){var div=document.createElement('div');div.style.marginBottom='8px';var hd=document.createElement('div');hd.style.cssText='font-size:13px;font-weight:bold;color:#555;margin-bottom:4px;';hd.textContent=cat.label;div.appendChild(hd);var cg=document.createElement('div');cg.className='cg';cat.items.forEach(function(v){var lb=document.createElement('label');lb.className='ci';var cb=document.createElement('input');cb.type='checkbox';cb.name=cat.name;cb.value=v;cb.addEventListener('change',function(){lb.classList.toggle('ck',this.checked);togOther(cat.name);updateBtnStatus();});lb.appendChild(cb);lb.appendChild(document.createTextNode(' '+v));cg.appendChild(lb);});div.appendChild(cg);var or=document.createElement('div');or.className='fr';or.id=cat.name+'OtherRow';or.style.display='none';var ol=document.createElement('label');ol.textContent='其他说明';var oi=document.createElement('input');oi.type='text';oi.id=cat.name+'Other';oi.placeholder='填写';or.appendChild(ol);or.appendChild(oi);div.appendChild(or);svcBox.appendChild(div);});
 function togOther(name){var chks=document.querySelectorAll('input[name="'+name+'"]:checked');var has=false;for(var i=0;i<chks.length;i++){if(chks[i].value==='其他')has=true;}var row=document.getElementById(name+'OtherRow');if(row)row.style.display=has?'flex':'none';}
 var recN=0;
 function updateCompSel(){var sp=gv('f10'),sc=gv('f8');var opts='<option value="">选择完成方</option>';if(sp)opts+='<option value="'+sp+'">'+sp+'</option>';if(sc&&sc!==sp)opts+='<option value="'+sc+'">'+sc+'</option>';opts+='<option value="其他">其他</option>';document.querySelectorAll('.ri .compSel').forEach(function(s){var cv=s.value;s.innerHTML=opts;s.value=cv;});}
 document.getElementById('f10').addEventListener('input',updateCompSel);
 document.getElementById('f8').addEventListener('input',updateCompSel);
-function addRec(){recN++;var box=document.getElementById('recBox');var d=document.createElement('div');d.className='ri';var sp=gv('f10'),sc=gv('f8');var opts='<option value="">选择完成方</option>';if(sp)opts+='<option value="'+sp+'">'+sp+'</option>';if(sc&&sc!==sp)opts+='<option value="'+sc+'">'+sc+'</option>';opts+='<option value="其他">其他</option>';d.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;"><span style="font-size:12px;color:#1a5276;font-weight:bold;">第 '+recN+' 条</span><select style="width:auto;padding:4px 8px;font-size:12px;"><option value="完成项">✅ 完成项</option><option value="要求项">📌 要求项</option></select></div><input type="text" placeholder="沟通内容/服务记录摘要" oninput="updateBtnStatus()"><div style="display:flex;gap:6px;"><select class="compSel" style="flex:0 0 80px;padding:8px 4px;font-size:13px;border:1px solid #e0e0e0;border-radius:4px;background:#fafafa;max-width:80px;">'+opts+'</select><input type="date" style="flex:0 0 130px;padding:8px 4px;font-size:13px;border:1px solid #e0e0e0;border-radius:4px;max-width:130px;"></div>';box.appendChild(d);var newInput=d.querySelector('input[type="text"]');if(newInput)newInput.focus();}
+function addRec(){recN++;var box=document.getElementById('recBox');var d=document.createElement('div');d.className='ri';var sp=gv('f10'),sc=gv('f8');var opts='<option value="">选择完成方</option>';if(sp)opts+='<option value="'+sp+'">'+sp+'</option>';if(sc&&sc!==sp)opts+='<option value="'+sc+'">'+sc+'</option>';opts+='<option value="其他">其他</option>';d.innerHTML='<div class="ri-header"><span class="ri-num">第 '+recN+' 条</span><button class="ri-del-btn" onclick="this.closest(\'.ri\').remove();updateRecCount();updateBtnStatus();">✕</button></div><select style="width:100%;margin-bottom:6px;padding:6px 8px;font-size:12px;border-radius:6px;border:1.5px solid #e2e8f0;background:#fafafa;" onchange="updateBtnStatus()"><option value="完成项">✅ 完成项</option><option value="要求项">📌 要求项</option></select><input type="text" placeholder="沟通内容/服务记录摘要" oninput="updateBtnStatus()"><div class="ri-row"><select class="compSel" style="flex:1;padding:6px 4px;font-size:12px;border:1.5px solid #e2e8f0;border-radius:6px;background:#fafafa;" onchange="updateBtnStatus()">'+opts+'</select><input type="date" style="flex:1;padding:6px 4px;font-size:12px;border:1.5px solid #e2e8f0;border-radius:6px;" onchange="updateBtnStatus()"></div>';box.appendChild(d);var newInput=d.querySelector('input[type="text"]');if(newInput)newInput.focus();updateRecCount();}
 addRec();document.getElementById('addRecBtn').addEventListener('click',function(){addRec();updateBtnStatus();});
+function updateRecCount(){
+  var s=document.getElementById('st_record');
+  if(s){
+    var recs=document.querySelectorAll('#recBox .ri');
+    var hasContent=0;
+    recs.forEach(function(r){
+      var inp=r.querySelector('input[type="text"]');
+      if(inp&&inp.value.trim())hasContent++;
+    });
+    s.textContent=hasContent+'条';
+  }
+}
+
 
 // === Signature ===
 var sig1Data='',sig2Data='',sig1Canvas=null,sig2Canvas=null,curSig=1,sigCvs,sigCtx,sigDraw=false,sigLX=0,sigLY=0;
