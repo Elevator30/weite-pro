@@ -9,10 +9,8 @@
 <meta name="apple-mobile-web-app-title" content="威特服务单">
 <meta name="theme-color" content="#667eea">
 <title>威特技术服务单</title>
-<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%231a3a6b'/%3E%3Ctext x='50' y='42' font-family='Arial' font-size='28' font-weight='900' text-anchor='middle' fill='white'%3EVEITE%3C/text%3E%3Ctext x='50' y='72' font-family='serif' font-size='16' font-weight='800' text-anchor='middle' fill='%23e63946'%3E电梯%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg" viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%231a3a6b'/%3E%3Ctext x='50' y='42' font-family='Arial' font-size='28' font-weight='900' text-anchor='middle' fill='white'%3EVEITE%3C/text%3E%3Ctext x='50' y='72' font-family='serif' font-size='16' font-weight='800' text-anchor='middle' fill='%23e63946'%3E电梯%3C/text%3E%3C/svg%3E">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-</script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </script>
 <script>
 // ===== IndexedDB 封装 (ES5兼容, callback风格, 带localStorage降级) =====
@@ -163,8 +161,6 @@ function _initStorage(callback) {
 }
 // ===== 缓存层结束 =====
 
-
-
 // PWA manifest & service worker for "Add to Home Screen"
 (function(){
   var manifest={name:'威特技术服务单',short_name:'威特服务单',start_url:location.href,display:'standalone',background_color:'#f5f5f5',theme_color:'#667eea',icons:[{src:"data:image/webp;base64,UklGRrwFAABXRUJQVlA4ILAFAADwIACdASrYAEAAPm0ulUYkIqIhLTN7oIANiWIA0XiYk6fAcypylKVfR8u8/Dbw+YDzgP9B6n95359z2hL9E7d/719M3U1HvX4z8e/yx1EW+/ZA9GXqr6AdtRxosfn/A9PH/M/wfnl+ov+x7h/8p/r/WV/ab2E/07SHbXhZHt4C8qbGczRQ+YhCP904TtF2T0CCKyarJnypB/hAK6gQjXC9iwsKwwC+OU9rHGVQYHoJ6rQgTA7XrCkoSqGEyqPx+s/JTspyE0a/wsHHmamelpQCinlWWUKPRRn2jng/2F6cIdPGnOlsdbXFcJsLUCwUtt4xh8NxuwH9RK03w+j532Ir+l0sI72fbPxXS3J23eO7gAD+/KharSACg7d/D3l4HJGQhCdQ227rBH9fuFBIE9S7KXkbv7srGfvvq8TrxYIaGqIqQ/b0R4LwFqs4veGNAtr2N/9XffjClI9y+Ns078yTGj+KSGmGoaW2Fg/yvd4F7TzYht4cvAZutRHBgxFjmYPyk/Z1thQLvhA7bIQJk3t7yUcjDBEsNXXBg1DpLtTLyUkG1b9F3vtmuHLAPrBInM7M7U/c1FeNzDPVV+6BRvH2iEWC6nY3/1H7aw0kAHQYdp42tv5GgpRGgiYmYUVL5Qd/4ijq3Rfbapv3bWVmxZKsplOi5YLgdbLkTcDBjYXWKam/rObme42a6zh11FrQw4NEOL27WA25k2pume6U/xMh4P/PDiwbukzK7WSnmwOFe0ciPINJrwLzrkAeD6BD0SWAq0Q1wWwnlYW3LUY/y8m3f+f/X/n/79m0bBWtpP5xqSkXsKoWDOqRiwoP0BAnzpBgbm894mRq0lIcL4xJBCo9bdnhraMV0K/QTKujLzuUPojKhYvfv/p70tbIdD3NBjM+qJFCBD9zPo9D482iTfk6qobTD32BQWLSMxicFoe6FYzy/oPmoP638ZRjj32Uz6ALnezqdAe7rPmGGNdjTIcgSEb5jx6vZjH2PD/lXhCFVeLX4LauAmPeFQ6h2f+s8cklG4i5Cq0lzmoy063xvLZoCPrQxnTlVru5RClIu5c9JB+MEPv59l/Ael7/Yx1PxGUL7lXtPJR4nJaLQfl2losnfjlp9kdVwsxXlk6+iLf0jX0xuGblGMMs8ud9+H1rRDUFRM6kdd7WGgH/nGnS9whJCrYMo6AiYO+SteHvU7UDlX1bDoZi+EzPtFErY2YzD7EssR7JEWpOcLeheC72VKac5Bz192vBsPf1uOnFNig0EZTR9OjSmAhxfknwgxOT47IGBghTTIbjZO6jUIanJs/JhPwzLLc2ZqbmiNX4+30SicCTM90VJVN+6i5YU4V5Puf3Asu802W45DRPchPNC9NQxrs/y3VvUDf2cqxaXmk5AP6bgaO9Ofuv5AMvDOmfSY7oDs1NLtdFkqoWjzOOax+M/uI4MHe9puGHMgqTVcP25iaQcuBHlgSqCp+iQmBoivAqM6YtWQoqlZ+fSyfSnYKbRd7DsI5CmBFvlwzdlHP1+nQybKj8mvr3IyDZpBJ10OtAnq10T2GQOXEkw1HHsm60s9vId47czppsEl+VZyrnQ5Z6i8+c1Y7m7QILvbdD+GIatZWMRNtiR+YCpX9OUp26fZTgoIjkaD3ZcEjnT4/iENcoz/7Hfq09z/newBZMpuD+1ko1UoWKpIB/jGpf/qNMYFfTe5rvRVFq+1Xdk5EsJvsgYwENrNB68IrkFpHu+2KzzABc7FqwVfAhJdqRCxeasS4dDiF0b5Lqfasg8AVMtt3biVFXL9wLKy5X69mHZaD0UtE5OafUdUcdB9xvfmW/Siv+xCmWpjo5qPnSkcOt09PGXwAYpphRp9NLPaSXlQ0XCSNh9OoC74DABb0pbu5taHZj4uzOfu9rRKUvW+fWkRUxDr2zbvFTxLY/XvUy26/eAhK9wRTlytnMF2ZwTwAA",sizes:'192x192',type:'image/jpeg'}]};
@@ -181,186 +177,69 @@ function _initStorage(callback) {
 })();
 </script>
 <style>
-/* ===== 基础重置 ===== */
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',sans-serif;background:#f5f7fa;padding-bottom:70px;-webkit-overflow-scrolling:touch;}
+body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',sans-serif;background:#f5f7fa;padding-bottom:80px;-webkit-overflow-scrolling:touch;min-height:100vh;}
 
-/* ===== 顶部Header ===== */
-.header{padding:8px 16px 6px;background:#fff;position:sticky;top:0;z-index:50;}
-.logo-area{display:flex;align-items:flex-end;gap:0;}
-.logo-img{height:32px;width:auto;display:block;}
-.logo-elev{font-size:18px;font-weight:900;color:#0d2137;letter-spacing:0px;margin-left:1px;font-family:'PingFang SC','Heiti SC','Microsoft YaHei',sans-serif;line-height:1;padding-bottom:1px;}
-.header-sub{font-size:13px;font-weight:400;color:#555;letter-spacing:4px;font-family:'Songti SC','SimSun',serif;display:flex;align-items:center;justify-content:center;gap:10px;margin-top:3px;}
-.header-sub .hl{flex:1;height:1px;background:#999;min-width:20px;}
+/* 顶部Header */
+.header{padding:12px 16px 10px;background:#fff;position:sticky;top:0;z-index:50;box-shadow:0 2px 8px rgba(0,0,0,.06);}
+.logo-area{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px;}
+.logo-img{height:36px;width:auto;display:block;}
+.logo-elev{font-size:22px;font-weight:900;color:#0d2137;letter-spacing:0px;font-family:'PingFang SC','Heiti SC','Microsoft YaHei',sans-serif;line-height:1;}
+.header-title{font-size:15px;font-weight:700;color:#1a3a6b;text-align:center;letter-spacing:3px;}
+.header-subtitle{font-size:11px;color:#718096;text-align:center;margin-top:2px;letter-spacing:2px;}
 
-/* ===== 进度条 ===== */
-.progress-container{padding:12px 16px 10px;background:#fff;position:sticky;top:55px;z-index:49;border-bottom:1px solid #edf2f7;}
-.progress-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
-.progress-title{font-size:12px;font-weight:600;color:#718096;}
-.progress-percent{font-size:15px;font-weight:800;background:linear-gradient(135deg,#667eea,#764ba2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
-.progress-bar{height:5px;background:#e2e8f0;border-radius:3px;overflow:hidden;}
-.progress-fill{height:100%;width:0%;background:linear-gradient(90deg,#667eea 0%,#764ba2 100%);border-radius:3px;transition:width .3s ease;}
+/* 统计卡片 */
+.stats-bar{background:#fff;padding:12px 16px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;border-bottom:1px solid #edf2f7;}
+.stat-item{text-align:center;padding:8px;background:linear-gradient(135deg,#f8f9ff,#f5f3ff);border-radius:10px;}
+.stat-num{font-size:20px;font-weight:800;background:linear-gradient(135deg,#667eea,#764ba2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.stat-label{font-size:11px;color:#718096;margin-top:2px;}
 
-/* ===== Tab分区栏 ===== */
-.zone-tabs{display:flex;gap:0;padding:0 12px;background:#fff;overflow-x:auto;flex-shrink:0;
-  -webkit-overflow-scrolling:touch;border-bottom:2px solid #edf2f7;position:sticky;top:101px;z-index:48;
-  -webkit-backface-visibility:hidden;will-change:transform;}
-.zone-tabs::-webkit-scrollbar{display:none;}
-.zone-tab{padding:12px 18px;white-space:nowrap;font-size:14px;font-weight:600;color:#718096;
-  cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s ease;flex-shrink:0;
-  -webkit-tap-highlight-color:transparent;}
-.zone-tab.active{color:#667eea;border-bottom-color:#667eea;font-weight:700;}
+/* 新建按钮 */
+.new-btn-bar{padding:12px 16px;}
+.new-btn{width:100%;padding:14px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(102,126,234,.3);letter-spacing:2px;-webkit-tap-highlight-color:transparent;}
+.new-btn:active{transform:translateY(1px);box-shadow:0 2px 6px rgba(102,126,234,.3);}
 
-/* ===== 内容区容器：固定高度防抖动 ===== */
-.zone-content{position:relative;overflow:hidden;min-height:60vh;}
-.zone-panel{display:none;padding:12px;}
-.zone-panel.active{display:block;}
+/* 列表区 */
+.list-section{padding:0 16px;}
+.list-section-title{font-size:13px;font-weight:700;color:#718096;padding:12px 4px 8px;letter-spacing:1px;display:flex;justify-content:space-between;align-items:center;}
+.list-count{font-size:12px;color:#a0aec0;font-weight:400;}
 
-/* ===== Tab滑动动画 ===== */
-.zone-content.slide-left{
-  animation: slideFromRight 0.32s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-  -webkit-animation: slideFromRight 0.32s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-}
-.zone-content.slide-right{
-  animation: slideFromLeft 0.32s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-  -webkit-animation: slideFromLeft 0.32s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-}
-@keyframes slideFromRight{
-  from{transform:translateX(50%);opacity:0;}
-  to{transform:translateX(0);opacity:1;}
-}
-@-webkit-keyframes slideFromRight{
-  from{-webkit-transform:translateX(50%);opacity:0;}
-  to{-webkit-transform:translateX(0);opacity:1;}
-}
-@keyframes slideFromLeft{
-  from{transform:translateX(-50%);opacity:0;}
-  to{transform:translateX(0);opacity:1;}
-}
-@-webkit-keyframes slideFromLeft{
-  from{-webkit-transform:translateX(-50%);opacity:0;}
-  to{-webkit-transform:translateX(0);opacity:1;}
-}
+/* 记录卡片 */
+.service-card{background:#fff;border-radius:14px;padding:14px 16px;margin-bottom:12px;border:1.5px solid #e2e8f0;box-shadow:0 2px 8px rgba(0,0,0,.04);position:relative;transition:all .2s ease;}
+.service-card:active{transform:scale(.99);box-shadow:0 1px 4px rgba(0,0,0,.06);}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
+.card-project{font-size:15px;font-weight:700;color:#2d3748;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-right:8px;}
+.card-date-tag{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;font-size:10px;padding:3px 8px;border-radius:10px;font-weight:600;flex-shrink:0;}
+.card-meta{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;margin-bottom:10px;}
+.meta-item{font-size:12px;color:#4a5568;display:flex;align-items:center;gap:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.meta-label{color:#a0aec0;flex-shrink:0;}
+.meta-value{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.card-tags{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px;}
+.tag{font-size:10px;padding:2px 8px;border-radius:8px;background:#edf2f7;color:#718096;font-weight:500;}
+.tag-construct{background:#e6fffa;color:#234e52;}
+.tag-service{background:#fefcbf;color:#744210;}
+.card-btns{display:flex;gap:8px;padding-top:10px;border-top:1px solid #edf2f7;}
+.card-btn{flex:1;padding:8px 0;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.btn-view{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;}
+.btn-print{background:linear-gradient(135deg,#27ae60,#2ecc71);color:#fff;}
+.btn-delete{background:#fff5f5;color:#c53030;border:1px solid #fed7d7;}
 
-/* ===== 手风琴样式 ===== */
-.accordion{background:#fff;border-radius:12px;overflow:hidden;margin-bottom:10px;border:1.5px solid #e2e8f0;
-  box-shadow:0 1px 4px rgba(0,0,0,.04);}
-.accordion-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;
-  cursor:pointer;background:#fff;transition:background .2s;-webkit-tap-highlight-color:transparent;}
-.accordion-header:active{background:#f7fafc;}
-.accordion-header .acc-left{display:flex;align-items:center;gap:10px;}
-.accordion-header .acc-icon{font-size:20px;}
-.accordion-header .acc-title{font-size:14px;font-weight:600;color:#2d3748;}
-.accordion-header .acc-arrow{font-size:14px;color:#a0aec0;transition:transform .25s ease;flex-shrink:0;}
-.accordion.active .accordion-header .acc-arrow{transform:rotate(180deg);color:#667eea;}
-.accordion.active .accordion-header{background:linear-gradient(135deg,#f8f9ff,#f5f3ff);}
-.accordion-body{max-height:0;overflow:hidden;transition:max-height .3s ease,padding .3s ease;padding:0 16px;}
-.accordion.active .accordion-body{max-height:2000px;padding:12px 16px 16px;border-top:1px solid #edf2f7;}
-.accordion .card-status{width:8px;height:8px;border-radius:50%;background:#cbd5e0;display:inline-block;}
-.accordion .card-status.filled{background:#68d391;}
+/* 空状态 */
+.empty-state{text-align:center;padding:60px 20px;color:#a0aec0;}
+.empty-icon{font-size:56px;margin-bottom:16px;opacity:.5;}
+.empty-title{font-size:15px;font-weight:600;color:#718096;margin-bottom:6px;}
+.empty-desc{font-size:12px;color:#a0aec0;}
 
-/* ===== 分区小标题 ===== */
-.zone-section-title{font-size:13px;font-weight:700;color:#718096;padding:8px 4px 6px;letter-spacing:1px;}
+/* 底部操作栏 */
+.bottom-bar{position:fixed;bottom:0;left:0;right:0;background:#fff;padding:10px 16px;box-shadow:0 -2px 8px rgba(0,0,0,.08);z-index:100;display:flex;gap:10px;}
+.bottom-bar .btn{flex:1;padding:12px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;border:none;-webkit-tap-highlight-color:transparent;}
+.btn-export{background:#f7fafc;color:#27ae60;border:1.5px solid #9ae6b4;}
+.btn-import{background:#f7fafc;color:#2980b9;border:1.5px solid #90cdf4;}
 
-/* ===== 卡片网格 ===== */
-.sec-cards{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:4px;}
-.form-card{background:#fff;border-radius:12px;padding:14px 12px;border:1.5px solid #e2e8f0;cursor:pointer;position:relative;box-shadow:0 1px 4px rgba(0,0,0,.04);transition:all .2s ease;-webkit-tap-highlight-color:transparent;}
-.form-card:active{transform:scale(.97);box-shadow:0 2px 8px rgba(102,126,234,.15);}
-.form-card.full-width{grid-column:1/-1;}
-.card-blue{border-top:3px solid #90cdf4;}
-.card-purple{border-top:3px solid #b794f4;}
-.card-green{border-top:3px solid #81e6d9;}
-.card-orange{border-top:3px solid #f6ad55;}
-.card-pink{border-top:3px solid #f687b3;}
-.card-yellow{border-top:3px solid #fcd34d;}
-.card-indigo{border-top:3px solid #9fa8da;}
-.card-teal{border-top:3px solid #4fd1c5;}
-.card-icon{font-size:20px;margin-bottom:6px;display:block;}
-.card-label{color:#4a5568;font-size:13px;font-weight:600;line-height:1.3;}
-.card-status{position:absolute;top:12px;right:12px;width:7px;height:7px;border-radius:50%;background:#cbd5e0;transition:background .2s;}
-.card-status.filled{background:#68d391;}
-.card-count{position:absolute;top:10px;right:10px;background:#edf2f7;color:#718096;font-weight:600;padding:2px 7px;border-radius:8px;font-size:10px;}
-
-/* ===== 底部操作栏 ===== */
-.btm{position:fixed;bottom:0;left:0;right:0;display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:10px 16px;background:#fff;box-shadow:0 -2px 8px rgba(0,0,0,.08);z-index:100;}
-.btm .btn-primary{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;border:none;border-radius:10px;padding:14px 0;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 3px 10px rgba(102,126,234,.3);letter-spacing:1px;}
-.btm .btn-primary:active{box-shadow:0 1px 4px rgba(102,126,234,.3);transform:translateY(1px);}
-.btm .btn-secondary{background:#f7fafc;color:#718096;border:1.5px solid #e2e8f0;border-radius:10px;padding:14px 0;font-size:14px;font-weight:600;cursor:pointer;letter-spacing:1px;}
-.btm .btn-secondary:active{background:#edf2f7;}
-
-/* ===== 表单样式（弹窗内） ===== */
-.fr{display:flex;align-items:center;margin-bottom:10px;gap:8px;}
-.fr label{min-width:80px;font-size:13px;color:#333;flex-shrink:0;}
-.fr input,.fr select,.fr textarea{flex:1;border:1px solid #ddd;border-radius:6px;padding:8px 10px;font-size:14px;background:#fafafa;outline:none;}
-.fr input:focus,.fr textarea:focus{border-color:#667eea;background:#fff;}
-.cg{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;}
-.ci{display:flex;align-items:center;gap:4px;font-size:13px;background:#f0f4f8;padding:5px 10px;border-radius:15px;cursor:pointer;}
-.ci input{width:16px;height:16px;accent-color:#667eea;}
-.ci.ck{background:#d4e6f1;}
-.ri{background:#f8f9fa;border-radius:8px;padding:10px;margin-bottom:8px;border-left:3px solid #667eea;}
-.ri input{width:100%;border:1px solid #e0e0e0;border-radius:4px;padding:6px 8px;font-size:13px;margin-bottom:4px;word-break:break-all;}
-.ri select{border:1px solid #e0e0e0;border-radius:4px;padding:6px 8px;font-size:13px;}
-.ar{text-align:center;padding:8px;color:#667eea;font-size:13px;cursor:pointer;border:1px dashed #667eea;border-radius:6px;margin-top:5px;}
-.lr{display:flex;gap:6px;margin-bottom:8px;}
-.lr select{flex:1;border:1px solid #ddd;border-radius:6px;padding:8px 4px;font-size:13px;background:#fafafa;}
-
-/* ===== 弹窗Modal ===== */
-.mo{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:999;}
-.mi{position:absolute;bottom:0;width:100%;max-height:90vh;background:#fff;border-radius:12px 12px 0 0;overflow:hidden;display:flex;flex-direction:column;}
-.mh{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid #eee;flex-shrink:0;}
-.mh h3{font-size:15px;color:#fff;}
-.mh button{background:none;border:none;font-size:22px;cursor:pointer;color:#fff;}
-.mb{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:0;min-height:0;}
-.modal-confirm{display:flex;padding:4px 16px 4px;flex-shrink:0;background:#fff;border-top:1px solid #eee;z-index:10;}
-.modal-confirm button{flex:1;padding:10px;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;}
-
-/* ===== 签名显示 ===== */
-.sd{border:1px solid #e0e0e0;border-radius:6px;height:60px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:#fafafa;overflow:hidden;}
-.sd img{max-height:55px;max-width:90%;}
-.sd span{font-size:12px;color:#bbb;}
-.scw{border:1px solid #ddd;border-radius:8px;background:#fff;position:relative;height:200px;touch-action:none;margin:0 16px;}
-.scw canvas{display:block;width:100%;height:200px;touch-action:none;}
-.scw .sp{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:14px;color:#bbb;pointer-events:none;}
-.sab{display:flex;gap:10px;padding:10px 16px;}
-.sab button{flex:1;padding:10px;border:none;border-radius:6px;font-size:14px;cursor:pointer;}
-.scg{background:#f0f0f0;color:#999;}
-.scl{background:#eee;color:#333;}
-.scf{background:#667eea;color:#fff;}
-
-/* ===== Toast ===== */
+/* Toast */
 .toast{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.75);color:#fff;padding:12px 24px;border-radius:8px;font-size:14px;z-index:9999;}
 
-/* ===== 已保存记录卡片 ===== */
-.rec-card{background:#fff;border-radius:12px;padding:14px;margin-bottom:10px;border:1.5px solid #e2e8f0;box-shadow:0 1px 4px rgba(0,0,0,.04);position:relative;}
-.rec-card .rc-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
-.rec-card .rc-name{color:#4a5568;font-size:14px;font-weight:700;}
-.rec-card .rc-time{font-size:10px;color:#a0aec0;}
-.rec-card .rc-info{font-size:12px;color:#718096;margin:2px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.rec-card .rc-btns{display:flex;gap:8px;margin-top:8px;}
-.rec-card .rc-btns button{flex:1;padding:8px;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;}
-.rc-btn-view{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;}
-.rc-btn-del{background:#f7fafc;color:#c0392b;border:1.5px solid #fed7d7!important;}
-
-/* ===== 信封样式详情 ===== */
-.env-card{position:relative;margin:10px 0;border-radius:16px;overflow:hidden;background:#fff;box-shadow:0 4px 20px rgba(0,0,0,.12);}
-.env-top{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);padding:16px 20px 30px;color:#fff;}
-.env-top h2{font-size:16px;font-weight:700;margin-bottom:4px;}
-.env-top .env-sub{font-size:11px;opacity:.8;}
-.env-body{background:#fff;margin:-18px 12px 0;border-radius:12px 12px 0 0;padding:16px 14px;min-height:120px;position:relative;box-shadow:0 -2px 10px rgba(0,0,0,.06);}
-.env-body::before{content:'';position:absolute;top:-8px;left:0;right:0;height:8px;background:repeating-linear-gradient(90deg,transparent,transparent 8px,#fff 8px,#fff 10px);border-radius:4px 4px 0 0;}
-.env-field{margin-bottom:12px;}
-.env-field .env-label{font-size:11px;color:#a0aec0;margin-bottom:2px;}
-.env-field .env-value{font-size:14px;color:#2d3748;font-weight:600;word-break:break-all;}
-.env-progress{margin:12px 0 8px;}
-.env-progress .ep-header{display:flex;justify-content:space-between;font-size:11px;color:#718096;margin-bottom:4px;}
-.env-progress .ep-bar{height:6px;background:#edf2f7;border-radius:3px;overflow:hidden;}
-.env-progress .ep-fill{height:100%;background:linear-gradient(90deg,#667eea,#764ba2);border-radius:3px;transition:width .3s;}
-.env-btns{display:flex;gap:10px;margin-top:14px;}
-.env-btns button{flex:1;padding:12px;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:1px;}
-.env-btn-edit{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;box-shadow:0 3px 10px rgba(102,126,234,.3);}
-.env-btn-print{background:linear-gradient(135deg,#27ae60,#2ecc71);color:#fff;box-shadow:0 3px 10px rgba(39,174,96,.3);}
-
-/* ===== 新手引导 ===== */
+/* 新手引导 */
 .guide-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;}
 .guide-box{background:#fff;border-radius:16px;padding:24px 20px;max-width:340px;width:100%;box-shadow:0 10px 40px rgba(0,0,0,.3);}
 .guide-box h2{font-size:18px;font-weight:800;color:#2d3748;margin-bottom:16px;text-align:center;}
@@ -371,219 +250,23 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
 .guide-section .step-num{background:#667eea;color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px;}
 .guide-close-btn{width:100%;padding:14px;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;margin-top:8px;}
 
-/* ===== 响应式微调 ===== */
+/* 确认弹窗 */
+.confirm-mask{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:9999;align-items:center;justify-content:center;padding:30px;}
+.confirm-mask.show{display:flex;}
+.confirm-box{background:#fff;border-radius:12px;padding:20px;max-width:300px;width:100%;text-align:center;}
+.confirm-box h3{font-size:16px;font-weight:700;color:#2d3748;margin-bottom:8px;}
+.confirm-box p{font-size:13px;color:#718096;margin-bottom:16px;line-height:1.5;}
+.confirm-btns{display:flex;gap:10px;}
+.confirm-cancel{flex:1;padding:10px;border:1px solid #e2e8f0;border-radius:8px;background:#f7fafc;color:#718096;font-size:14px;cursor:pointer;}
+.confirm-ok{flex:1;padding:10px;border:none;border-radius:8px;background:#e53e3e;color:#fff;font-size:14px;cursor:pointer;}
+
 @media(max-width:360px){
-  .zone-tab{padding:10px 10px;font-size:12px;}
-  .form-card{padding:12px 10px;}
-  .card-label{font-size:12px;}
+  .card-project{font-size:14px;}
+  .stat-num{font-size:18px;}
 }
 </style>
-
 </head>
 <body>
-<script>
-// 新增的弹窗控制函数
-function openMo(id){
-  var mo=document.getElementById(id);
-  // 锁定背景页面，防止iOS键盘弹起时整个页面上移
-  var scrollY=window.scrollY;
-  document.body.style.position='fixed';
-  document.body.style.top='-'+scrollY+'px';
-  document.body.style.width='100%';
-  document.body.style.overflow='hidden';
-  document.body.dataset.scrollY=scrollY;
-  mo.style.display='block';
-  // 确定按钮绑定
-  var cfBtn=mo.querySelector('.modal-confirm button');
-  if(cfBtn&&!cfBtn._bound){
-    cfBtn._bound=true;
-    cfBtn.addEventListener('click',function(){closeMo(id);});
-  }
-}
-function closeMo(id){
-  var mo=document.getElementById(id);
-  mo.style.display='none';
-  // 恢复背景页面
-  var scrollY=parseInt(document.body.dataset.scrollY||'0');
-  document.body.style.position='';
-  document.body.style.top='';
-  document.body.style.width='';
-  document.body.style.overflow='';
-  window.scrollTo(0,scrollY);
-  var mi=mo.querySelector('.mi');
-  if(mi){mi.style.maxHeight='85vh';mi.style.position='';mi.style.top='';mi.style.bottom='';mi.style.left='';mi.style.right='';mi.style.height='';mi.style.borderRadius='12px 12px 0 0';}
-  updateBtnStatus();
-}
-// 键盘弹起时 - 用visualViewport动态适配弹窗位置和高度
-(function(){
-  var activeMi = null;
-  var vvHandler = null;
-
-  function adjustForKeyboard() {
-    if (!activeMi) return;
-    var vv = window.visualViewport;
-    if (!vv) return;
-    var kbHeight = window.innerHeight - vv.height;
-    if (kbHeight > 80) {
-      // 键盘弹起：弹窗占满可视区域，确定按钮始终可见，内容区滚动
-      activeMi.style.position = 'fixed';
-      activeMi.style.top = vv.offsetTop + 'px';
-      activeMi.style.bottom = 'auto';
-      activeMi.style.left = '0';
-      activeMi.style.right = '0';
-      activeMi.style.height = vv.height + 'px';
-      activeMi.style.maxHeight = vv.height + 'px';
-      activeMi.style.borderRadius = '0 0 12px 12px';
-    } else {
-      // 键盘收起：恢复默认
-      activeMi.style.position = '';
-      activeMi.style.top = '';
-      activeMi.style.bottom = '';
-      activeMi.style.left = '';
-      activeMi.style.right = '';
-      activeMi.style.height = '';
-      activeMi.style.maxHeight = '85vh';
-      activeMi.style.borderRadius = '12px 12px 0 0';
-    }
-  }
-
-  function scrollInputIntoView(target) {
-    setTimeout(function(){
-      var mb = activeMi ? activeMi.querySelector('.mb') : null;
-      if (!mb || !target) return;
-      var miRect = activeMi.getBoundingClientRect();
-      var inputRect = target.getBoundingClientRect();
-      if (inputRect.bottom > miRect.bottom - 50) {
-        mb.scrollTop += inputRect.bottom - miRect.bottom + 60;
-      }
-    }, 400);
-    setTimeout(function(){
-      var mb = activeMi ? activeMi.querySelector('.mb') : null;
-      if (!mb) return;
-      var miRect = activeMi.getBoundingClientRect();
-      var focused = activeMi.querySelector('input:focus, textarea:focus');
-      if (!focused) return;
-      var inputRect = focused.getBoundingClientRect();
-      if (inputRect.bottom > miRect.bottom - 50) {
-        mb.scrollTop += inputRect.bottom - miRect.bottom + 60;
-      }
-    }, 800);
-  }
-
-  document.addEventListener('focusin', function(e){
-    var mi = e.target.closest('.mi');
-    if (!mi) return;
-    activeMi = mi;
-    if (!vvHandler) {
-      vvHandler = adjustForKeyboard;
-      window.visualViewport.addEventListener('resize', vvHandler);
-      window.visualViewport.addEventListener('scroll', vvHandler);
-    }
-    adjustForKeyboard();
-    scrollInputIntoView(e.target);
-  });
-
-  document.addEventListener('focusout', function(e){
-    if (e.target.matches('select, input[type="date"]')) return;
-    setTimeout(function(){
-      var newFocus = document.activeElement;
-      if (newFocus && activeMi && activeMi.contains(newFocus)) return;
-      if (newFocus && newFocus.matches('.mi input:not([type="date"]):not([type="checkbox"]):not([type="radio"]), .mi textarea')) return;
-      if (activeMi) {
-        var modalVisible = activeMi.parentElement && activeMi.parentElement.style.display !== 'none';
-        if (modalVisible) {
-          activeMi.style.position = '';
-          activeMi.style.top = '';
-          activeMi.style.bottom = '';
-          activeMi.style.left = '';
-          activeMi.style.right = '';
-          activeMi.style.height = '';
-          activeMi.style.maxHeight = '85vh';
-          activeMi.style.borderRadius = '12px 12px 0 0';
-        }
-        activeMi = null;
-      }
-    }, 150);
-  });
-})();
-// 滚动时隐藏/显示卡片区域，只保留吸顶标题
-(function(){
-  var secTitles=document.querySelectorAll('.sec-title');
-  var secCards=document.querySelectorAll('.sec-cards');
-  function checkScroll(){
-    secTitles.forEach(function(title,idx){
-      var cards=secCards[idx];
-      if(!cards)return;
-      var rect=title.getBoundingClientRect();
-      // 标题吸顶时隐藏卡片区域（不在本区域可视范围内）
-      var isSticky=rect.top<=120&&rect.top>=-30;
-      if(isSticky){
-        cards.style.maxHeight='0';
-        cards.style.overflow='hidden';
-        cards.style.padding='0';
-        cards.style.opacity='0';
-        cards.style.transition='max-height .2s,opacity .2s,padding .2s';
-      }else{
-        cards.style.maxHeight='2000px';
-        cards.style.overflow='';
-        cards.style.padding='';
-        cards.style.opacity='1';
-      }
-    });
-  }
-  // 点击吸顶标题滚动回该区域并展开卡片
-  secTitles.forEach(function(title,idx){
-    title.style.cursor='pointer';
-    title.addEventListener('click',function(){
-      var cards=secCards[idx];
-      if(cards){
-        cards.style.maxHeight='2000px';
-        cards.style.overflow='';
-        cards.style.padding='';
-        cards.style.opacity='1';
-      }
-      title.scrollIntoView({behavior:'smooth',block:'start'});
-    });
-  });
-  var scrollTimer;
-  window.addEventListener('scroll',function(){
-    clearTimeout(scrollTimer);
-    scrollTimer=setTimeout(checkScroll,80);
-  });
-  setTimeout(checkScroll,500);
-})();
-function updateBtnStatus(){
-  var s,v,filled=0,total=11;
-  // 基本信息
-  s=document.getElementById('st_basic');if(s){v=0;if(document.getElementById('f1')&&document.getElementById('f1').value.trim())v++;if(document.getElementById('f2')&&document.getElementById('f2').value.trim())v++;if(document.getElementById('f12')&&document.getElementById('f12').value.trim())v++;s.className=v===3?'card-status filled':'card-status';if(v===3)filled++;}
-  // 项目信息
-  s=document.getElementById('st_project');if(s){v=0;if(document.getElementById('f3')&&document.getElementById('f3').value.trim())v++;var elevs=document.querySelectorAll('.elev-row');var hasElev=false;elevs.forEach(function(r){var m=r.querySelector('.elev-model');if(m&&m.value.trim())hasElev=true;});if(hasElev)v++;if(document.getElementById('locDisplay')&&document.getElementById('locDisplay').value.trim())v++;s.className=v===3?'card-status filled':'card-status';if(v===3)filled++;}
-  // 联系信息
-  s=document.getElementById('st_contact');if(s){v=0;if(document.getElementById('f8')&&document.getElementById('f8').value.trim())v++;if(document.getElementById('f9')&&document.getElementById('f9').value.trim())v++;if(document.getElementById('f10')&&document.getElementById('f10').value.trim())v++;if(document.getElementById('f11')&&document.getElementById('f11').value.trim())v++;s.className=v===4?'card-status filled':'card-status';if(v===4)filled++;}
-  // 施工类别
-  s=document.getElementById('st_build');if(s){v=document.querySelectorAll('input[name="construction"]:checked').length;s.className=v>0?'card-status filled':'card-status';if(v>0)filled++;}
-  // 服务内容
-  s=document.getElementById('st_service');if(s){v=0;['preSale','during','afterSale','visit'].forEach(function(n){v+=document.querySelectorAll('input[name="'+n+'"]:checked').length;});s.className=v>0?'card-status filled':'card-status';if(v>0)filled++;}
-  // 服务流转
-  s=document.getElementById('st_flow');if(s){v=document.querySelectorAll('input[name="flowTo"]:checked').length;s.className=v>0?'card-status filled':'card-status';if(v>0)filled++;}
-  // 沟通记录
-  s=document.getElementById('st_record');if(s){var recs=document.querySelectorAll('#recBox .ri');var hasContent=0;recs.forEach(function(r){var inp=r.querySelector('input[type="text"]');if(inp&&inp.value.trim())hasContent++;});s.textContent=hasContent+'条';if(hasContent>0)filled++;}
-  // 影响说明
-  s=document.getElementById('st_impact');if(s){v=0;if(document.getElementById('f13')&&document.getElementById('f13').value.trim())v++;v+=document.querySelectorAll('input[name="impact"]:checked').length;s.className=v>0?'card-status filled':'card-status';if(v>0)filled++;}
-  // 签字
-  s=document.getElementById('st_sign');if(s){v=0;if(typeof sig1Data!='undefined'&&sig1Data)v++;if(typeof sig2Data!='undefined'&&sig2Data)v++;s.className=v===2?'card-status filled':'card-status';if(v===2)filled++;}
-  // 已保存记录
-  s=document.getElementById('st_history');if(s){var list=_wtListCache;s.textContent=list.length+'条';if(list.length>0)filled++;}
-  // 数据迁移
-  s=document.getElementById('st_data');if(s){s.className='card-status';}
-  // 更新进度条
-  var pct=Math.round(filled/total*100);
-  var pctEl=document.getElementById('progressPct');
-  var fillEl=document.getElementById('progressFill');
-  if(pctEl)pctEl.textContent=pct+'%';
-  if(fillEl)fillEl.style.width=pct+'%';
-}
-</script>
 
 <!-- 顶部Header -->
 <div class="header">
@@ -591,1182 +274,327 @@ function updateBtnStatus(){
     <img class="logo-img" src="data:image/webp;base64,UklGRrwFAABXRUJQVlA4ILAFAADwIACdASrYAEAAPm0ulUYkIqIhLTN7oIANiWIA0XiYk6fAcypylKVfR8u8/Dbw+YDzgP9B6n95359z2hL9E7d/719M3U1HvX4z8e/yx1EW+/ZA9GXqr6AdtRxosfn/A9PH/M/wfnl+ov+x7h/8p/r/WV/ab2E/07SHbXhZHt4C8qbGczRQ+YhCP904TtF2T0CCKyarJnypB/hAK6gQjXC9iwsKwwC+OU9rHGVQYHoJ6rQgTA7XrCkoSqGEyqPx+s/JTspyE0a/wsHHmamelpQCinlWWUKPRRn2jng/2F6cIdPGnOlsdbXFcJsLUCwUtt4xh8NxuwH9RK03w+j532Ir+l0sI72fbPxXS3J23eO7gAD+/KharSACg7d/D3l4HJGQhCdQ227rBH9fuFBIE9S7KXkbv7srGfvvq8TrxYIaGqIqQ/b0R4LwFqs4veGNAtr2N/9XffjClI9y+Ns078yTGj+KSGmGoaW2Fg/yvd4F7TzYht4cvAZutRHBgxFjmYPyk/Z1thQLvhA7bIQJk3t7yUcjDBEsNXXBg1DpLtTLyUkG1b9F3vtmuHLAPrBInM7M7U/c1FeNzDPVV+6BRvH2iEWC6nY3/1H7aw0kAHQYdp42tv5GgpRGgiYmYUVL5Qd/4ijq3Rfbapv3bWVmxZKsplOi5YLgdbLkTcDBjYXWKam/rObme42a6zh11FrQw4NEOL27WA25k2pume6U/xMh4P/PDiwbukzK7WSnmwOFe0ciPINJrwLzrkAeD6BD0SWAq0Q1wWwnlYW3LUY/y8m3f+f/X/n/79m0bBWtpP5xqSkXsKoWDOqRiwoP0BAnzpBgbm894mRq0lIcL4xJBCo9bdnhraMV0K/QTKujLzuUPojKhYvfv/p70tbIdD3NBjM+qJFCBD9zPo9D482iTfk6qobTD32BQWLSMxicFoe6FYzy/oPmoP638ZRjj32Uz6ALnezqdAe7rPmGGNdjTIcgSEb5jx6vZjH2PD/lXhCFVeLX4LauAmPeFQ6h2f+s8cklG4i5Cq0lzmoy063xvLZoCPrQxnTlVru5RClIu5c9JB+MEPv59l/Ael7/Yx1PxGUL7lXtPJR4nJaLQfl2losnfjlp9kdVwsxXlk6+iLf0jX0xuGblGMMs8ud9+H1rRDUFRM6kdd7WGgH/nGnS9whJCrYMo6AiYO+SteHvU7UDlX1bDoZi+EzPtFErY2YzD7EssR7JEWpOcLeheC72VKac5Bz192vBsPf1uOnFNig0EZTR9OjSmAhxfknwgxOT47IGBghTTIbjZO6jUIanJs/JhPwzLLc2ZqbmiNX4+30SicCTM90VJVN+6i5YU4V5Puf3Asu802W45DRPchPNC9NQxrs/y3VvUDf2cqxaXmk5AP6bgaO9Ofuv5AMvDOmfSY7oDs1NLtdFkqoWjzOOax+M/uI4MHe9puGHMgqTVcP25iaQcuBHlgSqCp+iQmBoivAqM6YtWQoqlZ+fSyfSnYKbRd7DsI5CmBFvlwzdlHP1+nQybKj8mvr3IyDZpBJ10OtAnq10T2GQOXEkw1HHsm60s9vId47czppsEl+VZyrnQ5Z6i8+c1Y7m7QILvbdD+GIatZWMRNtiR+YCpX9OUp26fZTgoIjkaD3ZcEjnT4/iENcoz/7Hfq09z/newBZMpuD+1ko1UoWKpIB/jGpf/qNMYFfTe5rvRVFq+1Xdk5EsJvsgYwENrNB68IrkFpHu+2KzzABc7FqwVfAhJdqRCxeasS4dDiF0b5Lqfasg8AVMtt3biVFXL9wLKy5X69mHZaD0UtE5OafUdUcdB9xvfmW/Siv+xCmWpjo5qPnSkcOt09PGXwAYpphRp9NLPaSXlQ0XCSNh9OoC74DABb0pbu5taHZj4uzOfu9rRKUvW+fWkRUxDr2zbvFTxLY/XvUy26/eAhK9wRTlytnMF2ZwTwAA" alt="WEITE">
     <span class="logo-elev">电梯</span>
   </div>
-  <div class="header-sub"><span class="hl"></span><span>技术服务单</span><span class="hl"></span></div>
+  <div class="header-title">技术服务单</div>
+  <div class="header-subtitle">WEITE SERVICE</div>
 </div>
 
-<!-- 进度条 -->
-<div class="progress-container">
-  <div class="progress-header">
-    <span class="progress-title">填写进度</span>
-    <span class="progress-percent" id="progressPct">0%</span>
+<!-- 统计卡片 -->
+<div class="stats-bar">
+  <div class="stat-item">
+    <div class="stat-num" id="statTotal">0</div>
+    <div class="stat-label">总记录</div>
   </div>
-  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  <div class="stat-item">
+    <div class="stat-num" id="statMonth">0</div>
+    <div class="stat-label">本月</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-num" id="statSigned">0</div>
+    <div class="stat-label">已签字</div>
+  </div>
 </div>
 
-<!-- Tab分区栏 -->
-<div class="zone-tabs" id="zoneTabs">
-  <div class="zone-tab active" onclick="switchTab(0)">基本信息</div>
-  <div class="zone-tab" onclick="switchTab(1)">服务详情</div>
-  <div class="zone-tab" onclick="switchTab(2)">签字确认</div>
+<!-- 新建按钮 -->
+<div class="new-btn-bar">
+  <button class="new-btn" onclick="goToDetail()">+ 新建服务单</button>
 </div>
 
-<!-- Tab内容区 -->
-<div class="zone-content" id="zoneContent">
-  <!-- Tab 1: 基本信息（手风琴） -->
-  <div class="zone-panel active" id="zonePanel_0">
-    <div class="zone-section-title">基础资料</div>
-    <!-- 申请人 -->
-    <div class="accordion active" data-acc="basic">
-      <div class="accordion-header" onclick="toggleAccordion('basic')">
-        <div class="acc-left"><span class="acc-icon">📋</span><span class="acc-title">申请人</span></div>
-        <div style="display:flex;align-items:center;gap:10px;">
-          <span class="card-status" id="st_basic"></span>
-          <span class="acc-arrow">▼</span>
-        </div>
-      </div>
-      <div class="accordion-body">
-        <div class="fr"><label>服务指令发起人</label><input type="text" id="f1" oninput="updateBtnStatus()"></div>
-        <div class="fr"><label>此项目第</label><input type="number" id="f2" style="max-width:80px;" oninput="updateBtnStatus()"><span style="font-size:13px;">次服务</span></div>
-        <div class="fr"><label>服务时间</label><input type="datetime-local" id="f12" oninput="updateBtnStatus()"></div>
-      </div>
-    </div>
-    <!-- 项目信息 -->
-    <div class="accordion" data-acc="project">
-      <div class="accordion-header" onclick="toggleAccordion('project')">
-        <div class="acc-left"><span class="acc-icon">🏗️</span><span class="acc-title">项目信息</span></div>
-        <div style="display:flex;align-items:center;gap:10px;">
-          <span class="card-status" id="st_project"></span>
-          <span class="acc-arrow">▼</span>
-        </div>
-      </div>
-      <div class="accordion-body">
-        <div class="fr"><label>项目名</label><input type="text" id="f3" oninput="updateBtnStatus()"></div>
-        <div id="elevBox"></div>
-        <div class="ar" id="addElevBtn" style="margin-bottom:10px;">+ 添加电梯</div>
-        <div style="margin-bottom:10px;">
-          <label style="font-size:13px;color:#333;display:block;margin-bottom:6px;">项目所在地</label>
-          <div class="fr" style="margin-bottom:4px;">
-            <input type="text" id="locDisplay" placeholder="点击选择省/市/区" readonly style="flex:1;background:#fafafa;cursor:pointer;" onclick="showLocPicker()">
-          </div>
-          <div class="fr" style="margin-bottom:4px;">
-            <input type="text" id="f5" placeholder="详细地址" style="flex:1;" oninput="updateBtnStatus()">
-          </div>
-        </div>
-      </div>
-    </div>
-    <!-- 联系方式 -->
-    <div class="accordion" data-acc="contact">
-      <div class="accordion-header" onclick="toggleAccordion('contact')">
-        <div class="acc-left"><span class="acc-icon">📞</span><span class="acc-title">联系方式</span></div>
-        <div style="display:flex;align-items:center;gap:10px;">
-          <span class="card-status" id="st_contact"></span>
-          <span class="acc-arrow">▼</span>
-        </div>
-      </div>
-      <div class="accordion-body">
-        <div class="fr"><label>现场联系人</label><input type="text" id="f8" oninput="updateBtnStatus()"></div>
-        <div class="fr"><label>联系电话</label><input type="tel" id="f9" pattern="^1[3-9]\d{9}$" maxlength="11" placeholder="11位手机号" oninput="updateBtnStatus()"></div>
-        <div class="fr"><label>服务人</label><input type="text" id="f10" oninput="updateBtnStatus()"></div>
-        <div class="fr"><label>服务电话</label><input type="tel" id="f11" pattern="^1[3-9]\d{9}$" maxlength="11" placeholder="11位手机号" oninput="updateBtnStatus()"></div>
-      </div>
-    </div>
-    <!-- 施工类别 -->
-    <div class="accordion" data-acc="build">
-      <div class="accordion-header" onclick="toggleAccordion('build')">
-        <div class="acc-left"><span class="acc-icon">🔧</span><span class="acc-title">施工类别</span></div>
-        <div style="display:flex;align-items:center;gap:10px;">
-          <span class="card-status" id="st_build"></span>
-          <span class="acc-arrow">▼</span>
-        </div>
-      </div>
-      <div class="accordion-body">
-        <div class="cg" id="cgBuild"></div>
-      </div>
-    </div>
+<!-- 列表区 -->
+<div class="list-section">
+  <div class="list-section-title">
+    <span>服务记录</span>
+    <span class="list-count" id="listCount">共 0 条</span>
   </div>
-
-  <!-- Tab 2: 服务详情 -->
-  <div class="zone-panel" id="zonePanel_1">
-    <div class="zone-section-title">服务信息</div>
-    <div class="sec-cards">
-      <div class="form-card card-pink" onclick="openMo('serviceMo')"><span class="card-icon">📝</span><span class="card-label">服务类别</span><div class="card-status" id="st_service"></div></div>
-      <div class="form-card card-yellow" onclick="openMo('flowMo')"><span class="card-icon">🔄</span><span class="card-label">服务节点</span><div class="card-status" id="st_flow"></div></div>
-      <div class="form-card card-indigo full-width" onclick="openMo('recordMo')"><span class="card-icon">💬</span><span class="card-label">服务内容/记录</span><span class="card-count" id="st_record">0条</span></div>
-      <div class="form-card card-teal" onclick="openMo('impactMo')"><span class="card-icon">⚠️</span><span class="card-label">服务说明</span><div class="card-status" id="st_impact"></div></div>
-    </div>
-  </div>
-
-  <!-- Tab 3: 签字确认 -->
-  <div class="zone-panel" id="zonePanel_2">
-    <div class="zone-section-title">确认与数据</div>
-    <div class="sec-cards">
-      <div class="form-card card-purple" onclick="openMo('signMo')"><span class="card-icon">✍️</span><span class="card-label">签字确认</span><div class="card-status" id="st_sign"></div></div>
-      <div class="form-card card-blue" onclick="openMo('historyMo')"><span class="card-icon">📂</span><span class="card-label">已保存</span><span class="card-count" id="st_history">0条</span></div>
-      <div class="form-card card-green full-width" onclick="openMo('dataMo')"><span class="card-icon">📦</span><span class="card-label">数据迁移</span><div class="card-status" id="st_data"></div></div>
-    </div>
-  </div>
+  <div id="serviceList"></div>
 </div>
 
 <!-- 底部操作栏 -->
-<div class="btm"><button class="btn-primary" id="saveBtn">💾 保存服务单</button><button class="btn-secondary" id="clearBtn">🗑️ 清空</button></div>
+<div class="bottom-bar">
+  <button class="btn btn-export" onclick="exportData()">📤 导出</button>
+  <button class="btn btn-import" onclick="importData()">📥 导入</button>
+  <input type="file" id="importFileInput" accept=".json" style="display:none;">
+</div>
 
 <div class="toast" id="toast"></div>
 
-<!-- 服务类别弹窗 -->
-<div class="mo" id="serviceMo"><div class="mi" style="max-height:85vh;">
-<div class="mh" style="background:linear-gradient(135deg,#e74c3c,#c0392b);"><h3>📝 服务类别分类</h3><button onclick="closeMo('serviceMo')" style="background:none;border:none;font-size:22px;cursor:pointer;color:#fff;">✅</button></div>
-<div class="mb" style="padding:14px;">
-  <div id="svcCats"></div>
-</div>
-</div></div>
-
-<!-- 服务流转弹窗 -->
-<div class="mo" id="flowMo"><div class="mi" style="max-height:85vh;">
-<div class="mh" style="background:linear-gradient(135deg,#f39c12,#f1c40f);"><h3>🔄 服务信息流转至</h3><button onclick="closeMo('flowMo')" style="background:none;border:none;font-size:22px;cursor:pointer;color:#fff;">✅</button></div>
-<div class="mb" style="padding:14px;">
-  <div class="cg" id="cgFlow"></div>
-</div>
-</div></div>
-
-<!-- 沟通记录弹窗 -->
-<div class="mo" id="recordMo"><div class="mi" style="max-height:85vh;">
-<div class="mh" style="background:linear-gradient(135deg,#2ecc71,#27ae60);"><h3>💬 服务内容/记录</h3><button onclick="closeMo('recordMo')" style="background:none;border:none;font-size:22px;cursor:pointer;color:#fff;">✅</button></div>
-<div class="mb" style="padding:14px;">
-  <div id="recBox"></div>
-  <div class="ar" id="addRecBtn">+ 添加一条记录</div>
-</div>
-</div></div>
-
-<!-- 影响说明弹窗 -->
-<div class="mo" id="impactMo"><div class="mi" style="max-height:85vh;">
-<div class="mh" style="background:linear-gradient(135deg,#34495e,#2c3e50);"><h3>⚠️ 服务说明</h3><button onclick="closeMo('impactMo')" style="background:none;border:none;font-size:22px;cursor:pointer;color:#fff;">✅</button></div>
-<div class="mb" style="padding:14px;">
-  <div class="fr"><label>需尽快处理项</label><input type="text" id="f13" placeholder="填写序号" oninput="updateBtnStatus()"></div>
-  <div style="font-size:12px;color:#666;margin-bottom:8px;">否则将影响：</div>
-  <div class="cg" id="cgImpact"></div>
-  <div class="fr" id="stopRow" style="display:none;"><label>停梯日期</label><input type="date" id="f14"></div>
-</div>
-</div></div>
-
-<!-- 签字确认弹窗 -->
-<div class="mo" id="signMo"><div class="mi" style="max-height:85vh;">
-<div class="mh" style="background:linear-gradient(135deg,#16a085,#1a5276);"><h3>✍️ 签字确认</h3><button onclick="closeMo('signMo')" style="background:none;border:none;font-size:22px;cursor:pointer;color:#fff;">✅</button></div>
-<div class="mb" style="padding:14px;">
-  <div style="font-size:12px;color:#888;margin-bottom:10px;">点击下方区域弹出手写签名</div>
-  <div style="font-size:13px;font-weight:bold;color:#555;margin-bottom:4px;">服务人签字</div>
-  <div class="sd" id="sd1"><span>点击签名</span></div>
-  <div style="font-size:13px;font-weight:bold;color:#555;margin:10px 0 4px;">被服务人员签字</div>
-  <div class="sd" id="sd2"><span>点击签名</span></div>
-</div>
-</div></div>
-
-<!-- 已保存记录弹窗 -->
-<div class="mo" id="historyMo"><div class="mi" style="max-height:85vh;">
-<div class="mh" style="background:linear-gradient(135deg,#7f8c8d,#95a5a6);"><h3>📂 已保存记录</h3><button onclick="closeMo('historyMo')" style="background:none;border:none;font-size:22px;cursor:pointer;color:#fff;">✅</button></div>
-<div class="mb" style="padding:14px;">
-  <div id="savedList"><p style="font-size:13px;color:#999;text-align:center;padding:10px;">暂无保存记录</p></div>
-</div>
-</div></div>
-
-<!-- 数据迁移弹窗 -->
-<div class="mo" id="dataMo"><div class="mi" style="max-height:85vh;">
-<div class="mh" style="background:linear-gradient(135deg,#3498db,#9b59b6);"><h3>📦 数据迁移</h3><button onclick="closeMo('dataMo')" style="background:none;border:none;font-size:22px;cursor:pointer;color:#fff;">✅</button></div>
-<div class="mb" style="padding:14px;">
-  <div style="margin-bottom:10px;">
-    <button id="exportBtn" style="width:100%;padding:10px;border:none;border-radius:6px;font-size:14px;font-weight:bold;cursor:pointer;background:#27ae60;color:#fff;margin-bottom:8px;">📤 导出记录到文件</button>
-    <p style="font-size:11px;color:#999;margin-bottom:10px;">导出所有保存的记录为文件，可通过微信发送到新手机</p>
-    <button id="importBtn" style="width:100%;padding:10px;border:none;border-radius:6px;font-size:14px;font-weight:bold;cursor:pointer;background:#2980b9;color:#fff;">📥 从文件导入记录</button>
-    <input type="file" id="importFile" accept=".json" style="display:none;">
-    <p style="font-size:11px;color:#999;margin-top:8px;">导入文件后会与现有记录合并，不会覆盖</p>
+<!-- 确认删除弹窗 -->
+<div class="confirm-mask" id="confirmMask">
+  <div class="confirm-box">
+    <h3 id="confirmTitle">确认删除</h3>
+    <p id="confirmMsg">确定要删除这条记录吗？</p>
+    <div class="confirm-btns">
+      <button class="confirm-cancel" onclick="hideConfirm()">取消</button>
+      <button class="confirm-ok" id="confirmOkBtn">删除</button>
+    </div>
   </div>
 </div>
-</div></div>
-
-<!-- 签名弹窗 - CSS旋转横屏签名 -->
-<div id="sigMo" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:10000;">
-<div id="sigInner" style="background:#fff;overflow:hidden;">
-<div id="sigHeader" style="display:flex;justify-content:space-between;align-items:center;padding:6px 12px;background:#f5f7fa;border-bottom:1px solid #e0e0e0;">
-<span id="sigTitle" style="font-size:14px;color:#333;font-weight:600;">✍️ 手写签名</span>
-<button id="sigClr" style="padding:4px 12px;border:1px solid #ddd;border-radius:6px;background:#fff;font-size:12px;cursor:pointer;">清除</button>
-</div>
-<div id="sigCanvasWrap" style="position:relative;touch-action:none;background:#fff;">
-<canvas id="sigCvs" style="display:block;touch-action:none;background:#fff;"></canvas>
-<div id="sigPH" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:16px;color:#ddd;pointer-events:none;">在此签名</div>
-</div>
-<div id="sigFooter" style="display:flex;gap:8px;padding:8px 12px;background:#f5f7fa;border-top:1px solid #e0e0e0;">
-<button id="sigCancel" style="flex:1;padding:10px;border:1px solid #ddd;border-radius:8px;background:#fff;font-size:14px;cursor:pointer;">取消</button>
-<button id="sigOk" style="flex:2;padding:10px;border:none;border-radius:8px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;font-size:14px;font-weight:600;cursor:pointer;">确认签名</button>
-</div>
-</div>
-</div>
-
-<!-- 记录详情弹窗 - 信封样式 -->
-<div class="mo" id="recMo"><div class="mi" style="max-height:85vh;">
-<div class="mh" style="background:linear-gradient(135deg,#667eea,#764ba2);"><h3>📋 记录详情</h3><button id="recClose" style="background:none;border:none;font-size:22px;cursor:pointer;color:#fff;">✅</button></div>
-<div class="mb" id="recDetail" style="padding:16px;"></div>
-</div></div>
-
-<!-- 省市区级联弹窗 -->
-<div class="mo" id="locMo"><div class="mi" style="max-height:70vh;"><div class="mh"><h3 id="locTitle">选择省份</h3><button id="locClose">✕</button></div><div class="mb" id="locList" style="padding:8px 16px;"></div></div></div>
-<!-- 隐藏的select存值 -->
-<select id="p1" style="display:none;"><option value="">省/直辖市</option></select><select id="c1" style="display:none;"><option value="">市</option></select><select id="x1" style="display:none;"><option value="">区/县</option></select>
 
 <script>
 (function(){
 'use strict';
 
-// ===== Tab 切换函数（全局暴露+滑动动画） =====
-var currentTabIndex = 0;
-function switchTab(index){
-  if(index<0||index>=3)return;
-  if(index===currentTabIndex)return;
-  var direction = index > currentTabIndex ? 'left' : 'right';
-  currentTabIndex=index;
-  var tabs=document.querySelectorAll('.zone-tab');
-  var panels=document.querySelectorAll('.zone-panel');
-  var content=document.getElementById('zoneContent');
-  // 更新tab激活态
-  for(var i=0;i<tabs.length;i++){
-    tabs[i].classList.toggle('active',i===index);
-  }
-  // 更新panel激活态
-  for(var i=0;i<panels.length;i++){
-    panels[i].classList.toggle('active',i===index);
-  }
-  // 滑动动画
-  if(content){
-    content.classList.remove('slide-left','slide-right');
-    // 强制重排
-    void content.offsetWidth;
-    if(direction==='left'){
-      content.classList.add('slide-left');
-    }else{
-      content.classList.add('slide-right');
-    }
-  }
-  // 滚动到顶部（平滑，避免抖动）
-  var tabBar=document.getElementById('zoneTabs');
-  if(tabBar){
-    var tabTop=tabBar.getBoundingClientRect().top+window.scrollY;
-    window.scrollTo({top:tabTop,behavior:'smooth'});
-  }else{
-    window.scrollTo(0,0);
-  }
-}
-// 暴露到全局（修复onclick调用失效bug）
-window.switchTab=switchTab;
-
-// ===== 手风琴切换函数 =====
-var currentAccordion='basic';
-function toggleAccordion(name){
-  var items=document.querySelectorAll('.accordion');
-  var target=null;
-  items.forEach(function(item){
-    if(item.getAttribute('data-acc')===name){
-      target=item;
-    }
-  });
-  if(!target)return;
-  var isActive=target.classList.contains('active');
-  // 全部收起
-  items.forEach(function(item){item.classList.remove('active');});
-  // 如果之前不是展开的，则展开目标
-  if(!isActive){
-    target.classList.add('active');
-    currentAccordion=name;
-  }else{
-    // 如果点击的是已展开的，保持收起，但默认展开第一个
-    currentAccordion='';
-  }
-  updateBtnStatus();
-}
-window.toggleAccordion=toggleAccordion;
-
-
-// === 省市县完整数据 ===
-var R={"北京市":{"北京市":["东城区","西城区","朝阳区","丰台区","石景山区","海淀区","门头沟区","房山区","通州区","顺义区","昌平区","大兴区","怀柔区","平谷区","密云区","延庆区"]},"天津市":{"天津市":["和平区","河东区","河西区","南开区","河北区","红桥区","东丽区","西青区","津南区","北辰区","武清区","宝坻区","滨海新区","宁河区","静海区","蓟州区"]},"上海市":{"上海市":["黄浦区","徐汇区","长宁区","静安区","普陀区","虹口区","杨浦区","闵行区","宝山区","嘉定区","浦东新区","金山区","松江区","青浦区","奉贤区","崇明区"]},"重庆市":{"重庆市":["万州区","涪陵区","渝中区","大渡口区","江北区","沙坪坝区","九龙坡区","南岸区","北碚区","綦江区","大足区","渝北区","巴南区","黔江区","长寿区","江津区","合川区","永川区","南川区","璧山区","铜梁区","潼南区","荣昌区","开州区","梁平区","武隆区","城口县","丰都县","垫江县","忠县","云阳县","奉节县","巫山县","巫溪县","石柱土家族自治县","酉阳土家族苗族自治县","彭水苗族土家族自治县","秀山土家族苗族自治县"]},"河北省":{"石家庄市":["长安区","桥西区","新华区","井陉矿区","裕华区","藁城区","鹿泉区","栾城区","井陉县","正定县","行唐县","灵寿县","高邑县","深泽县","赞皇县","无极县","平山县","元氏县","赵县","辛集市","晋州市","新乐市"],"唐山市":["路南区","路北区","古冶区","开平区","丰南区","丰润区","曹妃甸区","滦南县","乐亭县","迁西县","玉田县","遵化市","迁安市","滦州市"],"秦皇岛市":["海港区","山海关区","北戴河区","抚宁区","青龙满族自治县","昌黎县","卢龙县"],"邯郸市":["邯山区","丛台区","复兴区","峰峰矿区","肥乡区","永年区","临漳县","成安县","大名县","涉县","磁县","邱县","鸡泽县","广平县","馆陶县","魏县","曲周县","武安市"],"邢台市":["襄都区","信都区","任泽区","南和区","临城县","内丘县","柏乡县","隆尧县","宁晋县","巨鹿县","新河县","广宗县","平乡县","威县","清河县","临西县","南宫市","沙河市"],"保定市":["竞秀区","莲池区","满城区","清苑区","徐水区","涞水县","阜平县","定兴县","唐县","高阳县","容城县","涞源县","望都县","安新县","易县","曲阳县","蠡县","顺平县","博野县","雄县","涿州市","安国市","高碑店市"],"张家口市":["桥东区","桥西区","宣化区","下花园区","万全区","崇礼区","张北县","康保县","沽源县","尚义县","蔚县","阳原县","怀安县","怀来县","涿鹿县","赤城县"],"承德市":["双桥区","双滦区","鹰手营子矿区","承德县","兴隆县","滦平县","隆化县","丰宁满族自治县","宽城满族自治县","围场满族蒙古族自治县","平泉市"],"沧州市":["新华区","运河区","沧县","青县","东光县","海兴县","盐山县","肃宁县","南皮县","吴桥县","献县","孟村回族自治县","泊头市","任丘市","黄骅市","河间市"],"廊坊市":["安次区","广阳区","固安县","永清县","香河县","大城县","文安县","大厂回族自治县","霸州市","三河市"],"衡水市":["桃城区","冀州区","枣强县","武邑县","武强县","饶阳县","安平县","故城县","景县","阜城县","深州市"]},"山西省":{"太原市":["小店区","迎泽区","杏花岭区","尖草坪区","万柏林区","晋源区","清徐县","阳曲县","娄烦县","古交市"],"大同市":["新荣区","平城区","云冈区","云州区","阳高县","天镇县","广灵县","灵丘县","浑源县","左云县"],"阳泉市":["城区","矿区","郊区","平定县","盂县"],"长治市":["潞州区","上党区","屯留区","潞城区","襄垣县","平顺县","黎城县","壶关县","长子县","武乡县","沁县","沁源县"],"晋城市":["城区","沁水县","阳城县","陵川县","泽州县","高平市"],"朔州市":["朔城区","平鲁区","山阴县","应县","右玉县","怀仁市"],"晋中市":["榆次区","太谷区","榆社县","左权县","和顺县","昔阳县","寿阳县","祁县","平遥县","灵石县","介休市"],"运城市":["盐湖区","临猗县","万荣县","闻喜县","稷山县","新绛县","绛县","垣曲县","夏县","平陆县","芮城县","永济市","河津市"],"忻州市":["忻府区","定襄县","五台县","代县","繁峙县","宁武县","静乐县","神池县","五寨县","岢岚县","河曲县","保德县","偏关县","原平市"],"临汾市":["尧都区","曲沃县","翼城县","襄汾县","洪洞县","古县","安泽县","浮山县","吉县","乡宁县","大宁县","隰县","永和县","蒲县","汾西县","侯马市","霍州市"],"吕梁市":["离石区","文水县","交城县","兴县","临县","柳林县","石楼县","岚县","方山县","中阳县","交口县","孝义市","汾阳市"]},"内蒙古自治区":{"呼和浩特市":["新城区","回民区","玉泉区","赛罕区","土默特左旗","托克托县","和林格尔县","清水河县","武川县"],"包头市":["东河区","昆都仑区","青山区","石拐区","白云鄂博矿区","九原区","土默特右旗","固阳县","达尔罕茂明安联合旗"],"乌海市":["海勃湾区","海南区","乌达区"],"赤峰市":["红山区","元宝山区","松山区","阿鲁科尔沁旗","巴林左旗","巴林右旗","林西县","克什克腾旗","翁牛特旗","喀喇沁旗","宁城县","敖汉旗"],"通辽市":["科尔沁区","科尔沁左翼中旗","科尔沁左翼后旗","开鲁县","库伦旗","奈曼旗","扎鲁特旗","霍林郭勒市"],"鄂尔多斯市":["东胜区","康巴什区","达拉特旗","准格尔旗","鄂托克前旗","鄂托克旗","杭锦旗","乌审旗","伊金霍洛旗"],"呼伦贝尔市":["海拉尔区","扎赉诺尔区","阿荣旗","莫力达瓦达斡尔族自治旗","鄂伦春自治旗","鄂温克族自治旗","陈巴尔虎旗","新巴尔虎左旗","新巴尔虎右旗","满洲里市","牙克石市","扎兰屯市","额尔古纳市","根河市"],"巴彦淖尔市":["临河区","五原县","磴口县","乌拉特前旗","乌拉特中旗","乌拉特后旗","杭锦后旗"],"乌兰察布市":["集宁区","卓资县","化德县","商都县","兴和县","凉城县","察哈尔右翼前旗","察哈尔右翼中旗","察哈尔右翼后旗","四子王旗","丰镇市"]},"辽宁省":{"沈阳市":["和平区","沈河区","大东区","皇姑区","铁西区","苏家屯区","浑南区","沈北新区","于洪区","辽中区","康平县","法库县","新民市"],"大连市":["中山区","西岗区","沙河口区","甘井子区","旅顺口区","金州区","普兰店区","长海县","瓦房店市","庄河市"],"鞍山市":["铁东区","铁西区","立山区","千山区","台安县","岫岩满族自治县","海城市"],"抚顺市":["新抚区","东洲区","望花区","顺城区","抚顺县","新宾满族自治县","清原满族自治县"],"本溪市":["平山区","溪湖区","明山区","南芬区","本溪满族自治县","桓仁满族自治县"],"丹东市":["元宝区","振兴区","振安区","宽甸满族自治县","东港市","凤城市"],"锦州市":["古塔区","凌河区","太和区","黑山县","义县","凌海市","北镇市"],"营口市":["站前区","西市区","鲅鱼圈区","老边区","盖州市","大石桥市"],"阜新市":["海州区","新邱区","太平区","清河门区","细河区","阜新蒙古族自治县","彰武县"],"辽阳市":["白塔区","文圣区","宏伟区","弓长岭区","太子河区","辽阳县","灯塔市"],"盘锦市":["双台子区","兴隆台区","大洼区","盘山县"],"铁岭市":["银州区","清河区","铁岭县","西丰县","昌图县","调兵山市","开原市"],"朝阳市":["双塔区","龙城区","朝阳县","建平县","喀喇沁左翼蒙古族自治县","北票市","凌源市"],"葫芦岛市":["连山区","龙港区","南票区","绥中县","建昌县","兴城市"]},"吉林省":{"长春市":["南关区","宽城区","朝阳区","二道区","绿园区","双阳区","九台区","农安县","榆树市","德惠市","公主岭市"],"吉林市":["昌邑区","龙潭区","船营区","丰满区","永吉县","蛟河市","桦甸市","舒兰市","磐石市"],"四平市":["铁西区","铁东区","梨树县","伊通满族自治县","双辽市"],"辽源市":["龙山区","西安区","东丰县","东辽县"],"通化市":["东昌区","二道江区","通化县","辉南县","柳河县","梅河口市","集安市"],"白山市":["浑江区","江源区","抚松县","靖宇县","长白朝鲜族自治县","临江市"],"松原市":["宁江区","前郭尔罗斯蒙古族自治县","长岭县","乾安县","扶余市"],"白城市":["洮北区","镇赉县","通榆县","洮南市","大安市"],"延边朝鲜族自治州":["延吉市","图们市","敦化市","珲春市","龙井市","和龙市","汪清县","安图县"]},"黑龙江省":{"哈尔滨市":["道里区","南岗区","道外区","平房区","松北区","香坊区","呼兰区","阿城区","双城区","依兰县","方正县","宾县","巴彦县","木兰县","通河县","延寿县","尚志市","五常市"],"齐齐哈尔市":["龙沙区","建华区","铁锋区","昂昂溪区","富拉尔基区","碾子山区","梅里斯达斡尔族区","龙江县","依安县","泰来县","甘南县","富裕县","克山县","克东县","拜泉县","讷河市"],"鸡西市":["鸡冠区","恒山区","滴道区","梨树区","城子河区","麻山区","鸡东县","虎林市","密山市"],"大庆市":["萨尔图区","龙凤区","让胡路区","红岗区","大同区","肇州县","肇源县","林甸县","杜尔伯特蒙古族自治县"],"伊春市":["伊美区","乌翠区","友好区","嘉荫县","汤旺县","丰林县","南岔县","大箐山县","铁力市"],"佳木斯市":["向阳区","前进区","东风区","郊区","桦南县","桦川县","汤原县","同江市","富锦市","抚远市"],"七台河市":["新兴区","桃山区","茄子河区","勃利县"],"牡丹江市":["东安区","阳明区","爱民区","西安区","林口县","绥芬河市","海林市","宁安市","穆棱市","东宁市"],"黑河市":["爱辉区","逊克县","孙吴县","北安市","五大连池市","嫩江市"],"绥化市":["北林区","望奎县","兰西县","青冈县","庆安县","明水县","绥棱县","安达市","肇东市","海伦市"],"大兴安岭地区":["漠河市","呼玛县","塔河县","加格达奇区","松岭区","新林区","呼中区"]},"江苏省":{"南京市":["玄武区","秦淮区","建邺区","鼓楼区","浦口区","栖霞区","雨花台区","江宁区","六合区","溧水区","高淳区"],"无锡市":["锡山区","惠山区","滨湖区","梁溪区","新吴区","江阴市","宜兴市"],"徐州市":["鼓楼区","云龙区","贾汪区","泉山区","铜山区","丰县","沛县","睢宁县","新沂市","邳州市"],"常州市":["天宁区","钟楼区","新北区","武进区","金坛区","溧阳市"],"苏州市":["虎丘区","吴中区","相城区","姑苏区","吴江区","苏州工业园区","常熟市","张家港市","昆山市","太仓市"],"南通市":["崇川区","通州区","海门区","如东县","启东市","如皋市","海安市"],"连云港市":["连云区","海州区","赣榆区","东海县","灌云县","灌南县"],"淮安市":["淮安区","淮阴区","清江浦区","洪泽区","涟水县","盱眙县","金湖县"],"盐城市":["亭湖区","盐都区","大丰区","响水县","滨海县","阜宁县","射阳县","建湖县","东台市"],"扬州市":["广陵区","邗江区","江都区","宝应县","仪征市","高邮市"],"镇江市":["京口区","润州区","丹徒区","丹阳市","扬中市","句容市"],"泰州市":["海陵区","高港区","姜堰区","兴化市","靖江市","泰兴市"],"宿迁市":["宿城区","宿豫区","沭阳县","泗阳县","泗洪县"]},"浙江省":{"杭州市":["上城区","拱墅区","西湖区","滨江区","萧山区","余杭区","临平区","钱塘区","富阳区","临安区","桐庐县","淳安县","建德市"],"宁波市":["海曙区","江北区","北仑区","镇海区","鄞州区","奉化区","余姚市","慈溪市","象山县","宁海县"],"温州市":["鹿城区","龙湾区","瓯海区","洞头区","永嘉县","平阳县","苍南县","文成县","泰顺县","瑞安市","乐清市","龙港市"],"嘉兴市":["南湖区","秀洲区","嘉善县","海盐县","海宁市","平湖市","桐乡市"],"湖州市":["吴兴区","南浔区","德清县","长兴县","安吉县"],"绍兴市":["越城区","柯桥区","上虞区","新昌县","诸暨市","嵊州市"],"金华市":["婺城区","金东区","武义县","浦江县","磐安县","兰溪市","义乌市","东阳市","永康市"],"衢州市":["柯城区","衢江区","常山县","开化县","龙游县","江山市"],"舟山市":["定海区","普陀区","岱山县","嵊泗县"],"台州市":["椒江区","黄岩区","路桥区","三门县","天台县","仙居县","温岭市","临海市","玉环市"],"丽水市":["莲都区","青田县","缙云县","遂昌县","松阳县","云和县","庆元县","景宁畲族自治县","龙泉市"]},"安徽省":{"合肥市":["瑶海区","庐阳区","蜀山区","包河区","长丰县","肥东县","肥西县","庐江县","巢湖市"],"芜湖市":["镜湖区","弋江区","鸠江区","三山区","繁昌县","南陵县","无为市"],"蚌埠市":["龙子湖区","蚌山区","禹会区","淮上区","怀远县","五河县","固镇县"],"淮南市":["大通区","田家庵区","谢家集区","八公山区","潘集区","凤台县","寿县"],"马鞍山市":["花山区","雨山区","博望区","当涂县","含山县","和县"],"淮北市":["杜集区","相山区","烈山区","濉溪县"],"铜陵市":["铜官区","义安区","郊区","枞阳县"],"安庆市":["迎江区","大观区","宜秀区","怀宁县","太湖县","宿松县","望江县","岳西县","桐城市","潜山市"],"黄山市":["屯溪区","黄山区","徽州区","歙县","休宁县","黟县","祁门县"],"滁州市":["琅琊区","南谯区","来安县","全椒县","定远县","凤阳县","天长市","明光市"],"阜阳市":["颍州区","颍东区","颍泉区","临泉县","太和县","阜南县","颍上县","界首市"],"宿州市":["埇桥区","砀山县","萧县","灵璧县","泗县"],"六安市":["金安区","裕安区","叶集区","霍邱县","舒城县","金寨县","霍山县"],"亳州市":["谯城区","涡阳县","蒙城县","利辛县"],"池州市":["贵池区","东至县","石台县","青阳县"],"宣城市":["宣州区","郎溪县","泾县","绩溪县","旌德县","宁国市","广德市"]},"福建省":{"福州市":["鼓楼区","台江区","仓山区","马尾区","晋安区","长乐区","闽侯县","连江县","罗源县","闽清县","永泰县","平潭县","福清市"],"厦门市":["思明区","海沧区","湖里区","集美区","同安区","翔安区"],"莆田市":["城厢区","涵江区","荔城区","秀屿区","仙游县"],"三明市":["梅列区","三元区","沙县","明溪县","清流县","宁化县","大田县","尤溪县","将乐县","泰宁县","建宁县","永安市"],"泉州市":["鲤城区","丰泽区","洛江区","泉港区","惠安县","安溪县","永春县","德化县","金门县","石狮市","晋江市","南安市"],"漳州市":["芗城区","龙文区","龙海区","云霄县","漳浦县","诏安县","长泰县","东山县","南靖县","平和县","华安县"],"南平市":["延平区","建阳区","顺昌县","浦城县","光泽县","松溪县","政和县","邵武市","武夷山市","建瓯市"],"龙岩市":["新罗区","永定区","长汀县","上杭县","武平县","连城县","漳平市"],"宁德市":["蕉城区","霞浦县","古田县","屏南县","寿宁县","周宁县","柘荣县","福安市","福鼎市"]},"江西省":{"南昌市":["东湖区","西湖区","青云谱区","青山湖区","新建区","红谷滩区","南昌县","安义县","进贤县"],"景德镇市":["昌江区","珠山区","浮梁县","乐平市"],"萍乡市":["安源区","湘东区","莲花县","上栗县","芦溪县"],"九江市":["濂溪区","浔阳区","柴桑区","武宁县","修水县","永修县","德安县","星子县","都昌县","湖口县","彭泽县","瑞昌市","共青城市","庐山市"],"新余市":["渝水区","分宜县"],"鹰潭市":["月湖区","余江区","贵溪市"],"赣州市":["章贡区","南康区","赣县区","信丰县","大余县","上犹县","崇义县","安远县","定南县","全南县","宁都县","于都县","兴国县","会昌县","寻乌县","石城县","瑞金市","龙南市"],"吉安市":["吉州区","青原区","吉安县","吉水县","峡江县","新干县","永丰县","泰和县","遂川县","万安县","安福县","永新县","井冈山市"],"宜春市":["袁州区","奉新县","万载县","上高县","宜丰县","靖安县","铜鼓县","丰城市","樟树市","高安市"],"抚州市":["临川区","东乡区","南城县","黎川县","南丰县","崇仁县","乐安县","宜黄县","金溪县","资溪县","广昌县"],"上饶市":["信州区","广丰区","广信区","玉山县","铅山县","横峰县","弋阳县","余干县","鄱阳县","万年县","婺源县","德兴市"]},"山东省":{"济南市":["历下区","市中区","槐荫区","天桥区","历城区","长清区","章丘区","济阳区","莱芜区","钢城区","平阴县","商河县"],"青岛市":["市南区","市北区","黄岛区","崂山区","李沧区","城阳区","即墨区","胶州市","平度市","莱西市"],"淄博市":["淄川区","张店区","博山区","临淄区","周村区","桓台县","高青县","沂源县"],"枣庄市":["市中区","薛城区","峄城区","台儿庄区","山亭区","滕州市"],"东营市":["东营区","河口区","垦利区","利津县","广饶县"],"烟台市":["芝罘区","福山区","牟平区","莱山区","蓬莱区","烟台经济技术开发区","龙口市","莱阳市","莱州市","招远市","栖霞市","海阳市"],"潍坊市":["潍城区","寒亭区","坊子区","奎文区","临朐县","昌乐县","青州市","诸城市","寿光市","安丘市","高密市","昌邑市"],"济宁市":["任城区","兖州区","微山县","鱼台县","金乡县","嘉祥县","汶上县","泗水县","梁山县","曲阜市","邹城市"],"泰安市":["泰山区","岱岳区","宁阳县","东平县","新泰市","肥城市"],"威海市":["环翠区","文登区","荣成市","乳山市"],"日照市":["东港区","岚山区","五莲县","莒县"],"临沂市":["兰山区","罗庄区","河东区","沂南县","郯城县","沂水县","兰陵县","费县","平邑县","莒南县","蒙阴县","临沭县"],"德州市":["德城区","陵城区","宁津县","庆云县","临邑县","齐河县","平原县","夏津县","武城县","乐陵市","禹城市"],"聊城市":["东昌府区","茌平区","阳谷县","莘县","东阿县","冠县","高唐县","临清市"],"滨州市":["滨城区","沾化区","惠民县","阳信县","无棣县","博兴县","邹平市"],"菏泽市":["牡丹区","定陶区","曹县","单县","成武县","巨野县","郓城县","鄄城县","东明县"]},"河南省":{"郑州市":["中原区","二七区","管城回族区","金水区","上街区","惠济区","中牟县","巩义市","荥阳市","新密市","新郑市","登封市"],"开封市":["龙亭区","顺河回族区","鼓楼区","禹王台区","祥符区","杞县","通许县","尉氏县","兰考县"],"洛阳市":["老城区","西工区","瀍河回族区","涧西区","偃师区","孟津区","新安县","栾川县","嵩县","汝阳县","宜阳县","洛宁县","伊川县"],"平顶山市":["新华区","卫东区","石龙区","湛河区","宝丰县","叶县","鲁山县","郏县","舞钢市","汝州市"],"安阳市":["文峰区","北关区","殷都区","龙安区","安阳县","汤阴县","滑县","内黄县","林州市"],"鹤壁市":["鹤山区","山城区","淇滨区","浚县","淇县"],"新乡市":["红旗区","卫滨区","凤泉区","牧野区","新乡县","获嘉县","原阳县","延津县","封丘县","卫辉市","辉县市","长垣市"],"焦作市":["解放区","中站区","马村区","山阳区","修武县","博爱县","武陟县","温县","沁阳市","孟州市"],"濮阳市":["华龙区","清丰县","南乐县","范县","台前县","濮阳县"],"许昌市":["魏都区","建安区","鄢陵县","襄城县","禹州市","长葛市"],"漯河市":["源汇区","郾城区","召陵区","舞阳县","临颍县"],"三门峡市":["湖滨区","陕州区","渑池县","卢氏县","义马市","灵宝市"],"南阳市":["宛城区","卧龙区","南召县","方城县","西峡县","镇平县","内乡县","淅川县","社旗县","唐河县","新野县","桐柏县","邓州市"],"商丘市":["梁园区","睢阳区","民权县","睢县","宁陵县","柘城县","虞城县","夏邑县","永城市"],"信阳市":["浉河区","平桥区","罗山县","光山县","新县","商城县","固始县","潢川县","淮滨县","息县"],"周口市":["川汇区","淮阳区","扶沟县","西华县","商水县","沈丘县","鄢陵县","太康县","鹿邑县","项城市"],"驻马店市":["驿城区","西平县","上蔡县","平舆县","正阳县","确山县","泌阳县","汝南县","遂平县","新蔡县"]},"湖北省":{"武汉市":["江岸区","江汉区","硚口区","汉阳区","武昌区","青山区","洪山区","东西湖区","汉南区","蔡甸区","江夏区","黄陂区","新洲区"],"黄石市":["黄石港区","西塞山区","下陆区","铁山区","阳新县","大冶市"],"十堰市":["茅箭区","张湾区","郧阳区","郧西县","竹山县","竹溪县","房县","丹江口市"],"宜昌市":["西陵区","伍家岗区","点军区","猇亭区","夷陵区","远安县","兴山县","秭归县","长阳土家族自治县","五峰土家族自治县","宜都市","当阳市","枝江市"],"襄阳市":["襄城区","樊城区","襄州区","南漳县","谷城县","保康县","老河口市","枣阳市","宜城市"],"鄂州市":["梁子湖区","华容区","鄂城区"],"荆门市":["东宝区","掇刀区","沙洋县","钟祥市","京山市"],"孝感市":["孝南区","孝昌县","大悟县","云梦县","应城市","安陆市","汉川市"],"荆州市":["沙市区","荆州区","公安县","监利县","江陵县","石首市","洪湖市","松滋市"],"黄冈市":["黄州区","团风县","红安县","罗田县","英山县","浠水县","蕲春县","黄梅县","麻城市","武穴市"],"咸宁市":["咸安区","嘉鱼县","通城县","崇阳县","通山县","赤壁市"],"随州市":["曾都区","随县","广水市"],"恩施土家族苗族自治州":["恩施市","利川市","建始县","巴东县","宣恩县","咸丰县","来凤县","鹤峰县"],"仙桃市":["仙桃市"],"潜江市":["潜江市"],"天门市":["天门市"],"神农架林区":["松柏镇","阳日镇","木鱼镇","红坪镇","新华镇","九湖镇","宋洛乡"]},"湖南省":{"长沙市":["芙蓉区","天心区","岳麓区","开福区","雨花区","望城区","长沙县","浏阳市","宁乡市"],"株洲市":["荷塘区","芦淞区","石峰区","天元区","渌口区","攸县","茶陵县","炎陵县","醴陵市"],"湘潭市":["雨湖区","岳塘区","湘潭县","湘乡市","韶山市"],"衡阳市":["珠晖区","雁峰区","石鼓区","蒸湘区","南岳区","衡阳县","衡南县","衡山县","衡东县","祁东县","耒阳市","常宁市"],"邵阳市":["双清区","大祥区","北塔区","新邵县","邵阳县","隆回县","洞口县","绥宁县","新宁县","城步苗族自治县","武冈市","邵东市"],"岳阳市":["岳阳楼区","云溪区","君山区","岳阳县","华容县","湘阴县","平江县","汨罗市","临湘市"],"常德市":["武陵区","鼎城区","安乡县","汉寿县","澧县","临澧县","桃源县","石门县","津市市"],"张家界市":["永定区","武陵源区","慈利县","桑植县"],"益阳市":["资阳区","赫山区","南县","桃江县","安化县","沅江市"],"郴州市":["北湖区","苏仙区","桂阳县","宜章县","永兴县","嘉禾县","临武县","汝城县","桂东县","安仁县","资兴市"],"永州市":["零陵区","冷水滩区","祁阳县","东安县","双牌县","道县","江永县","宁远县","蓝山县","新田县","江华瑶族自治县"],"怀化市":["鹤城区","中方县","沅陵县","辰溪县","溆浦县","会同县","麻阳苗族自治县","新晃侗族自治县","芷江侗族自治县","靖州苗族侗族自治县","通道侗族自治县","洪江市"],"娄底市":["娄星区","双峰县","新化县","冷水江市","涟源市"],"湘西土家族苗族自治州":["吉首市","泸溪县","凤凰县","花垣县","保靖县","古丈县","永顺县","龙山县"]},"广东省":{"广州市":["荔湾区","越秀区","海珠区","天河区","白云区","黄埔区","番禺区","花都区","南沙区","从化区","增城区"],"深圳市":["罗湖区","福田区","南山区","宝安区","龙岗区","盐田区","龙华区","坪山区","光明区","大鹏新区"],"珠海市":["香洲区","斗门区","金湾区"],"汕头市":["龙湖区","金平区","濠江区","潮阳区","潮南区","澄海区","南澳县"],"佛山市":["禅城区","南海区","顺德区","三水区","高明区"],"江门市":["蓬江区","江海区","新会区","台山市","开平市","鹤山市","恩平市"],"湛江市":["赤坎区","霞山区","坡头区","麻章区","遂溪县","徐闻县","廉江市","雷州市","吴川市"],"茂名市":["茂南区","电白区","高州市","化州市","信宜市"],"肇庆市":["端州区","鼎湖区","高要区","广宁县","怀集县","封开县","德庆县","四会市"],"惠州市":["惠城区","惠阳区","博罗县","惠东县","龙门县"],"梅州市":["梅江区","梅县区","大埔县","丰顺县","五华县","平远县","蕉岭县","兴宁市"],"汕尾市":["城区","海丰县","陆河县","陆丰市"],"河源市":["源城区","紫金县","龙川县","连平县","和平县","东源县"],"阳江市":["江城区","阳东区","阳西县","阳春市"],"清远市":["清城区","清新区","佛冈县","阳山县","连山壮族瑶族自治县","连南瑶族自治县","英德市","连州市"],"潮州市":["湘桥区","潮安区","饶平县"],"揭阳市":["榕城区","揭东区","揭西县","惠来县","普宁市"],"云浮市":["云城区","云安区","新兴县","郁南县","罗定市"]},"广西壮族自治区":{"南宁市":["兴宁区","青秀区","江南区","西乡塘区","良庆区","邕宁区","武鸣区","隆安县","马山县","上林县","宾阳县","横州市"],"柳州市":["城中区","鱼峰区","柳南区","柳北区","柳江区","柳城县","鹿寨县","融安县","融水苗族自治县","三江侗族自治县"],"桂林市":["秀峰区","叠彩区","象山区","七星区","雁山区","临桂区","阳朔县","灵川县","全州县","兴安县","永福县","灌阳县","龙胜各族自治县","资源县","平乐县","荔浦市","恭城瑶族自治县"],"梧州市":["万秀区","长洲区","龙圩区","苍梧县","藤县","蒙山县","岑溪市"],"北海市":["海城区","银海区","铁山港区","合浦县"],"防城港市":["港口区","防城区","上思县","东兴市"],"钦州市":["钦南区","钦北区","灵山县","浦北县"],"贵港市":["港北区","港南区","覃塘区","平南县","桂平市"],"玉林市":["玉州区","福绵区","容县","陆川县","博白县","兴业县","北流市"],"百色市":["右江区","田阳区","田东县","德保县","那坡县","凌云县","乐业县","田林县","西林县","隆林各族自治县","靖西市","平果市"],"贺州市":["八步区","平桂区","昭平县","钟山县","富川瑶族自治县"],"河池市":["金城江区","宜州区","南丹县","天峨县","凤山县","东兰县","罗城仫佬族自治县","环江毛南族自治县","巴马瑶族自治县","都安瑶族自治县","大化瑶族自治县","巴马瑶族自治县"],"来宾市":["兴宾区","忻城县","象州县","武宣县","金秀瑶族自治县","合山市"],"崇左市":["江州区","扶绥县","宁明县","龙州县","大新县","天等县","凭祥市"]},"海南省":{"海口市":["秀英区","龙华区","琼山区","美兰区"],"三亚市":["海棠区","吉阳区","天涯区","崖州区"],"三沙市":["西沙群岛","南沙群岛"],"儋州市":["那大镇","和庆镇","南丰镇","大成镇","雅星镇","兰洋镇","光村镇","海头镇","木棠镇","中和镇","白马井镇","王五镇","新州镇"]},"四川省":{"成都市":["锦江区","青羊区","金牛区","武侯区","成华区","龙泉驿区","青白江区","新都区","温江区","双流区","郫都区","新津区","金堂县","大邑县","蒲江县","都江堰市","彭州市","邛崃市","崇州市","简阳市"],"自贡市":["自流井区","贡井区","大安区","沿滩区","荣县","富顺县"],"攀枝花市":["东区","西区","仁和区","米易县","盐边县"],"泸州市":["江阳区","纳溪区","龙马潭区","泸县","合江县","叙永县","古蔺县"],"德阳市":["旌阳区","罗江区","中江县","广汉市","什邡市","绵竹市"],"绵阳市":["涪城区","游仙区","安州区","三台县","盐亭县","梓潼县","北川羌族自治县","平武县","江油市"],"广元市":["利州区","昭化区","朝天区","旺苍县","青川县","剑阁县","苍溪县"],"遂宁市":["船山区","安居区","蓬溪县","大英县","射洪市"],"内江市":["市中区","东兴区","威远县","资中县","隆昌市"],"乐山市":["市中区","沙湾区","五通桥区","金口河区","犍为县","井研县","夹江县","沐川县","峨边彝族自治县","马边彝族自治县","峨眉山市"],"南充市":["顺庆区","高坪区","嘉陵区","南部县","营山县","蓬安县","仪陇县","西充县","阆中市"],"眉山市":["东坡区","彭山区","仁寿县","洪雅县","丹棱县","青神县"],"宜宾市":["翠屏区","南溪区","叙州区","江安县","长宁县","高县","珙县","筠连县","兴文县","屏山县"],"广安市":["广安区","前锋区","岳池县","武胜县","邻水县","华蓥市"],"达州市":["通川区","达川区","宣汉县","开江县","大竹县","渠县","万源市"],"雅安市":["雨城区","名山区","荥经县","汉源县","石棉县","天全县","芦山县","宝兴县"],"巴中市":["巴州区","恩阳区","通江县","南江县","平昌县"],"资阳市":["雁江区","安岳县","乐至县"],"阿坝藏族羌族自治州":["马尔康市","汶川县","理县","茂县","松潘县","九寨沟县","若尔盖县","红原县","壤塘县","阿坝县","康定市","泸定县","丹巴县","九龙县","雅江县","道孚县","理塘县","德格县","新龙县","白玉县","石渠县","色达县","巴塘县","乡城县","稻城县","得荣县"],"甘孜藏族自治州":["康定市","泸定县","丹巴县","九龙县","雅江县","道孚县","理塘县","德格县","新龙县","白玉县","石渠县","色达县","巴塘县","乡城县","稻城县","得荣县"]},"贵州省":{"贵阳市":["南明区","云岩区","花溪区","乌当区","白云区","观山湖区","开阳县","息烽县","修文县","清镇市"],"六盘水市":["钟山区","六枝特区","水城县","盘州市"],"遵义市":["红花岗区","汇川区","播州区","桐梓县","绥阳县","正安县","道真仡佬族苗族自治县","务川仡佬族苗族自治县","凤冈县","湄潭县","余庆县","习水县","赤水市","仁怀市"],"安顺市":["西秀区","平坝区","普定县","镇宁布依族苗族自治县","关岭布依族苗族自治县","紫云苗族布依族自治县"],"毕节市":["七星关区","大方县","黔西县","金沙县","织金县","纳雍县","威宁彝族回族苗族自治县","赫章县"],"铜仁市":["碧江区","万山区","江口县","玉屏侗族自治县","石阡县","思南县","印江土家族苗族自治县","德江县","沿河土家族自治县","松桃苗族自治县"]},"云南省":{"昆明市":["五华区","盘龙区","官渡区","西山区","东川区","呈贡区","晋宁区","富民县","宜良县","石林彝族自治县","嵩明县","禄劝彝族苗族自治县","寻甸回族彝族自治县","安宁市"],"曲靖市":["麒麟区","沾益区","马龙区","陆良县","师宗县","罗平县","富源县","会泽县","宣威市"],"玉溪市":["红塔区","江川区","澄江市","通海县","华宁县","易门县","峨山彝族自治县","新平彝族傣族自治县","元江哈尼族彝族傣族自治县"],"保山市":["隆阳区","施甸县","龙陵县","昌宁县","腾冲市"],"昭通市":["昭阳区","鲁甸县","巧家县","盐津县","大关县","永善县","绥江县","镇雄县","彝良县","威信县","水富市"],"丽江市":["古城区","玉龙纳西族自治县","永胜县","华坪县","宁蒗彝族自治县"],"普洱市":["思茅区","宁洱哈尼族彝族自治县","墨江哈尼族自治县","景东彝族自治县","景谷傣族彝族自治县","镇沅彝族哈尼族拉祜族自治县","江城哈尼族彝族自治县","孟连傣族拉祜族佤族自治县","澜沧拉祜族自治县","西盟佤族自治县"],"临沧市":["临翔区","凤庆县","云县","永德县","镇康县","双江拉祜族佤族布朗族傣族自治县","耿马傣族佤族自治县","沧源佤族自治县"]},"陕西省":{"西安市":["新城区","碑林区","莲湖区","灞桥区","未央区","雁塔区","阎良区","临潼区","长安区","高陵区","鄠邑区","蓝田县","周至县"],"铜川市":["王益区","印台区","耀州区","宜君县"],"宝鸡市":["渭滨区","金台区","陈仓区","凤翔县","岐山县","扶风县","眉县","陇县","千阳县","麟游县","凤县","太白县"],"咸阳市":["秦都区","渭城区","杨陵区","三原县","泾阳县","乾县","礼泉县","永寿县","长武县","旬邑县","淳化县","武功县","兴平市","彬州市"],"渭南市":["临渭区","华州区","潼关县","大荔县","合阳县","澄城县","蒲城县","白水县","富平县","韩城市","华阴市"],"延安市":["宝塔区","安塞区","延长县","延川县","子长市","志丹县","吴起县","甘泉县","富县","洛川县","宜川县","黄龙县","黄陵县"],"汉中市":["汉台区","南郑区","城固县","洋县","西乡县","勉县","宁强县","略阳县","镇巴县","留坝县","佛坪县"],"榆林市":["榆阳区","横山区","府谷县","靖边县","定边县","绥德县","米脂县","佳县","吴堡县","清涧县","子洲县","神木市"],"安康市":["汉滨区","汉阴县","石泉县","宁陕县","紫阳县","岚皋县","平利县","镇坪县","旬阳县","白河县"],"商洛市":["商州区","洛南县","丹凤县","商南县","山阳县","镇安县","柞水县"]},"甘肃省":{"兰州市":["城关区","七里河区","西固区","安宁区","红古区","永登县","皋兰县","榆中县"],"嘉峪关市":["雄关区","镜铁区","长城区","郊区"],"金昌市":["金川区","永昌县"],"白银市":["白银区","平川区","靖远县","会宁县","景泰县"],"天水市":["秦州区","麦积区","清水县","秦安县","甘谷县","武山县","张家川回族自治县"],"武威市":["凉州区","民勤县","古浪县","天祝藏族自治县"],"张掖市":["甘州区","肃南裕固族自治县","民乐县","临泽县","高台县","山丹县"],"平凉市":["崆峒区","泾川县","灵台县","崇信县","庄浪县","静宁县","华亭市"],"酒泉市":["肃州区","金塔县","瓜州县","肃北蒙古族自治县","阿克塞哈萨克族自治县","玉门市","敦煌市"],"庆阳市":["西峰区","庆城县","环县","华池县","合水县","正宁县","宁县","镇原县"],"定西市":["安定区","通渭县","陇西县","渭源县","临洮县","漳县","岷县"],"陇南市":["武都区","成县","文县","宕昌县","康县","西和县","礼县","徽县","两当县"]},"青海省":{"西宁市":["城东区","城中区","城西区","城北区","湟中区","大通回族土族自治县","湟源县"],"海东市":["乐都区","平安区","民和回族土族自治县","互助土族自治县","化隆回族自治县","循化撒拉族自治县"],"海北藏族自治州":["海晏县","祁连县","刚察县","门源回族自治县"],"黄南藏族自治州":["同仁市","尖扎县","泽库县","河南蒙古族自治县"],"海南藏族自治州":["共和县","同德县","贵德县","兴海县","贵南县"],"果洛藏族自治州":["玛沁县","班玛县","甘德县","达日县","久治县","玛多县"],"玉树藏族自治州":["玉树市","杂多县","称多县","治多县","囊谦县","曲麻莱县"],"海西蒙古族藏族自治州":["格尔木市","德令哈市","茫崖市","乌兰县","都兰县","天峻县"]},"宁夏回族自治区":{"银川市":["兴庆区","西夏区","金凤区","永宁县","贺兰县","灵武市"],"石嘴山市":["大武口区","惠农区","平罗县"],"吴忠市":["利通区","红寺堡区","盐池县","同心县","青铜峡市"],"固原市":["原州区","西吉县","隆德县","泾源县","彭阳县"],"中卫市":["沙坡头区","中宁县","海原县"]},"新疆维吾尔自治区":{"乌鲁木齐市":["天山区","沙依巴克区","新市区","水磨沟区","头屯河区","达坂城区","米东区","乌鲁木齐县"],"克拉玛依市":["独山子区","克拉玛依区","白碱滩区","乌尔禾区"],"吐鲁番市":["高昌区","鄯善县","托克逊县"],"哈密市":["伊州区","巴里坤哈萨克自治县","伊吾县"],"昌吉回族自治州":["昌吉市","阜康市","呼图壁县","玛纳斯县","奇台县","吉木萨尔县","木垒哈萨克自治县"],"博尔塔拉蒙古自治州":["博乐市","阿拉山口市","精河县","温泉县"],"巴音郭楞蒙古自治州":["库尔勒市","轮台县","尉犁县","若羌县","且末县","焉耆回族自治县","和静县","和硕县","博湖县"],"阿克苏地区":["阿克苏市","库车市","温宿县","沙雅县","新和县","拜城县","乌什县","阿瓦提县","柯坪县"],"克孜勒苏柯尔克孜自治州":["阿图什市","阿克陶县","阿合奇县","乌恰县"],"喀什地区":["喀什市","疏附县","疏勒县","英吉沙县","泽普县","莎车县","叶城县","麦盖提县","岳普湖县","伽师县","巴楚县","塔什库尔干塔吉克自治县"],"和田地区":["和田市","和田县","墨玉县","皮山县","洛浦县","策勒县","于田县","民丰县"],"伊犁哈萨克自治州":["伊宁市","奎屯市","霍尔果斯市","伊宁县","察布查尔锡伯自治县","霍城县","巩留县","新源县","昭苏县","特克斯县","尼勒克县"],"塔城地区":["塔城市","乌苏市","额敏县","沙湾市","托里县","裕民县","和布克赛尔蒙古自治县"],"阿勒泰地区":["阿勒泰市","布尔津县","富蕴县","福海县","哈巴河县","青河县","吉木乃县"]},"香港特别行政区":{"香港":["中西区","湾仔区","东区","南区","油尖旺区","深水埗区","九龙城区","黄大仙区","观塘区","北区","大埔区","沙田区","西贡区","荃湾区","屯门区","元朗区","葵青区","离岛区"]},"澳门特别行政区":{"澳门":["花地玛堂区","花王堂区","望德堂区","大堂区","风顺堂区","嘉模堂区","路氹填海区","圣方济各堂区"]},"台湾省":{"台北市":["中正区","大同区","中山区","松山区","大安区","万华区","信义区","士林区","北投区","内湖区","南港区","文山区"],"高雄市":["新兴区","前金区","苓雅区","盐埕区","鼓山区","旗津区","前镇区","三民区","楠梓区","小港区","左营区","仁武区","大社区","冈山区","路竹区","阿莲区","田寮区","燕巢区","桥头区","梓官区","弥陀区","永安区","湖内区","凤山区","大寮区","林园区","埤顶区","大树区","旗山区","美浓区","六龟区","内门区","杉林区","甲仙区","桃源区","那玛夏区","茂林区","茄萣区"],"台中市":["中区","东区","南区","西区","北区","北屯区","西屯区","南屯区","太平区","大里区","雾峰区","乌日区","丰原区","后里区","石冈区","东势区","和平区","新社区","潭子区","大雅区","神冈区","大肚区","沙鹿区","龙井区","梧栖区","清水区","大甲区","外埔区","大安区"]}};
-
-var selP=document.getElementById('p1'),selC=document.getElementById('c1'),selX=document.getElementById('x1');
-Object.keys(R).forEach(function(k){var o=document.createElement('option');o.value=k;o.textContent=k;selP.appendChild(o);});
-selP.addEventListener('change',function(){selC.innerHTML='<option value="">市</option>';selX.innerHTML='<option value="">区/县</option>';var v=this.value;if(v&&R[v])Object.keys(R[v]).forEach(function(k){var o=document.createElement('option');o.value=k;o.textContent=k;selC.appendChild(o);});});
-selC.addEventListener('change',function(){selX.innerHTML='<option value="">区/县</option>';var p=selP.value,v=this.value;if(p&&v&&R[p]&&R[p][v])R[p][v].forEach(function(k){var o=document.createElement('option');o.value=k;o.textContent=k;selX.appendChild(o);});});
-
-// 页面加载时自动定位省市县
-(function autoLocate(){
-  if(document.getElementById('locDisplay').value.trim())return;
-  var located=false;
-  // 方案1：ipapi.co（支持CORS，返回英文省市名，需映射中文）
-  fetch('https://ipapi.co/json/').then(function(r){return r.json();}).then(function(d){
-    if(located)return;
-    if(d&&d.region){
-      // 构建中文字符串尝试匹配
-      var provMap={'Anhui':'安徽省','Beijing':'北京市','Chongqing':'重庆市','Fujian':'福建省','Gansu':'甘肃省','Guangdong':'广东省','Guangxi':'广西壮族自治区','Guizhou':'贵州省','Hainan':'海南省','Hebei':'河北省','Heilongjiang':'黑龙江省','Henan':'河南省','Hong Kong':'香港特别行政区','Hubei':'湖北省','Hunan':'湖南省','Inner Mongolia':'内蒙古自治区','Jiangsu':'江苏省','Jiangxi':'江西省','Jilin':'吉林省','Liaoning':'辽宁省','Macau':'澳门特别行政区','Ningxia':'宁夏回族自治区','Qinghai':'青海省','Shaanxi':'陕西省','Shandong':'山东省','Shanghai':'上海市','Shanxi':'山西省','Sichuan':'四川省','Tianjin':'天津市','Tibet':'西藏自治区','Xinjiang':'新疆维吾尔自治区','Yunnan':'云南省','Zhejiang':'浙江省','Taiwan':'台湾省'};
-      var cityMap={'Hefei':'合肥市','Beijing':'北京市','Chongqing':'重庆市','Fuzhou':'福州市','Lanzhou':'兰州市','Guangzhou':'广州市','Nanning':'南宁市','Guiyang':'贵阳市','Haikou':'海口市','Shijiazhuang':'石家庄市','Harbin':'哈尔滨市','Zhengzhou':'郑州市','Wuhan':'武汉市','Changsha':'长沙市','Hohhot':'呼和浩特市','Nanjing':'南京市','Nanchang':'南昌市','Changchun':'长春市','Shenyang':'沈阳市','Yinchuan':'银川市','Xining':'西宁市','Xian':'西安市','Jinan':'济南市','Shanghai':'上海市','Taiyuan':'太原市','Chengdu':'成都市','Tianjin':'天津市','Lhasa':'拉萨市','Urumqi':'乌鲁木齐市','Kunming':'昆明市','Hangzhou':'杭州市','Xianggang':'香港'};
-      var pName=provMap[d.region]||'';
-      var cName=cityMap[d.city]||'';
-      if(pName)matchAndSetLoc(pName+cName);
-      located=true;
-    }
-  }).catch(function(){});
-  // 方案2：搜狐IP定位（script方式，返回中文）
-  setTimeout(function(){
-    if(located)return;
-    window.returnCitySN=null;
-    var sc=document.createElement('script');
-    sc.src='https://pv.sohu.com/cityjson?ie=utf-8';
-    sc.onload=function(){
-      if(located)return;
-      if(window.returnCitySN&&returnCitySN.cname){
-        matchAndSetLoc(returnCitySN.cname);
-        located=true;
-      }else{
-        tryGeoLocate();
-      }
-    };
-    sc.onerror=function(){if(!located)tryGeoLocate();};
-    document.head.appendChild(sc);
-  },1000);
-  // 方案3：5秒后如果还没定位，尝试GPS
-  setTimeout(function(){
-    if(!document.getElementById('locDisplay').value.trim()){
-      tryGeoLocate();
-    }
-  },5000);
-  // 方案2：GPS定位+Nominatim逆地理编码
-  function tryGeoLocate(){
-    if(!navigator.geolocation)return;
-    navigator.geolocation.getCurrentPosition(function(pos){
-      var lat=pos.coords.latitude,lng=pos.coords.longitude;
-      fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat='+lat+'&lon='+lng+'&accept-language=zh&zoom=10')
-      .then(function(r){return r.json();})
-      .then(function(data){
-        if(!data||!data.address)return;
-        var addr=data.address;
-        var parts=[];
-        if(addr.state)parts.push(addr.state);
-        if(addr.city)parts.push(addr.city);
-        else if(addr.town)parts.push(addr.town);
-        if(addr.county)parts.push(addr.county);
-        if(parts.length)matchAndSetLoc(parts.join(''));
-      }).catch(function(){});
-    },function(){},{enableHighAccuracy:false,timeout:5000});
-  }
-  // 将中文地址字符串匹配到省市区下拉框
-  function matchAndSetLoc(text){
-    if(!text)return;
-    var provKeys=Object.keys(R);
-    var matchedProv='',provIdx=-1;
-    for(var i=0;i<provKeys.length;i++){
-      if(text.indexOf(provKeys[i])===0){
-        matchedProv=provKeys[i];provIdx=i;break;
-      }
-    }
-    if(!matchedProv){
-      // 模糊匹配：去掉后缀再比
-      for(var i=0;i<provKeys.length;i++){
-        var short=provKeys[i].replace(/省|市|壮族自治区|回族自治区|维吾尔自治区|自治区|特别行政区/g,'');
-        if(text.indexOf(short)===0){
-          matchedProv=provKeys[i];break;
-        }
-      }
-    }
-    if(!matchedProv)return;
-    setSel(selP,matchedProv);
-    selP.dispatchEvent(new Event('change'));
-    setTimeout(function(){
-      var rest=text.replace(matchedProv,'');
-      var cityKeys=Object.keys(R[matchedProv]||{});
-      var matchedCity='';
-      // 直辖市
-      if(cityKeys.length===1&&matchedProv===cityKeys[0]){
-        matchedCity=cityKeys[0];
-      }else{
-        for(var j=0;j<cityKeys.length;j++){
-          if(rest.indexOf(cityKeys[j])===0||rest.indexOf(cityKeys[j].replace(/市$/,''))===0){
-            matchedCity=cityKeys[j];break;
-          }
-        }
-      }
-      if(!matchedCity)return;
-      setSel(selC,matchedCity);
-      selC.dispatchEvent(new Event('change'));
-      setTimeout(function(){
-        var rest2=rest.replace(matchedCity,'');
-        var distList=R[matchedProv][matchedCity]||[];
-        var matchedDist='';
-        for(var k=0;k<distList.length;k++){
-          if(rest2.indexOf(distList[k])===0||rest2.indexOf(distList[k].replace(/区$|县$/,''))===0){
-            matchedDist=distList[k];break;
-          }
-        }
-        if(matchedDist){
-          setSel(selX,matchedDist);
-          var locText=matchedProv;
-          if(matchedCity&&matchedCity!==matchedProv)locText+=matchedCity;
-          locText+=matchedDist;
-          document.getElementById('locDisplay').value=locText;
-          updateBtnStatus();
-        }
-      },200);
-    },200);
-  }
-})();
-var locStep='province',locHistory=[];
-window.showLocPicker=function(){
-  locStep='province';locHistory=[];
-  renderLocList(Object.keys(R),'选择省份');
-  document.getElementById('locMo').style.display='block';
-};
-function renderLocList(items,title){
-  document.getElementById('locTitle').textContent=title;
-  var box=document.getElementById('locList');box.innerHTML='';
-  if(locHistory.length>0){
-    var backBtn=document.createElement('div');
-    backBtn.style.cssText='padding:12px 8px;border-bottom:2px solid #1a5276;font-size:14px;color:#1a5276;font-weight:bold;cursor:pointer;';
-    backBtn.textContent='← 上一步';
-    backBtn.addEventListener('click',function(){
-      var prev=locHistory.pop();
-      locStep=prev.step;
-      renderLocList(prev.items,prev.title);
-    });
-    box.appendChild(backBtn);
-  }
-  items.forEach(function(k){
-    var btn=document.createElement('div');
-    btn.style.cssText='padding:12px 8px;border-bottom:1px solid #eee;font-size:14px;cursor:pointer;';
-    btn.textContent=k;
-    btn.addEventListener('click',function(){
-      if(locStep==='province'){
-        locHistory.push({step:'province',items:Object.keys(R),title:'选择省份'});
-        selP.value=k;selP.dispatchEvent(new Event('change'));
-        locStep='city';
-        renderLocList(Object.keys(R[k]||{}),'选择城市');
-      }else if(locStep==='city'){
-        locHistory.push({step:'city',items:Object.keys(R[selP.value]||{}),title:'选择城市'});
-        selC.value=k;selC.dispatchEvent(new Event('change'));
-        locStep='county';
-        renderLocList(R[selP.value][k]||[],'选择区/县');
-      }else{
-        selX.value=k;
-        var locText=selP.value;
-        if(selC.value&&selC.value!==selP.value)locText+=selC.value;
-        locText+=k;
-        document.getElementById('locDisplay').value=locText;
-        document.getElementById('locMo').style.display='none';
-        updateBtnStatus();
-      }
-    });
-    box.appendChild(btn);
-  });
-}
-document.getElementById('locClose').addEventListener('click',function(){document.getElementById('locMo').style.display='none';});
-
-function setSel(sel,txt){if(!txt)return;for(var i=0;i<sel.options.length;i++){if(sel.options[i].value===txt||sel.options[i].textContent===txt){sel.selectedIndex=i;sel.dispatchEvent(new Event('change'));return;}}}
-// Elevator rows - 型号+多个编号
-var elevN=0;
-function addSerialInput(serialRow,val){
-  var inp=document.createElement('div');inp.style.cssText='display:flex;align-items:center;gap:4px;margin-bottom:4px;';
-  inp.innerHTML='<input type="text" class="sn-input" placeholder="出厂编号" value="'+(val||'')+'" style="flex:1;border:1px solid #ddd;border-radius:4px;padding:6px 8px;font-size:13px;background:#fafafa;"><button class="sn-del" style="background:none;border:none;color:#e74c3c;font-size:14px;cursor:pointer;padding:2px 6px;">✕</button>';
-  serialRow.appendChild(inp);
-  inp.querySelector('.sn-del').addEventListener('click',function(){inp.remove();var serials=serialRow.querySelectorAll('.sn-input');if(!serials.length)addSerialInput(serialRow,'');});
-}
-function addElevRow(model,serials){
-  elevN++;var box=document.getElementById('elevBox');
-  var row=document.createElement('div');row.className='elev-row';row.style.cssText='background:#f0f4f8;border-radius:8px;padding:10px;margin-bottom:8px;position:relative;';
-  var snHtml='';
-  if(serials&&serials.length){serials.forEach(function(s){snHtml+='<div style="display:flex;align-items:center;gap:4px;margin-bottom:4px;"><input type="text" class="sn-input" placeholder="出厂编号" value="'+(s||'')+'" style="flex:1;border:1px solid #ddd;border-radius:4px;padding:6px 8px;font-size:13px;background:#fafafa;"><button class="sn-del" style="background:none;border:none;color:#e74c3c;font-size:14px;cursor:pointer;padding:2px 6px;">✕</button></div>';});}
-  else{snHtml='<div style="display:flex;align-items:center;gap:4px;margin-bottom:4px;"><input type="text" class="sn-input" placeholder="出厂编号" style="flex:1;border:1px solid #ddd;border-radius:4px;padding:6px 8px;font-size:13px;background:#fafafa;"><button class="sn-del" style="background:none;border:none;color:#e74c3c;font-size:14px;cursor:pointer;padding:2px 6px;">✕</button></div>';}
-  row.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;"><span style="font-size:12px;color:#1a5276;font-weight:bold;">电梯 '+(elevN)+'</span><button class="elev-del" style="background:none;border:none;color:#e74c3c;font-size:16px;cursor:pointer;">✕</button></div><div class="fr" style="margin-bottom:6px;"><label>电梯型号</label><input type="text" class="elev-model" placeholder="填写型号" value="'+(model||'')+'" oninput="updateBtnStatus()"></div><div style="margin-bottom:4px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;"><label style="font-size:13px;color:#333;">出厂编号</label><button class="add-sn-btn" style="background:none;border:1px dashed #1a5276;color:#1a5276;font-size:12px;border-radius:4px;padding:2px 8px;cursor:pointer;">+编号</button></div><div class="serial-row">'+snHtml+'</div></div>';
-  box.appendChild(row);
-  row.querySelector('.elev-del').addEventListener('click',function(){row.remove();updateBtnStatus();});
-  row.querySelector('.add-sn-btn').addEventListener('click',function(){addSerialInput(row.querySelector('.serial-row'),'');});
-  row.querySelectorAll('.sn-del').forEach(function(btn){btn.addEventListener('click',function(){var d=btn.parentElement;d.remove();var serials=row.querySelector('.serial-row').querySelectorAll('.sn-input');if(!serials.length)addSerialInput(row.querySelector('.serial-row'),'');});});
-}
-addElevRow('',['']);
-document.getElementById('addElevBtn').addEventListener('click',function(){addElevRow('',['']);updateBtnStatus();});
-
-function mkCg(cid,name,items){var c=document.getElementById(cid);items.forEach(function(v){var lb=document.createElement('label');lb.className='ci';var cb=document.createElement('input');cb.type='checkbox';cb.name=name;cb.value=v;cb.addEventListener('change',function(){lb.classList.toggle('ck',this.checked);togOther(name);updateBtnStatus();});lb.appendChild(cb);lb.appendChild(document.createTextNode(' '+v));c.appendChild(lb);});}
-mkCg('cgBuild','construction',['安装','改造','重大修理','一般修理','保养']);
-mkCg('cgFlow','flowTo',['工程部','销售部','技术部','安装队','代理商/用户','其他']);
-mkCg('cgImpact','impact',['电梯安装进度','电梯维修进度','电梯改造进度','电梯验收进度','用户正常用梯']);
-document.addEventListener('change',function(e){if(e.target.name==='impact'&&e.target.value==='用户正常用梯')document.getElementById('stopRow').style.display=e.target.checked?'flex':'none';});
-var svcCats=[{name:'preSale',label:'售前/中工程支持',items:['初勘','复勘','用户确认','其他']},{name:'during',label:'施工前后工程支持',items:['进场前确认','进场告知','撤场告知','其他']},{name:'afterSale',label:'售后工程支持',items:['厂检','调试','解决现场问题','其他']},{name:'visit',label:'客户回访',items:['产品','款项','工程进度','培训','其他']}];
-var svcBox=document.getElementById('svcCats');
-svcCats.forEach(function(cat){var div=document.createElement('div');div.style.marginBottom='8px';var hd=document.createElement('div');hd.style.cssText='font-size:13px;font-weight:bold;color:#555;margin-bottom:4px;';hd.textContent=cat.label;div.appendChild(hd);var cg=document.createElement('div');cg.className='cg';cat.items.forEach(function(v){var lb=document.createElement('label');lb.className='ci';var cb=document.createElement('input');cb.type='checkbox';cb.name=cat.name;cb.value=v;cb.addEventListener('change',function(){lb.classList.toggle('ck',this.checked);togOther(cat.name);updateBtnStatus();});lb.appendChild(cb);lb.appendChild(document.createTextNode(' '+v));cg.appendChild(lb);});div.appendChild(cg);var or=document.createElement('div');or.className='fr';or.id=cat.name+'OtherRow';or.style.display='none';var ol=document.createElement('label');ol.textContent='其他说明';var oi=document.createElement('input');oi.type='text';oi.id=cat.name+'Other';oi.placeholder='填写';or.appendChild(ol);or.appendChild(oi);div.appendChild(or);svcBox.appendChild(div);});
-function togOther(name){var chks=document.querySelectorAll('input[name="'+name+'"]:checked');var has=false;for(var i=0;i<chks.length;i++){if(chks[i].value==='其他')has=true;}var row=document.getElementById(name+'OtherRow');if(row)row.style.display=has?'flex':'none';}
-var recN=0;
-function updateCompSel(){var sp=gv('f10'),sc=gv('f8');var opts='<option value="">选择完成方</option>';if(sp)opts+='<option value="'+sp+'">'+sp+'</option>';if(sc&&sc!==sp)opts+='<option value="'+sc+'">'+sc+'</option>';opts+='<option value="其他">其他</option>';document.querySelectorAll('.ri .compSel').forEach(function(s){var cv=s.value;s.innerHTML=opts;s.value=cv;});}
-document.getElementById('f10').addEventListener('input',updateCompSel);
-document.getElementById('f8').addEventListener('input',updateCompSel);
-function addRec(){recN++;var box=document.getElementById('recBox');var d=document.createElement('div');d.className='ri';var sp=gv('f10'),sc=gv('f8');var opts='<option value="">选择完成方</option>';if(sp)opts+='<option value="'+sp+'">'+sp+'</option>';if(sc&&sc!==sp)opts+='<option value="'+sc+'">'+sc+'</option>';opts+='<option value="其他">其他</option>';d.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;"><span style="font-size:12px;color:#1a5276;font-weight:bold;">第 '+recN+' 条</span><select style="width:auto;padding:4px 8px;font-size:12px;"><option value="完成项">✅ 完成项</option><option value="要求项">📌 要求项</option></select></div><input type="text" placeholder="沟通内容/服务记录摘要" oninput="updateBtnStatus()"><div style="display:flex;gap:6px;"><select class="compSel" style="flex:0 0 80px;padding:8px 4px;font-size:13px;border:1px solid #e0e0e0;border-radius:4px;background:#fafafa;max-width:80px;">'+opts+'</select><input type="date" style="flex:0 0 130px;padding:8px 4px;font-size:13px;border:1px solid #e0e0e0;border-radius:4px;max-width:130px;"></div>';box.appendChild(d);var newInput=d.querySelector('input[type="text"]');if(newInput)newInput.focus();}
-addRec();document.getElementById('addRecBtn').addEventListener('click',function(){addRec();updateBtnStatus();});
-
-// === Signature ===
-var sig1Data='',sig2Data='',sig1Canvas=null,sig2Canvas=null,curSig=1,sigCvs,sigCtx,sigDraw=false,sigLX=0,sigLY=0;
-document.getElementById('sd1').addEventListener('click',function(){curSig=1;openSig();});
-document.getElementById('sd2').addEventListener('click',function(){curSig=2;openSig();});
-function openSig(){document.getElementById('sigTitle').textContent=curSig===1?'✍️ 服务人签名':'✍️ 被服务人员签名';document.getElementById('sigPH').style.display='';
-var mo=document.getElementById('sigMo');mo.style.display='block';
-sigMoVisible=true;
-setTimeout(function(){layoutSigInner();setTimeout(initSigCvs,300);},50);
-// 尝试锁定横屏（签名用横屏更好写）
-try{if(screen.orientation&&screen.orientation.lock){screen.orientation.lock('landscape').catch(function(){});}}catch(ex){}
-}
-function layoutSigInner(){
-var inner=document.getElementById('sigInner');
-var headerH=40,footerH=52;
-var vw=window.innerWidth,vh=window.innerHeight;
-var isPortrait=vh>vw;
-if(isPortrait){
-  // 竖屏时旋转90度变成横屏效果
-  var cw=vh,ch=vw;
-  inner.style.width=cw+'px';inner.style.height=ch+'px';
-  inner.style.transform='rotate(90deg)';
-  inner.style.transformOrigin='top left';
-  inner.style.position='absolute';inner.style.top='0';inner.style.left=vw+'px';
-  var wrapH=ch-headerH-footerH;
-  document.getElementById('sigCanvasWrap').style.height=wrapH+'px';
-  document.getElementById('sigCanvasWrap').style.width=cw+'px';
-}else{
-  inner.style.width=vw+'px';inner.style.height=vh+'px';
-  inner.style.transform='';inner.style.position='absolute';inner.style.top='0';inner.style.left='0';
-  var wrapH=vh-headerH-footerH;
-  document.getElementById('sigCanvasWrap').style.height=wrapH+'px';
-  document.getElementById('sigCanvasWrap').style.width=vw+'px';
-}
-}
-var sigMoVisible=false;
-function initSigCvs(){sigCvs=document.getElementById('sigCvs');var dpr=window.devicePixelRatio||1;
-var wrap=document.getElementById('sigCanvasWrap');var w=parseInt(wrap.style.width)||wrap.clientWidth;var h=parseInt(wrap.style.height)||wrap.clientHeight;
-sigCvs.width=w*dpr;sigCvs.height=h*dpr;sigCvs.style.width=w+'px';sigCvs.style.height=h+'px';
-sigCtx=sigCvs.getContext('2d');sigCtx.setTransform(1,0,0,1,0,0);sigCtx.scale(dpr,dpr);sigCtx.strokeStyle='#222';sigCtx.lineWidth=2.5;sigCtx.lineCap='round';sigCtx.lineJoin='round';sigDraw=false;sigCvs.onmousedown=sDown;sigCvs.onmousemove=sMove;sigCvs.onmouseup=sUp;sigCvs.onmouseleave=sUp;sigCvs.ontouchstart=sDown;sigCvs.ontouchmove=sMove;sigCvs.ontouchend=sUp;}
-// 屏幕方向变化或resize时重新初始化canvas
-window.addEventListener('resize',function(){if(sigMoVisible){
-  setTimeout(function(){layoutSigInner();initSigCvs();},150);
-}});
-if(screen.orientation){screen.orientation.addEventListener('change',function(){if(sigMoVisible)setTimeout(function(){layoutSigInner();initSigCvs();},150);});}
-function sGP(e){var r=sigCvs.getBoundingClientRect();var t=e.touches?e.touches[0]:e;
-var isRotated=document.getElementById('sigInner').style.transform.indexOf('90')>-1;
-if(isRotated){
-  // 面板旋转90度时，触摸坐标需要转换：屏幕x→canvas y，屏幕y→canvas x
-  var cx=t.clientX-r.left;var cy=t.clientY-r.top;
-  return{x:cy,y:r.width-cx};
-}else{
-  return{x:t.clientX-r.left,y:t.clientY-r.top};
-}}
-function sDown(e){e.preventDefault();
-var ph=document.getElementById('sigPH');
-if(ph&&ph.style.display!=='none'){initSigCvs();}
-sigDraw=true;var p=sGP(e);sigLX=p.x;sigLY=p.y;if(ph)ph.style.display='none';}
-function sMove(e){e.preventDefault();if(!sigDraw)return;var p=sGP(e);sigCtx.beginPath();sigCtx.moveTo(sigLX,sigLY);sigCtx.lineTo(p.x,p.y);sigCtx.stroke();sigLX=p.x;sigLY=p.y;}
-function sUp(e){if(e)e.preventDefault();sigDraw=false;}
-document.getElementById('sigClr').addEventListener('click',function(){initSigCvs();document.getElementById('sigPH').style.display='';});
-function closeSigMo(){document.getElementById('sigMo').style.display='none';sigMoVisible=false;var inner=document.getElementById('sigInner');inner.style.transform='';inner.style.position='';if(screen.orientation&&screen.orientation.unlock){screen.orientation.unlock();}}
-function compressSigData(dataUrl,maxW,quality){maxW=maxW||600;return new Promise(function(resolve){var img=new Image();img.onload=function(){var w=img.width,h=img.height;if(w>maxW){var s=maxW/w;w=maxW;h=Math.round(h*s);}var c=document.createElement('canvas');c.width=w;c.height=h;var ctx=c.getContext('2d');ctx.drawImage(img,0,0,w,h);resolve(c.toDataURL('image/png'));};img.onerror=function(){resolve(dataUrl);};img.src=dataUrl;});}
-document.getElementById('sigOk').addEventListener('click',function(){var c=document.getElementById('sigCvs');var b=document.createElement('canvas');b.width=c.width;b.height=c.height;if(c.toDataURL()===b.toDataURL()){showToast('请先签名');return;}var rawPng=c.toDataURL('image/png');compressSigData(rawPng).then(function(data){if(curSig===1){sig1Data=data;sig1Canvas=c;}else{sig2Data=data;sig2Canvas=c;}document.getElementById('sd'+curSig).innerHTML='<img src="'+data+'">';closeSigMo();updateBtnStatus();});});
-document.getElementById('sigCancel').addEventListener('click',closeSigMo);
-
-
-function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.style.display='block';setTimeout(function(){t.style.display='none';},2000);}
-function gv(id){return document.getElementById(id).value||'';}
-function gck(n){var a=[];document.querySelectorAll('input[name="'+n+'"]:checked').forEach(function(c){a.push(c.value);});return a;}
-function collectData(){var elevs=[];document.querySelectorAll('.elev-row').forEach(function(row){var m=row.querySelector('.elev-model');var sns=[];row.querySelectorAll('.sn-input').forEach(function(inp){if(inp.value)sns.push(inp.value);});elevs.push({model:m?m.value:'',serials:sns});});return{initiator:gv('f1'),serviceCount:gv('f2'),projectName:gv('f3'),elevators:elevs,province:gv('p1'),city:gv('c1'),county:gv('x1'),detailAddr:gv('f5'),siteContact:gv('f8'),sitePhone:gv('f9'),servicePerson:gv('f10'),servicePhone:gv('f11'),serviceTime:gv('f12'),construction:gck('construction'),preSale:gck('preSale'),during:gck('during'),afterSale:gck('afterSale'),visit:gck('visit'),flowTo:gck('flowTo'),impact:gck('impact'),urgentItems:gv('f13'),stopDate:gv('f14')};}
-
-function togSec_old_removed(){}
-document.getElementById('saveBtn').addEventListener('click',function(){
-  if(!gv('f3')){showToast('请填写项目名称');document.getElementById('f3').focus();return;}
-  if(!gv('f10')){showToast('请填写服务人');document.getElementById('f10').focus();return;}
-  if(!gv('f12')){showToast('请填写服务时间');document.getElementById('f12').focus();return;}
-  var phoneReg=/^1[3-9]\d{9}$/;
-  var p9=gv('f9'),p11=gv('f11');
-  if(p9&&!phoneReg.test(p9)){showToast('联系电话格式不正确，请输入11位手机号');document.getElementById('f9').focus();return;}
-  if(p11&&!phoneReg.test(p11)){showToast('服务电话格式不正确，请输入11位手机号');document.getElementById('f11').focus();return;}
-  // 编号唯一性检查：所有电梯的编号不能重复
-  var allSns=[];var dupSn='';document.querySelectorAll('.elev-row').forEach(function(row){row.querySelectorAll('.sn-input').forEach(function(inp){var v=inp.value.trim();if(v){if(allSns.indexOf(v)>=0){dupSn=v;}allSns.push(v);}});});if(dupSn){showToast('出厂编号「'+dupSn+'」重复，请修改');return;}
-  var d=collectData();d.savedAt=new Date().toLocaleString('zh-CN');d.sig1=sig1Data;d.sig2=sig2Data;d.preSaleOther=document.getElementById('preSaleOther')?document.getElementById('preSaleOther').value:'';d.duringOther=document.getElementById('duringOther')?document.getElementById('duringOther').value:'';d.afterSaleOther=document.getElementById('afterSaleOther')?document.getElementById('afterSaleOther').value:'';d.visitOther=document.getElementById('visitOther')?document.getElementById('visitOther').value:'';d.records=[];document.querySelectorAll('.ri').forEach(function(item,i){var sel=item.querySelector('select:not(.compSel)');var compSel=item.querySelector('.compSel');var inputs=item.querySelectorAll('input[type="text"]');var dt=item.querySelector('input[type="date"]');var content=inputs[0]?inputs[0].value.trim():'';if(content){d.records.push({num:d.records.length+1,type:sel?sel.value:'',content:content,completer:compSel?compSel.value:'',date:dt?dt.value:''});}});d.elevators=d.elevators.filter(function(ev){return ev.model.trim()||ev.serials.some(function(s){return s.trim();});});var list=_wtListCache;
-  // 重复检查：服务时间+设备编号
-  var dKey=(d.serviceTime||'')+'_'+(d.elevators?d.elevators.map(function(e){return e.serials.join(',')}).join('|'):'');
-  if(editingIdx>=0){
-    var orig=list[editingIdx];
-    if(orig&&orig.projectName===d.projectName){list[editingIdx]=d;}
-    else{list.unshift(d);}
-    editingIdx=-1;
-  }else{
-    // 检查是否已有相同记录（仅比对服务时间+设备编号）
-    var dup=list.some(function(item){var iKey=(item.serviceTime||'')+'_'+(item.elevators?item.elevators.map(function(e){return e.serials.join(',')}).join('|'):'');return iKey===dKey;});
-    if(dup){if(!confirm('检测到相同服务时间和设备编号的记录已存在，是否仍要保存？'))return;}
-    list.unshift(d);
-  }if(list.length>50)list=list.slice(0,50);try{_wtListCache=list;_saveWtListCache();showToast('✅ 已保存');renderList();}catch(e){showToast('存储空间不足');}
-  // 保存后清空表单
-  document.querySelectorAll('input[type="text"],input[type="tel"],input[type="date"],input[type="datetime-local"],input[type="number"]').forEach(function(el){el.value='';});document.querySelectorAll('select').forEach(function(el){el.selectedIndex=0;});document.querySelectorAll('input[type="checkbox"]').forEach(function(el){el.checked=false;el.parentElement.classList.remove('ck');});document.querySelectorAll('.sd').forEach(function(el){el.innerHTML='<span>点击签名</span>';});sig1Data='';sig2Data='';sig1Canvas=null;sig2Canvas=null;document.getElementById('locDisplay').value='';document.getElementById('elevBox').innerHTML='';elevN=0;addElevRow('',['']);editingIdx=-1;document.getElementById('recBox').innerHTML='';recN=0;addRec();window.scrollTo(0,0);updateBtnStatus();});
-document.getElementById('clearBtn').addEventListener('click',function(){if(!confirm('确定清空所有表单数据？'))return;document.querySelectorAll('input[type="text"],input[type="tel"],input[type="date"],input[type="datetime-local"],input[type="number"]').forEach(function(el){el.value='';});document.querySelectorAll('select').forEach(function(el){el.selectedIndex=0;});document.querySelectorAll('input[type="checkbox"]').forEach(function(el){el.checked=false;});document.querySelectorAll('.ci').forEach(function(el){el.classList.remove('ck');});document.querySelectorAll('.sd').forEach(function(el){el.innerHTML='<span>点击签名</span>';});sig1Data='';sig2Data='';sig1Canvas=null;sig2Canvas=null;document.getElementById('locDisplay').value='';document.getElementById('elevBox').innerHTML='';elevN=0;addElevRow('',['']);editingIdx=-1;document.getElementById('recBox').innerHTML='';recN=0;addRec();window.scrollTo(0,0);showToast('已清空');updateBtnStatus();});
-
-function renderList(){var list=_wtListCache;var box=document.getElementById('savedList');if(!list.length){box.innerHTML='<div style="text-align:center;padding:30px 10px;color:#a0aec0;font-size:13px;">暂无保存记录</div>';updateBtnStatus();return;}var html='';list.forEach(function(d,i){var stDisplay=d.serviceTime?d.serviceTime.split('T')[0]:'-';var lines=[];lines.push('服务时间: '+stDisplay);if(d.siteContact||d.sitePhone)lines.push('联系人: '+(d.siteContact||'')+(d.sitePhone?' '+d.sitePhone:''));else if(d.servicePerson||d.servicePhone)lines.push('服务人: '+(d.servicePerson||'')+(d.servicePhone?' '+d.servicePhone:''));html+='<div class="rec-card"><div class="rc-head"><span class="rc-name">'+(d.projectName||'未命名')+'</span><span class="rc-time">'+d.savedAt+'</span></div>'+lines.map(function(l){return '<div class="rc-info">'+l+'</div>';}).join('')+'<div class="rc-btns"><button class="rc-btn-view" data-idx="'+i+'">查看</button><button class="rc-btn-del" data-idx="'+i+'">删除</button></div></div>';});box.innerHTML=html;box.querySelectorAll('.rc-btn-view').forEach(function(btn){btn.addEventListener('click',function(){viewRec(parseInt(this.getAttribute('data-idx')));});});box.querySelectorAll('.rc-btn-del').forEach(function(btn){btn.addEventListener('click',function(){delRec(parseInt(this.getAttribute('data-idx')));});});updateBtnStatus();}
-// 启动时迁移：压缩已有的旧签名数据
-(function migrateOldSignatures(){
-  var list=_wtListCache;
-  var changed=false;
-  var pending=0;
-  var done=false;
-  function trySave(){if(pending===0&&done&&changed){var json=JSON.stringify(list);_wtListCache=[];dbRemove('wtList');try{try{_wtListCache=JSON.parse(json);}catch(e){}_saveWtListCache();}catch(e){}}renderList();}
-  list.forEach(function(d){
-    ['sig1','sig2'].forEach(function(key){
-      if(d[key]&&(d[key].indexOf('data:image/png')===0||d[key].indexOf('data:image/jpeg')===0)&&d[key].length>5000){
-        pending++;
-        var img=new Image();
-        img.onload=function(){
-          var w=img.width,h=img.height,maxW=600;
-          if(w>maxW){var s=maxW/w;w=maxW;h=Math.round(h*s);}
-          var c=document.createElement('canvas');c.width=w;c.height=h;
-          var cx=c.getContext('2d');cx.drawImage(img,0,0,w,h);
-          var imgData=cx.getImageData(0,0,w,h);var px=imgData.data;
-          for(var i=0;i<px.length;i+=4){
-            var bri=(px[i]+px[i+1]+px[i+2])/3;
-            if(bri<20){px[i]=255;px[i+1]=255;px[i+2]=255;px[i+3]=0;}
-          }
-          cx.putImageData(imgData,0,0);
-          d[key]=c.toDataURL('image/png');
-          changed=true;pending--;trySave();
-        };
-        img.onerror=function(){pending--;trySave();};
-        img.src=d[key];
-      }
-    });
-  });
-  if(!changed&&pending===0)renderList();
-})();
-// 导出记录
-document.getElementById('exportBtn').addEventListener('click',function(){var list=_wtListCache;if(!list.length){showToast('暂无记录可导出');return;}var blob=new Blob([JSON.stringify(list)],{type:'application/json'});var blobUrl=URL.createObjectURL(blob);var a=document.createElement('a');a.href=blobUrl;a.download='威特服务单记录_'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(blobUrl);showToast('已导出'+list.length+'条记录');});
-// 导入记录
-document.getElementById('importBtn').addEventListener('click',function(){document.getElementById('importFile').click();});
-document.getElementById('importFile').addEventListener('change',function(e){var file=e.target.files[0];if(!file)return;var reader=new FileReader();reader.onload=function(ev){try{var data=JSON.parse(ev.target.result);if(!Array.isArray(data)){showToast('文件格式不正确');return;}var list=_wtListCache;var existKeys={};list.forEach(function(d){existKeys[d.projectName+'_'+d.savedAt]=true;});var count=0;data.forEach(function(d){var key=d.projectName+'_'+d.savedAt;if(!existKeys[key]){list.push(d);existKeys[key]=true;count++;}});if(list.length>50)list=list.slice(0,50);_wtListCache=list;_saveWtListCache();renderList();showToast('导入了'+count+'条新记录');}catch(err){showToast('文件解析失败');}};reader.readAsText(file);e.target.value='';});
-
-function viewRec(idx){var list=_wtListCache;if(!list[idx])return;curViewIdx=idx;var d=list[idx];
-// 计算填写进度
-var filled=0,total=8;
-if(d.initiator)filled++;if(d.projectName)filled++;if(d.siteContact)filled++;if(d.servicePerson)filled++;if(d.serviceTime)filled++;if(d.construction&&d.construction.length)filled++;if(d.flowTo&&d.flowTo.length)filled++;if(d.impact&&d.impact.length)filled++;
-var pct=Math.round(filled/total*100);
-var locP=(d.province||''),locC=(d.city||''),locX=(d.county||'');
-var loc=locP+(locC&&locC!==locP?locC:'')+locX+(d.detailAddr?' '+d.detailAddr:'');
-var elevs=d.elevators||[{model:d.elevatorModel||'',serials:d.serialNumber?[d.serialNumber]:[]}];
-var elevInfo=elevs.map(function(e){return e.model||'未知';}).join('、');
-var serviceTimeDisplay=d.serviceTime?d.serviceTime.split('T')[0]:'未填写';
-var html='<div class="env-card">';
-html+='<div class="env-top"><h2>'+(d.projectName||'未命名')+'</h2><div class="env-sub">保存于 '+(d.savedAt||'')+'</div></div>';
-html+='<div class="env-body">';
-html+='<div class="env-field"><div class="env-label">项目名称</div><div class="env-value">'+(d.projectName||'未填写')+'</div></div>';
-html+='<div class="env-field"><div class="env-label">服务时间</div><div class="env-value">'+serviceTimeDisplay+'</div></div>';
-html+='<div class="env-field"><div class="env-label">电梯型号</div><div class="env-value">'+elevInfo+'</div></div>';
-html+='<div class="env-field"><div class="env-label">项目所在地</div><div class="env-value">'+(loc||'未填写')+'</div></div>';
-html+='<div class="env-progress"><div class="ep-header"><span>服务进度</span><span>'+pct+'%</span></div><div class="ep-bar"><div class="ep-fill" style="width:'+pct+'%"></div></div></div>';
-html+='<div class="env-btns"><button class="env-btn-edit" id="envEditBtn">✏️ 修改</button><button class="env-btn-print" id="envPrintBtn">🖨️ 打印</button></div>';
-html+='</div></div>';
-document.getElementById('recDetail').innerHTML=html;
-document.getElementById('recMo').style.display='block';
-// 绑定按钮事件
-document.getElementById('envEditBtn').addEventListener('click',function(){document.getElementById('recMo').style.display='none';closeMo('historyMo');loadRec(curViewIdx);window.scrollTo(0,0);});
-document.getElementById('envPrintBtn').addEventListener('click',function(){document.getElementById('recMo').style.display='none';closeMo('historyMo');genPdf(d);});
-}
-function delRec(idx){var list=_wtListCache;list.splice(idx,1);_wtListCache=list;_saveWtListCache();renderList();showToast('已删除');}
-document.getElementById('recClose').addEventListener('click',function(){document.getElementById('recMo').style.display='none';});
-var editingIdx=-1,curViewIdx=-1;
-
-// 修改按钮：回填数据到表单
-function loadRec(idx){
-  var list=_wtListCache;
-  if(idx<0||!list[idx])return;
-  var d=list[idx];
-  editingIdx=idx;
-  document.getElementById('f1').value=d.initiator||'';
-  document.getElementById('f2').value=d.serviceCount||'';
-  document.getElementById('f3').value=d.projectName||'';
-  document.getElementById('f5').value=d.detailAddr||'';
-  var eBox=document.getElementById('elevBox');eBox.innerHTML='';elevN=0;
-  var elevs=d.elevators||[{model:d.elevatorModel||'',serials:d.serialNumber?[d.serialNumber]:[]}];
-  elevs.forEach(function(e){addElevRow(e.model,e.serials||[]);});
-  document.getElementById('f8').value=d.siteContact||'';
-  document.getElementById('f9').value=d.sitePhone||'';
-  document.getElementById('f10').value=d.servicePerson||'';
-  document.getElementById('f11').value=d.servicePhone||'';
-  document.getElementById('f12').value=d.serviceTime||'';
-  document.getElementById('f13').value=d.urgentItems||'';
-  document.getElementById('f14').value=d.stopDate||'';
-  if(d.province){setSel(selP,d.province);setTimeout(function(){if(d.city){setSel(selC,d.city);setTimeout(function(){if(d.county){setSel(selX,d.county);var lt=d.province;if(d.city&&d.city!==d.province)lt+=d.city;lt+=d.county;document.getElementById('locDisplay').value=lt;}},150);}},150);}
-  function setChk(name,vals){document.querySelectorAll('input[name="'+name+'"]').forEach(function(cb){cb.checked=vals&&vals.indexOf(cb.value)>=0;cb.parentElement.classList.toggle('ck',cb.checked);});togOther(name);}
-  setChk('construction',d.construction);setChk('preSale',d.preSale);setChk('during',d.during);setChk('afterSale',d.afterSale);setChk('visit',d.visit);setChk('flowTo',d.flowTo);setChk('impact',d.impact);
-  if(d.preSaleOther!==undefined&&document.getElementById('preSaleOther'))document.getElementById('preSaleOther').value=d.preSaleOther;
-  if(d.duringOther!==undefined&&document.getElementById('duringOther'))document.getElementById('duringOther').value=d.duringOther;
-  if(d.afterSaleOther!==undefined&&document.getElementById('afterSaleOther'))document.getElementById('afterSaleOther').value=d.afterSaleOther;
-  if(d.visitOther!==undefined&&document.getElementById('visitOther'))document.getElementById('visitOther').value=d.visitOther;
-  if(d.sig1){sig1Data=d.sig1;sig1Canvas=null;document.getElementById('sd1').innerHTML='<img src="'+d.sig1+'">';}
-  if(d.sig2){sig2Data=d.sig2;sig2Canvas=null;document.getElementById('sd2').innerHTML='<img src="'+d.sig2+'">';}
-  var recBox=document.getElementById('recBox');recBox.innerHTML='';recN=0;
-  if(d.records&&d.records.length){d.records.forEach(function(r){addRec();var items=recBox.querySelectorAll('.ri');var last=items[items.length-1];var sel=last.querySelector('select:not(.compSel)');if(sel)sel.value=r.type;var inputs=last.querySelectorAll('input[type="text"]');if(inputs[0])inputs[0].value=r.content;var compSel=last.querySelector('.compSel');if(compSel){var found=false;for(var oi=0;oi<compSel.options.length;oi++){if(compSel.options[oi].value===r.completer){found=true;break;}}if(!found&&r.completer){var nopt=document.createElement('option');nopt.value=r.completer;nopt.textContent=r.completer;compSel.appendChild(nopt);}compSel.value=r.completer;}var dt=last.querySelector('input[type="date"]');if(dt)dt.value=r.date;});}
-  if(d.impact&&d.impact.indexOf('用户正常用梯')>=0)document.getElementById('stopRow').style.display='flex';
-  window.scrollTo({top:0,behavior:'smooth'});
-  showToast('已载入，修改后点保存');
-  updateBtnStatus();
+// ============ 工具函数 ============
+function showToast(msg){
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  setTimeout(function(){ t.style.display = 'none'; }, 2000);
 }
 
-// 查看弹窗的下载PDF按钮 - 已在viewRec中envPrintBtn处理
-
-// === 文本换行辅助函数 ===
-function wrapText(ctx,text,maxWidth,fontSize){if(!text)return[''];ctx.save();ctx.font=fontSize+'px "SimSun","Songti SC",serif';var lines=[];var line='';for(var i=0;i<text.length;i++){var testLine=line+text[i];if(ctx.measureText(testLine).width>maxWidth&&line){lines.push(line);line=text[i];}else{line=testLine;}}if(line)lines.push(line);ctx.restore();return lines.length?lines:[''];}
-
-// === 生成图片预览 - 按原模板表格格式canvas绘制 ===
-function genPdf(d){
-  var now=new Date();
-  var mm=String(now.getMonth()+1).padStart(2,'0');
-  var dd=String(now.getDate()).padStart(2,'0');
-  var fname=mm+dd+(d.projectName||'未命名');
-
-  var elevs=d.elevators||[{model:d.elevatorModel||'',serials:d.serialNumber?[d.serialNumber]:[]}];
-  // PDF过滤：去掉型号和编号都为空的电梯行
-  elevs=elevs.filter(function(ev){return (ev.model||'').trim()||(ev.serials||[]).some(function(s){return(s||'').trim();});});
-  // PDF过滤：去掉内容为空的记录行
-  var pdfRecords=(d.records||[]).filter(function(r){return(r.content||'').trim();});
-  var cnNums=['一','二','三','四','五','六','七','八','九','十'];
-
-  var extraElevH=Math.max(0,elevs.length-1)*28;
-  var baseRecRows=11-elevs.length;
-  var recLen=Math.max(pdfRecords.length,baseRecRows);
-  var extraRecH=Math.max(0,recLen-3)*28;
-
-  var W=760,H=1350+extraElevH+extraRecH;
-  var cvs=document.createElement('canvas');
-  cvs.width=W*3;cvs.height=H*3;
-  var c=cvs.getContext('2d');
-  c.scale(3,3);
-
-  c.fillStyle='#fff';c.fillRect(0,0,W,H);
-
-  var pad=40,lh=28,fs=13,sfs=11;
-  var cy=pad;
-  var tw=W-pad*2;
-  var rh=28;
-
-  function drawRect(x,y,w,h){c.strokeRect(x,y,w,h);}
-  function drawTC(t,x,y,sz,bold){c.save();c.font=(bold?'bold ':'')+((sz||fs)+'px')+' "SimSun","Songti SC",serif';c.fillStyle='#000';c.textBaseline='middle';c.textAlign='center';c.fillText(String(t),x,y);c.restore();}
-  function drawTL(t,x,y,sz,bold){c.save();c.font=(bold?'bold ':'')+((sz||fs)+'px')+' "SimSun","Songti SC",serif';c.fillStyle='#000';c.textBaseline='middle';c.textAlign='left';c.fillText(String(t),x,y);c.restore();}
-  function drawCB(checked,x,y){c.strokeRect(x,y,10,10);if(checked){c.beginPath();c.moveTo(x+2,y+5);c.lineTo(x+4,y+8);c.lineTo(x+8,y+2);c.stroke();}}
-  function drawL(x1,y1,x2,y2){c.beginPath();c.moveTo(x1,y1);c.lineTo(x2,y2);c.stroke();}
-
-  var cA=120,cB=240,cC=140,cD=70,cE=tw-cA-cB-cC-cD;
-  var q1=cA, q2=cB, q3=cA, q4=tw-cA-cB-cA;
-
-  c.font='bold 18px "SimSun","Songti SC",serif';c.fillStyle='#000';c.textAlign='center';c.textBaseline='middle';
-  c.fillText('威特电梯技术服务单',W/2,cy+10);cy+=24;
-  c.font='9px "SimSun","Songti SC",serif';c.fillStyle='#666';c.textAlign='right';
-  c.fillText('WT-GC-SH-01(P版)',W-pad,cy);c.textAlign='left';cy+=8;
-
-  drawRect(pad,cy,tw,rh);
-  drawL(pad+cA,cy,pad+cA,cy+rh);
-  drawL(pad+cA+cB,cy,pad+cA+cB,cy+rh);
-  drawL(pad+cA+cB+cC,cy,pad+cA+cB+cC,cy+rh);
-  drawL(pad+cA+cB+cC+cD,cy,pad+cA+cB+cC+cD,cy+rh);
-  drawTC('服务指令发起人',pad+cA/2,cy+rh/2,sfs,true);
-  drawTC(d.initiator||'',pad+cA+cB/2,cy+rh/2,sfs);
-  drawTC('此项目第 '+(d.serviceCount||'')+' 次服务',pad+cA+cB+cC/2,cy+rh/2,sfs);
-  drawTC('服务时间：',pad+cA+cB+cC+cD/2,cy+rh/2,sfs,true);
-  drawTC(d.serviceTime?d.serviceTime.replace(/T.*/,''):'',pad+cA+cB+cC+cD+cE/2,cy+rh/2,sfs);
-  cy+=rh;
-
-  drawRect(pad,cy,tw,rh);
-  drawL(pad+cA,cy,pad+cA,cy+rh);
-  drawTC('项目名：',pad+cA/2,cy+rh/2,sfs,true);
-  drawTC(d.projectName||'',pad+cA+cB/2,cy+rh/2,sfs);
-  cy+=rh;
-
-  elevs.forEach(function(ev,ei){
-    drawRect(pad,cy,tw,rh);
-    drawL(pad+cA,cy,pad+cA,cy+rh);
-    drawL(pad+cA+cB,cy,pad+cA+cB,cy+rh);
-    drawL(pad+cA+cB+cA,cy,pad+cA+cB+cA,cy+rh);
-    drawTC(elevs.length>1?'电梯型号'+(cnNums[ei]||''+(ei+1))+'：':'电梯型号：',pad+cA/2,cy+rh/2,sfs,true);
-    drawTC(ev.model||'',pad+cA+cB/2,cy+rh/2,sfs);
-    drawTC('出厂编号：',pad+cA+cB+cA/2,cy+rh/2,sfs,true);
-    var snTxt=(ev.serials&&ev.serials.length)?ev.serials.join(' / '):'';
-    drawTC(snTxt,pad+cA+cB+cA+(tw-cA-cB-cA)/2,cy+rh/2,sfs);
-    cy+=rh;
-  });
-
-  drawRect(pad,cy,tw,rh);
-  drawL(pad+cA,cy,pad+cA,cy+rh);
-  drawTC('项目所在地：',pad+cA/2,cy+rh/2,sfs,true);
-  var locP=(d.province||''),locC=(d.city||''),locX=(d.county||'');
-  var loc=locP+(locC&&locC!==locP?locC:'')+locX+(d.detailAddr?' '+d.detailAddr:'');
-  drawTC(loc,pad+cA+(tw-cA)/2,cy+rh/2,sfs);
-  cy+=rh;
-
-  var qx=pad;
-  drawRect(pad,cy,tw,rh);
-  drawL(qx+q1,cy,qx+q1,cy+rh);
-  drawL(qx+q1+q2,cy,qx+q1+q2,cy+rh);
-  drawL(qx+q1+q2+q3,cy,qx+q1+q2+q3,cy+rh);
-  drawTC('现场联系人：',qx+q1/2,cy+rh/2,sfs,true);
-  drawTC(d.siteContact||'',qx+q1+q2/2,cy+rh/2,sfs);
-  drawTC('联系电话：',qx+q1+q2+q3/2,cy+rh/2,sfs,true);
-  drawTC(d.sitePhone||'',qx+q1+q2+q3+q4/2,cy+rh/2,sfs);
-  cy+=rh;
-
-  drawRect(pad,cy,tw,rh);
-  drawL(qx+q1,cy,qx+q1,cy+rh);
-  drawL(qx+q1+q2,cy,qx+q1+q2,cy+rh);
-  drawL(qx+q1+q2+q3,cy,qx+q1+q2+q3,cy+rh);
-  drawTC('服务人：',qx+q1/2,cy+rh/2,sfs,true);
-  drawTC(d.servicePerson||'',qx+q1+q2/2,cy+rh/2,sfs);
-  drawTC('服务电话：',qx+q1+q2+q3/2,cy+rh/2,sfs,true);
-  drawTC(d.servicePhone||'',qx+q1+q2+q3+q4/2,cy+rh/2,sfs);
-  cy+=rh;
-
-  drawRect(pad,cy,tw,rh);
-  drawL(pad+cA,cy,pad+cA,cy+rh);
-  drawTC('施工类别划分',pad+cA/2,cy+rh/2,sfs,true);
-  var buildItems=['安装','改造','重大修理','一般修理','保养'];
-  var bCellW=(tw-cA)/buildItems.length;
-  buildItems.forEach(function(v,i){
-    var bx=pad+cA+i*bCellW+4;
-    var ck2=(d.construction||[]).indexOf(v)>=0;
-    drawCB(ck2,bx,cy+rh/2-5);drawTL(v,bx+18,cy+rh/2,sfs);
-  });
-  cy+=rh;
-
-  var svcItems=[
-    {name:'售前/中工程支持',items:['初勘','复勘','用户确认','其他'],key:'preSale'},
-    {name:'施工前后工程支持',items:['进场前确认','进场告知','撤场告知','其他'],key:'during'},
-    {name:'售后工程支持',items:['厂检','调试','解决现场问题','其他'],key:'afterSale'},
-    {name:'客户回访',items:['产品','款项','工程进度','培训','其他'],key:'visit'}
-  ];
-  svcItems.forEach(function(svc){
-    drawRect(pad,cy,tw,rh);
-    drawL(pad+cA,cy,pad+cA,cy+rh);
-    drawTC(svc.name,pad+cA/2,cy+rh/2,sfs,true);
-    var colCount=svc.items.length;
-    var sCellW=(tw-cA)/colCount;
-    svc.items.forEach(function(v,i){
-      var sx=pad+cA+i*sCellW+4;
-      var ck2=(d[svc.key]||[]).indexOf(v)>=0;
-      drawCB(ck2,sx,cy+rh/2-5);drawTL(v,sx+18,cy+rh/2,sfs);
-    });
-    cy+=rh;
-  });
-
-  drawRect(pad,cy,tw,rh);
-  drawL(pad+cA,cy,pad+cA,cy+rh);
-  drawTC('服务信息流转至',pad+cA/2,cy+rh/2,sfs,true);
-  var flowItems=['工程部','销售部','技术部','安装队','代理商/用户','其他'];
-  var fCellW=(tw-cA)/flowItems.length;
-  flowItems.forEach(function(v,i){
-    var fx=pad+cA+i*fCellW+4;
-    var ck2=(d.flowTo||[]).indexOf(v)>=0;
-    drawCB(ck2,fx,cy+rh/2-5);drawTL(v,fx+18,cy+rh/2,sfs);
-  });
-  cy+=rh;
-
-  var baseRecRows2=11-elevs.length;
-  // === 记录表格 ===
-  // 每行固定高度lh=28，内容超出一行文字宽度就自动跳到下一行（续行不渲染勾选框和序号）
-  var rcW=[cA,30,tw-cA-30-70-70,70,70];
-  var rcX=[pad];
-  for(var ri2=0;ri2<5;ri2++){rcX.push(rcX[ri2]+rcW[ri2]);}
-  
-  // Step1: 计算每条记录的内容行数
-  var recData=[];
-  var actualRecN=pdfRecords.length;
-  for(var ri=0;ri<actualRecN;ri++){
-    var rtxt=(pdfRecords[ri]&&pdfRecords[ri].content)||'';
-    var rlines=wrapText(c,rtxt,rcW[2]-8,sfs);
-    recData.push({lines:rlines,rowSpan:Math.max(1,rlines.length)});
+// ============ 跳转详情页 ============
+function goToDetail(idx){
+  if(idx !== undefined && idx >= 0){
+    window.location.href = 'weite-service-beta-detail.html?idx=' + idx;
+  } else {
+    window.location.href = 'weite-service-beta-detail.html';
   }
-  // 保证最少2条记录行
-  var minRecN=Math.max(actualRecN,2);
-  while(recData.length<minRecN){recData.push({lines:[''],rowSpan:1});}
-  
-  // Step2: 画所有数据内容（文字、勾选框），记录最终y位置
-  var recTopY=cy;
-  var dataY=cy+lh; // 跳过表头行
-  for(var ri=0;ri<recData.length;ri++){
-    var rd=recData[ri];
-    var rec=pdfRecords&&pdfRecords[ri]?pdfRecords[ri]:null;
-    var lines=rd.lines;
-    // 第一行：勾选框+序号+内容第一行+完成方+日期
-    if(rec){
-      var isComp=rec.type==='完成项';
-      drawCB(isComp,rcX[0]+4,dataY+lh/2-5);drawTL('完成项',rcX[0]+20,dataY+lh/2,sfs);
-      drawCB(!isComp,rcX[0]+60,dataY+lh/2-5);drawTL('要求项',rcX[0]+76,dataY+lh/2,sfs);
-      drawTC(''+(ri+1),(rcX[1]+rcX[2])/2,dataY+lh/2,sfs);
-      drawTC(rec.completer||'',(rcX[3]+rcX[4])/2,dataY+lh/2,sfs);
-      drawTC(rec.date||'',(rcX[4]+rcX[5])/2,dataY+lh/2,sfs);
-    }
-    if(lines.length>0){drawTL(lines[0],rcX[2]+4,dataY+lh/2,sfs);}
-    dataY+=lh;
-    // 续行：只画内容文字
-    for(var li=1;li<lines.length;li++){
-      drawTL(lines[li],rcX[2]+4,dataY+lh/2,sfs);
-      dataY+=lh;
-    }
-  }
-  
-  // Step3: 补空行到A4底部附近（给签名区和footer留空间）
-  var A4H_full=Math.round(W*297/210);
-  var footerSpace=260;
-  var fillTarget=A4H_full-footerSpace;
-  var totalContentRows=0;
-  for(var ri=0;ri<recData.length;ri++){totalContentRows+=recData[ri].rowSpan;}
-  var minTotalRows=baseRecRows2; // 11-电梯数量
-  var contentRowsNeeded=totalContentRows;
-  var fillRows=0;
-  if(contentRowsNeeded<minTotalRows){fillRows=minTotalRows-contentRowsNeeded;}
-  // 再检查A4高度
-  var afterFill=dataY+fillRows*lh;
-  if(afterFill<fillTarget){
-    var extraFill=Math.floor((fillTarget-afterFill)/lh);
-    fillRows+=extraFill;
-  }
-  var tableBottom=dataY+fillRows*lh;
-  
-  // Step4: 回过头画所有线条（外框、横线、竖线）
-  var tableH=tableBottom-recTopY;
-  // 外框
-  drawRect(pad,recTopY,tw,tableH);
-  // 表头底线
-  drawL(pad,recTopY+lh,pad+tw,recTopY+lh);
-  // 5列竖线（从表头到表格底部）
-  for(var ci=1;ci<5;ci++){drawL(rcX[ci],recTopY,rcX[ci],tableBottom);}
-  // 表头文字
-  drawTC('类别',(rcX[0]+rcX[1])/2,recTopY+lh/2,sfs,true);
-  drawTC('序号',(rcX[1]+rcX[2])/2,recTopY+lh/2,sfs,true);
-  drawTC('沟通内容/服务记录摘要',(rcX[2]+rcX[3])/2,recTopY+lh/2,sfs,true);
-  drawTC('完成方',(rcX[3]+rcX[4])/2,recTopY+lh/2,sfs,true);
-  drawTC('要求完成时间',(rcX[4]+rcX[5])/2,recTopY+lh/2,sfs,true);
-  // 数据行横线（每条记录的每个span一行横线）
-  var hly=recTopY+lh;
-  for(var ri=0;ri<recData.length;ri++){
-    for(var si=0;si<recData[ri].rowSpan;si++){
-      hly+=lh;
-      drawL(pad,hly,pad+tw,hly);
-    }
-  }
-  // 空行横线
-  for(var fi=0;fi<fillRows;fi++){
-    hly+=lh;
-    drawL(pad,hly,pad+tw,hly);
-  }
-  
-  cy=tableBottom;
-  cy+=4;
-  drawTL('以上 '+(d.urgentItems||'')+' 需要被服务人员尽快处理，否则将影响：',pad+4,cy+fs/2,fs);
-  cy+=lh;
-  var impArr=['电梯安装进度','电梯维修进度','电梯改造进度','电梯验收进度'];
-  var impSpacing=(tw-8)/impArr.length;
-  impArr.forEach(function(v,i){
-    var ck2=(d.impact||[]).indexOf(v)>=0;
-    var ix=pad+4+i*impSpacing;
-    drawCB(ck2,ix,cy+fs/2-5);drawTL(v,ix+18,cy+fs/2,sfs);
-  });
-  cy+=lh;
-  var hasUser=(d.impact||[]).indexOf('用户正常用梯')>=0;
-  drawCB(hasUser,pad+4,cy+fs/2-5);
-  drawTL('用户正常用梯（停梯计划，'+(d.stopDate||'____年__月__日')+' 会对该电梯进行停梯处理)',pad+16,cy+fs/2,sfs);
-  cy+=lh+8;
+}
 
-  cy+=6;
-  c.font='bold 13px "SimSun","Songti SC",serif';c.fillStyle='#000';c.textAlign='left';
-  c.fillText('威特电梯工程服务信息记录单',pad,cy+fs/2);
-  cy+=lh+4;
-  var sigW=(tw-30)/2;
-  drawTC('服务人：',pad+sigW/2,cy+fs/2,fs,true);
-  drawTC('被服务人员签字：',pad+sigW+20+sigW/2,cy+fs/2,fs,true);
-  cy+=lh;
-  drawL(pad+4,cy+40,pad+sigW-4,cy+40);
-  drawL(pad+sigW+20,cy+40,pad+tw,cy+40);
-
-  var sigY=cy-20;
-  cy+=55;
-  c.font='10px "SimSun","Songti SC",serif';c.fillStyle='#666';c.textAlign='center';
-  c.fillText('威特电梯  安全随性 | 全国免费服务热线：400-826-1186',W/2,cy);
-  c.textAlign='left';
-
-  // 预加载签名图片，全部加载完再生成PDF
-  var sig1Cx=(pad+4+pad+sigW-4)/2;
-  var sig2Cx=(pad+sigW+20+pad+tw)/2;
-  var sigList=[{data:d.sig1,canvas:sig1Canvas,x:pad+4,y:sigY,w:sigW-8,cx:sig1Cx},{data:d.sig2,canvas:sig2Canvas,x:pad+sigW+20,y:sigY,w:sigW-20,cx:sig2Cx}];
-  var sigImgs2=[];
-  var sigLoadN=0,sigTotalN=0;
-  sigList.forEach(function(si){
-    // 优先使用canvas直接绘制（可靠），否则走异步Image加载
-    if(si.canvas){
-      try{
-        var dpr=window.devicePixelRatio||1;
-        var srcW=si.canvas.width;var srcH=si.canvas.height;
-        var ratio=srcW/srcH;
-        var sigH=60;var sigW2=sigH*ratio;if(sigW2>si.w){sigW2=si.w;sigH=sigW2/ratio;}
-        var drawX=si.cx?si.cx-sigW2/2:si.x;
-        c.drawImage(si.canvas,Math.round(drawX),Math.round(si.y),Math.round(sigW2),Math.round(sigH));
-      }catch(e){console.warn('签名canvas绘制失败',e);}
-    }else if(si.data){
-      sigTotalN++;
-    }
-  });
-
-  function drawSignatures(){
-    sigImgs2.forEach(function(si){
-      if(si.img){try{var ratio=si.img.naturalWidth/si.img.naturalHeight;var sigH=60;var sigW=sigH*ratio;if(sigW>si.w){sigW=si.w;sigH=sigW/ratio;}var drawX=si.cx?si.cx-sigW/2:si.x;c.drawImage(si.img,Math.round(drawX),Math.round(si.y),Math.round(sigW),Math.round(sigH));}catch(e){}}
-    });
+// ============ 导出数据 ============
+function exportData(){
+  var list = _wtListCache;
+  if(!list.length){
+    showToast('暂无记录可导出');
+    return;
   }
+  var blob = new Blob([JSON.stringify(list)], {type:'application/json'});
+  var blobUrl = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = blobUrl;
+  a.download = '威特服务单记录_' + new Date().toISOString().slice(0,10) + '.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(blobUrl);
+  showToast('已导出' + list.length + '条记录');
+}
 
-  function buildPdf(){
-    drawSignatures();
-    var A4H=Math.round(W*297/210);
-    var realH2=cy+20;
-    var totalPages=Math.max(1,Math.ceil(realH2/A4H));
-    // 如果超出部分很小（不到A4高度的3%），直接算一页，避免第二页只有一条线
-    if(totalPages>1 && (realH2 - A4H) < A4H*0.03) totalPages=1;
-    // 如果最后一页内容不足10px，合并到上一页
-    if(totalPages>1 && (realH2 - (totalPages-1)*A4H) < 10) totalPages--;
-    
-    var cropCvs=document.createElement('canvas');
-    cropCvs.width=Math.round(W*3);cropCvs.height=Math.round(realH2*3);
-    var cropCtx=cropCvs.getContext('2d');
-    cropCtx.fillStyle='#fff';cropCtx.fillRect(0,0,cropCvs.width,cropCvs.height);
-    cropCtx.drawImage(cvs,0,0,Math.round(W*3),Math.round(realH2*3),0,0,cropCvs.width,cropCvs.height);
-    var imgData=cropCvs.toDataURL('image/jpeg',0.95);
-    var jpdf=new window.jspdf.jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
-    var pdfW=210,pdfHperPage=297;
-    
-    if(totalPages===1){
-      jpdf.addImage(imgData,'JPEG',0,0,pdfW,pdfHperPage);
-    }else{
-      for(var p=0;p<totalPages;p++){
-        if(p>0)jpdf.addPage();
-        var srcY=Math.round(p*A4H);
-        var srcH=Math.min(Math.round(A4H),Math.round(realH2-srcY));
-        if(srcH<=0)break;
-        var pCvs=document.createElement('canvas');
-        pCvs.width=Math.round(W*3);pCvs.height=Math.round(A4H*3);
-        var pCtx=pCvs.getContext('2d');
-        pCtx.fillStyle='#fff';pCtx.fillRect(0,0,pCvs.width,pCvs.height);
-        pCtx.drawImage(cvs,0,Math.round(srcY*3),Math.round(W*3),Math.round(srcH*3),0,0,pCvs.width,Math.round(srcH*3));
-        var pImgData=pCvs.toDataURL('image/jpeg',0.95);
-        jpdf.addImage(pImgData,'JPEG',0,0,pdfW,pdfHperPage);
-      }
-    }
-    
-    var fnDate='';
-    if(d.serviceTime){
-      var stParts=d.serviceTime.match(/(\d{4})-(\d{2})-(\d{2})/);
-      if(stParts)fnDate=stParts[1]+stParts[2]+stParts[3];
-    }
-    if(!fnDate){var nd=new Date();fnDate=nd.getFullYear()+String(nd.getMonth()+1).padStart(2,'0')+String(nd.getDate()).padStart(2,'0');}
-    var pdfName=fnDate+(d.projectName||'')+'技术支持';
-    window._pendingPdfData={jpdf:jpdf,pdfName:pdfName};
-    
-    var mo=document.getElementById('pdfPreviewMo');
-    if(!mo){
-      mo=document.createElement('div');mo.id='pdfPreviewMo';
-      mo.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.95);z-index:10001;overflow-y:auto;-webkit-overflow-scrolling:touch;display:none;';
-      var bar=document.createElement('div');
-      bar.style.cssText='position:sticky;top:0;z-index:2;background:#222;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;';
-      bar.innerHTML='<button id="previewBack" style="background:#e67e22;color:#fff;border:none;border-radius:6px;padding:8px 16px;font-size:14px;font-weight:bold;">返回</button><span style="color:#fff;font-size:14px;">预览</span><button id="previewDl" style="background:#27ae60;color:#fff;border:none;border-radius:6px;padding:8px 16px;font-size:14px;font-weight:bold;">下载PDF</button>';
-      var img=document.createElement('img');
-      img.id='pdfPreviewImg';img.style.cssText='width:100%;display:block;';
-      var hint=document.createElement('div');
-      hint.id='pdfHint';hint.style.cssText='text-align:center;color:#aaa;font-size:13px;padding:12px 16px 30px;';
-      hint.textContent='👇 点击下载PDF在新页面打开，可分享保存 | 长按图片保存到相册';
-      mo.appendChild(bar);mo.appendChild(img);mo.appendChild(hint);
-      document.body.appendChild(mo);
-      document.getElementById('previewBack').addEventListener('click',function(){mo.style.display='none';document.getElementById('recMo').style.display='none';closeMo('historyMo');window.scrollTo(0,0);});
-      document.getElementById('previewDl').addEventListener('click',function(){
-        if(window._pendingPdfData){
-          try{
-            var blob=window._pendingPdfData.jpdf.output('blob');
-            var fileName=window._pendingPdfData.pdfName+'.pdf';
-            // iOS Safari: use navigator.share with File object for correct filename
-            if(navigator.share && navigator.canShare){
-              var file=new File([blob],fileName,{type:'application/pdf'});
-              var shareData={files:[file]};
-              if(navigator.canShare(shareData)){
-                navigator.share(shareData).then(function(){mo.style.display='none';document.getElementById('recMo').style.display='none';closeMo('historyMo');window.scrollTo(0,0);}).catch(function(e){
-                  if(e.name!=='AbortError') fallbackDownload(blob,fileName);
-                });
-                return;
-              }
-            }
-            fallbackDownload(blob,fileName);
-          }catch(e){
-            showToast('保存失败，请长按图片保存');
-          }
+// ============ 导入数据 ============
+function importData(){
+  document.getElementById('importFileInput').click();
+}
+
+document.getElementById('importFileInput').addEventListener('change', function(e){
+  var file = e.target.files[0];
+  if(!file) return;
+  var reader = new FileReader();
+  reader.onload = function(ev){
+    try{
+      var data = JSON.parse(ev.target.result);
+      if(!Array.isArray(data)) throw new Error('格式错误');
+      var existing = _wtListCache;
+      var added = 0;
+      data.forEach(function(item){
+        // 简单去重：服务时间+项目名
+        var dKey = (item.serviceTime || '') + '_' + (item.projectName || '');
+        var dup = existing.some(function(ex){
+          var eKey = (ex.serviceTime || '') + '_' + (ex.projectName || '');
+          return eKey === dKey;
+        });
+        if(!dup){
+          existing.unshift(item);
+          added++;
         }
       });
-      function fallbackDownload(blob,fileName){
-        // Try <a download> first
-        var url=URL.createObjectURL(blob);
-        var a=document.createElement('a');
-        a.href=url;a.download=fileName;
-        document.body.appendChild(a);a.click();document.body.removeChild(a);
-        // Fallback for iOS: open blob URL in new tab
-        setTimeout(function(){window.open(url,'_blank');},300);
+      if(added > 0){
+        _wtListCache = existing;
+        _saveWtListCache();
+        renderList();
+        showToast('成功导入' + added + '条记录');
+      } else {
+        showToast('没有新记录（已全部存在）');
       }
+    } catch(err){
+      showToast('导入失败：文件格式错误');
     }
-    document.getElementById('pdfPreviewImg').src=imgData;
-    mo.style.display='block';
-  }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+});
 
-  if(sigTotalN>0){
-    sigList.forEach(function(si){
-      if(si.data){
-        (function(si){
-          var img=new Image();
-          img.onload=function(){sigImgs2.push({img:img,x:si.x,y:si.y,w:si.w,cx:si.cx});sigLoadN++;if(sigLoadN>=sigTotalN)buildPdf();};
-          img.onerror=function(){sigLoadN++;if(sigLoadN>=sigTotalN)buildPdf();};
-          img.src=si.data;
-        })(si);
-      }
-    });
-    // 兜底：3秒后强制生成
-    setTimeout(function(){if(sigLoadN<sigTotalN){buildPdf();}},3000);
-  }else{
-    buildPdf();
-  }
+// ============ 删除确认 ============
+var _pendingDeleteIdx = -1;
+function showConfirm(title, msg, onOk){
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmMsg').textContent = msg;
+  document.getElementById('confirmMask').classList.add('show');
+  document.getElementById('confirmOkBtn').onclick = function(){
+    hideConfirm();
+    if(onOk) onOk();
+  };
+}
+function hideConfirm(){
+  document.getElementById('confirmMask').classList.remove('show');
+  _pendingDeleteIdx = -1;
 }
 
-// 初始化：先加载存储缓存，再执行初始化
-function _appStartInit() {
-  _initStorage(function() {
-    updateBtnStatus();
-    // 如果有renderList，刷新列表显示
-    if (typeof renderList === 'function') { renderList(); }
+function deleteRecord(idx){
+  var list = _wtListCache;
+  if(!list[idx]) return;
+  var projName = list[idx].projectName || '未命名';
+  showConfirm('确认删除', '确定要删除「' + projName + '」这条记录吗？', function(){
+    list.splice(idx, 1);
+    _wtListCache = list;
+    _saveWtListCache();
+    renderList();
+    showToast('已删除');
   });
 }
-setTimeout(_appStartInit, 50);
 
-// 为所有弹窗添加确定按钮
-document.querySelectorAll('.mo .mi').forEach(function(mi){
-  var mo=mi.parentElement;
-  // 跳过签名弹窗和记录详情弹窗和省市区弹窗
-  if(mo.id==='sigMo'||mo.id==='recMo'||mo.id==='locMo'||mo.id==='historyMo')return;
-  // 跳过已有确定按钮的
-  if(mi.querySelector('.modal-confirm'))return;
-  var cfDiv=document.createElement('div');
-  cfDiv.className='modal-confirm';
-  cfDiv.innerHTML='<button>确定</button>';
-  mi.appendChild(cfDiv);
-});
+// ============ 打印单条记录 ============
+function printRecord(idx){
+  var list = _wtListCache;
+  if(!list[idx]) return;
+  // 跳转到详情页并自动打印
+  window.location.href = 'weite-service-beta-detail.html?idx=' + idx + '&action=print';
+}
+
+// ============ 渲染列表 ============
+function renderList(){
+  var list = _wtListCache || [];
+  var container = document.getElementById('serviceList');
+  var countEl = document.getElementById('listCount');
+  var statTotal = document.getElementById('statTotal');
+  var statMonth = document.getElementById('statMonth');
+  var statSigned = document.getElementById('statSigned');
+  
+  countEl.textContent = '共 ' + list.length + ' 条';
+  statTotal.textContent = list.length;
+  
+  // 本月数
+  var now = new Date();
+  var yearMonth = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
+  var monthCount = 0;
+  var signedCount = 0;
+  
+  list.forEach(function(d){
+    if(d.serviceTime && d.serviceTime.indexOf(yearMonth) === 0){
+      monthCount++;
+    }
+    if(d.sig1 && d.sig2){
+      signedCount++;
+    }
+  });
+  
+  statMonth.textContent = monthCount;
+  statSigned.textContent = signedCount;
+  
+  if(list.length === 0){
+    container.innerHTML = 
+      '<div class="empty-state">' +
+        '<div class="empty-icon">📋</div>' +
+        '<div class="empty-title">暂无服务记录</div>' +
+        '<div class="empty-desc">点击上方按钮新建第一条服务单</div>' +
+      '</div>';
+    return;
+  }
+  
+  var html = '';
+  list.forEach(function(d, i){
+    var projName = d.projectName || '未命名项目';
+    var serviceDate = d.serviceTime ? d.serviceTime.split('T')[0] : '未填写';
+    var construct = (d.construction && d.construction.length) ? d.construction.join('、') : '未分类';
+    var serviceTypes = [];
+    ['preSale','during','afterSale','visit'].forEach(function(key){
+      if(d[key] && d[key].length){
+        d[key].forEach(function(v){
+          if(v !== '其他') serviceTypes.push(v);
+        });
+      }
+    });
+    var serviceStr = serviceTypes.length > 0 ? serviceTypes.slice(0, 3).join('、') : '未选择';
+    var contact = d.siteContact || d.servicePerson || '未填写';
+    var phone = d.sitePhone || d.servicePhone || '';
+    var hasSig = d.sig1 && d.sig2;
+    
+    html += '<div class="service-card">';
+    html += '<div class="card-top">';
+    html += '<div class="card-project" title="' + projName + '">' + projName + '</div>';
+    html += '<div class="card-date-tag">' + serviceDate + '</div>';
+    html += '</div>';
+    
+    html += '<div class="card-meta">';
+    html += '<div class="meta-item"><span class="meta-label">施工：</span><span class="meta-value" title="' + construct + '">' + construct + '</span></div>';
+    html += '<div class="meta-item"><span class="meta-label">联系人：</span><span class="meta-value" title="' + contact + '">' + contact + (phone ? ' ' + phone : '') + '</span></div>';
+    html += '</div>';
+    
+    html += '<div class="card-tags">';
+    if(serviceTypes.length > 0){
+      serviceTypes.slice(0, 4).forEach(function(s){
+        html += '<span class="tag tag-service">' + s + '</span>';
+      });
+    }
+    if(hasSig){
+      html += '<span class="tag" style="background:#c6f6d5;color:#22543d;">✓ 已签字</span>';
+    }
+    html += '</div>';
+    
+    html += '<div class="card-btns">';
+    html += '<button class="card-btn btn-view" onclick="goToDetail(' + i + ')">查看</button>';
+    html += '<button class="card-btn btn-print" onclick="printRecord(' + i + ')">打印</button>';
+    html += '<button class="card-btn btn-delete" onclick="deleteRecord(' + i + ')">删除</button>';
+    html += '</div>';
+    html += '</div>';
+  });
+  
+  container.innerHTML = html;
+}
+
+// ============ 初始化 ============
+function init(){
+  _initStorage(function(){
+    renderList();
+  });
+  
+  // 页面可见时刷新（从详情页返回时）
+  document.addEventListener('visibilitychange', function(){
+    if(!document.hidden){
+      _loadCacheFromDB(renderList);
+    }
+  });
+}
+
+// 暴露全局函数
+window.goToDetail = goToDetail;
+window.exportData = exportData;
+window.importData = importData;
+window.deleteRecord = deleteRecord;
+window.printRecord = printRecord;
+window.showConfirm = showConfirm;
+window.hideConfirm = hideConfirm;
+
+init();
 
 // 首次打开提示添加到桌面
 (function(){
-  if(_wtGuideShownCache)return;
-  var isStandalone=window.matchMedia('(display-mode:standalone)').matches||window.navigator.standalone;
-  if(isStandalone){_saveGuideShown('1');return;}
-  var overlay=document.createElement('div');
-  overlay.className='guide-overlay';
-  overlay.innerHTML='<div class="guide-box"><h2>添加到桌面使用</h2><div class="guide-section"><h3>iPhone 用户</h3><div class="step"><span class="step-num">1</span><p>点击 Safari 底部的分享按钮 <b>⬆️</b></p></div><div class="step"><span class="step-num">2</span><p>下滑找到并点击<b>「添加到主屏幕」</b></p></div><div class="step"><span class="step-num">3</span><p>点击右上角<b>「添加」</b>即可</p></div></div><div class="guide-section" style="border-left-color:#27ae60;"><h3>Android 用户</h3><div class="step"><span class="step-num" style="background:#27ae60;">1</span><p>点击 Chrome 右上角菜单 <b>⋮</b></p></div><div class="step"><span class="step-num" style="background:#27ae60;">2</span><p>点击<b>「添加到主屏幕」</b></p></div><div class="step"><span class="step-num" style="background:#27ae60;">3</span><p>点击<b>「添加」</b>即可</p></div></div><button class="guide-close-btn">我知道了</button></div>';
+  if(_wtGuideShownCache) return;
+  var isStandalone = window.matchMedia('(display-mode:standalone)').matches || window.navigator.standalone;
+  if(isStandalone){ _saveGuideShown('1'); return; }
+  var overlay = document.createElement('div');
+  overlay.className = 'guide-overlay';
+  overlay.innerHTML = 
+    '<div class="guide-box">' +
+      '<h2>威特技术服务单</h2>' +
+      '<div class="guide-section">' +
+        '<h3>快速开始</h3>' +
+        '<div class="step"><span class="step-num">1</span><p>点击<b>「新建服务单」</b>开始填写</p></div>' +
+        '<div class="step"><span class="step-num">2</span><p>填写完成后点击<b>保存</b></p></div>' +
+        '<div class="step"><span class="step-num">3</span><p>已保存的记录都在这里</p></div>' +
+      '</div>' +
+      '<div class="guide-section" style="border-left-color:#27ae60;">' +
+        '<h3>添加到桌面</h3>' +
+        '<div class="step"><span class="step-num" style="background:#27ae60;">📱</span><p>添加到主屏幕，下次直接打开</p></div>' +
+      '</div>' +
+      '<button class="guide-close-btn">开始使用</button>' +
+    '</div>';
   document.body.appendChild(overlay);
-  overlay.querySelector('.guide-close-btn').addEventListener('click',function(){
+  overlay.querySelector('.guide-close-btn').addEventListener('click', function(){
     overlay.remove();
     _saveGuideShown('1');
   });
 })();
-})();</script>
+
+})();
+</script>
 </body>
 </html>
