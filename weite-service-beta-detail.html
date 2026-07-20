@@ -199,14 +199,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
 .header-sub{font-size:13px;font-weight:400;color:#555;letter-spacing:4px;font-family:'Songti SC','SimSun',serif;display:flex;align-items:center;justify-content:center;gap:10px;margin-top:3px;}
 .header-sub .hl{flex:1;height:1px;background:#999;min-width:20px;}
 
-/* ===== 进度条 ===== */
-.progress-container{padding:12px 16px 10px;background:#fff;flex-shrink:0;z-index:49;border-bottom:1px solid #edf2f7;}
-.progress-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
-.progress-title{font-size:12px;font-weight:600;color:#718096;}
-.progress-percent{font-size:15px;font-weight:800;background:linear-gradient(135deg,#667eea,#764ba2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
-.progress-bar{height:5px;background:#e2e8f0;border-radius:3px;overflow:hidden;}
-.progress-fill{height:100%;width:0%;background:linear-gradient(90deg,#667eea 0%,#764ba2 100%);border-radius:3px;transition:width .3s ease;}
-
 /* ===== Tab分区栏 ===== */
 .zone-tabs{display:flex;gap:0;padding:0 12px;background:#fff;overflow-x:auto;flex-shrink:0;
   -webkit-overflow-scrolling:touch;border-bottom:2px solid #edf2f7;z-index:48;}
@@ -215,6 +207,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
   cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s ease;flex-shrink:0;
   -webkit-tap-highlight-color:transparent;}
 .zone-tab.active{color:#667eea;border-bottom-color:#667eea;font-weight:700;}
+.zone-tab.done{color:#38a169;}
+.zone-tab.active.done{color:#667eea;border-bottom-color:#667eea;}
 
 /* ===== 内容区容器：固定高度防抖动 ===== */
 .zone-content{position:relative;overflow:hidden;}
@@ -406,7 +400,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
 
 /* ===== 手风琴标题吸顶 ===== */
 .zone-panel{position:relative;}
-.accordion-header.sticky-acc{position:sticky;top:0;z-index:5;background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.06);-webkit-backface-visibility:hidden;}
+.accordion-header.sticky-acc{position:sticky;top:4px;z-index:5;background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.06);-webkit-backface-visibility:hidden;border-radius:8px;}
 .accordion.active .accordion-header.sticky-acc{background:linear-gradient(135deg,#f8f9ff,#f5f3ff);}
 
 /* ===== 顶部更多菜单 ===== */
@@ -625,34 +619,46 @@ function closeMo(id){
 })();
 function updateBtnStatus(){
   var s,v,filled=0,total=11;
+  var tab0Done = true, tab1Done = true, tab2Done = true;
   // 基本信息
-  s=document.getElementById('st_basic');if(s){v=0;if(document.getElementById('f1')&&document.getElementById('f1').value.trim())v++;if(document.getElementById('f2')&&document.getElementById('f2').value.trim())v++;if(document.getElementById('f12')&&document.getElementById('f12').value.trim())v++;s.className=v===3?'card-status filled':'card-status';if(v===3)filled++;}
+  s=document.getElementById('st_basic');if(s){v=0;if(document.getElementById('f1')&&document.getElementById('f1').value.trim())v++;if(document.getElementById('f2')&&document.getElementById('f2').value.trim())v++;if(document.getElementById('f12')&&document.getElementById('f12').value.trim())v++;s.className=v===3?'card-status filled':'card-status';if(v===3)filled++;else tab0Done=false;}else{tab0Done=false;}
   // 项目信息
-  s=document.getElementById('st_project');if(s){v=0;if(document.getElementById('f3')&&document.getElementById('f3').value.trim())v++;var elevs=document.querySelectorAll('.elev-row');var hasElev=false;elevs.forEach(function(r){var m=r.querySelector('.elev-model');if(m&&m.value.trim())hasElev=true;});if(hasElev)v++;if(document.getElementById('locDisplay')&&document.getElementById('locDisplay').value.trim())v++;s.className=v===3?'card-status filled':'card-status';if(v===3)filled++;}
+  s=document.getElementById('st_project');if(s){v=0;if(document.getElementById('f3')&&document.getElementById('f3').value.trim())v++;var elevs=document.querySelectorAll('.elev-row');var hasElev=false;elevs.forEach(function(r){var m=r.querySelector('.elev-model');if(m&&m.value.trim())hasElev=true;});if(hasElev)v++;if(document.getElementById('locDisplay')&&document.getElementById('locDisplay').value.trim())v++;s.className=v===3?'card-status filled':'card-status';if(v===3)filled++;else tab0Done=false;}else{tab0Done=false;}
   // 联系信息
-  s=document.getElementById('st_contact');if(s){v=0;if(document.getElementById('f8')&&document.getElementById('f8').value.trim())v++;if(document.getElementById('f9')&&document.getElementById('f9').value.trim())v++;if(document.getElementById('f10')&&document.getElementById('f10').value.trim())v++;if(document.getElementById('f11')&&document.getElementById('f11').value.trim())v++;s.className=v===4?'card-status filled':'card-status';if(v===4)filled++;}
+  s=document.getElementById('st_contact');if(s){v=0;if(document.getElementById('f8')&&document.getElementById('f8').value.trim())v++;if(document.getElementById('f9')&&document.getElementById('f9').value.trim())v++;if(document.getElementById('f10')&&document.getElementById('f10').value.trim())v++;if(document.getElementById('f11')&&document.getElementById('f11').value.trim())v++;s.className=v===4?'card-status filled':'card-status';if(v===4)filled++;else tab0Done=false;}else{tab0Done=false;}
   // 施工类别
-  s=document.getElementById('st_build');if(s){v=document.querySelectorAll('input[name="construction"]:checked').length;s.className=v>0?'card-status filled':'card-status';if(v>0)filled++;}
+  s=document.getElementById('st_build');if(s){v=document.querySelectorAll('input[name="construction"]:checked').length;s.className=v>0?'card-status filled':'card-status';if(v>0)filled++;else tab0Done=false;}else{tab0Done=false;}
   // 服务内容
-  s=document.getElementById('st_service');if(s){v=0;['preSale','during','afterSale','visit'].forEach(function(n){v+=document.querySelectorAll('input[name="'+n+'"]:checked').length;});s.className=v>0?'card-status filled':'card-status';if(v>0)filled++;}
+  s=document.getElementById('st_service');if(s){v=0;['preSale','during','afterSale','visit'].forEach(function(n){v+=document.querySelectorAll('input[name="'+n+'"]:checked').length;});s.className=v>0?'card-status filled':'card-status';if(v>0)filled++;else tab1Done=false;}else{tab1Done=false;}
   // 服务流转
-  s=document.getElementById('st_flow');if(s){v=document.querySelectorAll('input[name="flowTo"]:checked').length;s.className=v>0?'card-status filled':'card-status';if(v>0)filled++;}
+  s=document.getElementById('st_flow');if(s){v=document.querySelectorAll('input[name="flowTo"]:checked').length;s.className=v>0?'card-status filled':'card-status';if(v>0)filled++;else tab1Done=false;}else{tab1Done=false;}
   // 沟通记录
-  s=document.getElementById('st_record');if(s){var recs=document.querySelectorAll('#recBox .ri');var hasContent=0;recs.forEach(function(r){var inp=r.querySelector('input[type="text"]');if(inp&&inp.value.trim())hasContent++;});s.textContent=hasContent+'条';if(hasContent>0)filled++;}
+  s=document.getElementById('st_record');if(s){var recs=document.querySelectorAll('#recBox .ri');var hasContent=0;recs.forEach(function(r){var inp=r.querySelector('input[type="text"]');if(inp&&inp.value.trim())hasContent++;});s.textContent=hasContent+'条';if(hasContent>0)filled++;else tab1Done=false;}else{tab1Done=false;}
   // 影响说明
-  s=document.getElementById('st_impact');if(s){v=0;if(document.getElementById('f13')&&document.getElementById('f13').value.trim())v++;v+=document.querySelectorAll('input[name="impact"]:checked').length;s.className=v>0?'card-status filled':'card-status';if(v>0)filled++;}
+  s=document.getElementById('st_impact');if(s){v=0;if(document.getElementById('f13')&&document.getElementById('f13').value.trim())v++;v+=document.querySelectorAll('input[name="impact"]:checked').length;s.className=v>0?'card-status filled':'card-status';if(v>0)filled++;else tab2Done=false;}else{tab2Done=false;}
   // 签字
-  s=document.getElementById('st_sign');if(s){v=0;if(typeof sig1Data!='undefined'&&sig1Data)v++;if(typeof sig2Data!='undefined'&&sig2Data)v++;s.className=v===2?'card-status filled':'card-status';if(v===2)filled++;}
+  s=document.getElementById('st_sign');if(s){v=0;if(typeof sig1Data!='undefined'&&sig1Data)v++;if(typeof sig2Data!='undefined'&&sig2Data)v++;s.className=v===2?'card-status filled':'card-status';if(v===2)filled++;else tab2Done=false;}else{tab2Done=false;}
   // 已保存记录
   s=document.getElementById('st_history');if(s){var list=_wtListCache;s.textContent=list.length+'条';if(list.length>0)filled++;}
   // 数据迁移
   s=document.getElementById('st_data');if(s){s.className='card-status';}
-  // 更新进度条
-  var pct=Math.round(filled/total*100);
-  var pctEl=document.getElementById('progressPct');
-  var fillEl=document.getElementById('progressFill');
-  if(pctEl)pctEl.textContent=pct+'%';
-  if(fillEl)fillEl.style.width=pct+'%';
+  // 更新tab完成状态
+  var tabNames = ['基本信息','服务详情','签字确认'];
+  var tabDoneFlags = [tab0Done, tab1Done, tab2Done];
+  for(var ti=0; ti<3; ti++){
+    var tabEl = document.getElementById('tab'+ti);
+    if(tabEl){
+      if(tabDoneFlags[ti]){
+        tabEl.classList.add('done');
+        if(tabEl.textContent.indexOf('✓') === -1){
+          tabEl.textContent = tabNames[ti] + ' ✓';
+        }
+      } else {
+        tabEl.classList.remove('done');
+        tabEl.textContent = tabNames[ti];
+      }
+    }
+  }
   // 刷新服务详情手风琴汇总
   if(typeof updateSvcAccordionSummary === 'function' && currentTabIndex === 1){
     updateSvcAccordionSummary();
@@ -683,20 +689,11 @@ function updateBtnStatus(){
   <div class="header-sub"><span class="hl"></span><span>技术服务单</span><span class="hl"></span></div>
 </div>
 
-<!-- 进度条 -->
-<div class="progress-container">
-  <div class="progress-header">
-    <span class="progress-title">填写进度</span>
-    <span class="progress-percent" id="progressPct">0%</span>
-  </div>
-  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
-</div>
-
 <!-- Tab分区栏 -->
 <div class="zone-tabs" id="zoneTabs">
-  <div class="zone-tab active" onclick="switchTab(0)">基本信息</div>
-  <div class="zone-tab" onclick="switchTab(1)">服务详情</div>
-  <div class="zone-tab" onclick="switchTab(2)">签字确认</div>
+  <div class="zone-tab active" id="tab0" onclick="switchTab(0)">基本信息</div>
+  <div class="zone-tab" id="tab1" onclick="switchTab(1)">服务详情</div>
+  <div class="zone-tab" id="tab2" onclick="switchTab(2)">签字确认</div>
 </div>
 
 <!-- 内容滚动区 -->
@@ -1089,6 +1086,23 @@ function toggleSvcAccordion(name){
   if(!isActive){
     target.classList.add('active');
     currentSvcAccordion = name;
+    // 滚动到手风琴标题吸顶位置（刚好吸顶在tab下方，给当前展开项最大操作空间）
+    setTimeout(function(){
+      var header = target.querySelector('.accordion-header');
+      if(header){
+        var sc = _getScrollContainer();
+        var scRect = sc.getBoundingClientRect();
+        var headerRect = header.getBoundingClientRect();
+        var headerTopInContainer = headerRect.top - scRect.top + sc.scrollTop;
+        // sticky top设为4px，多滚4px确保稳定吸顶
+        var stickyOffset = 8;
+        var targetScroll = Math.max(0, headerTopInContainer - stickyOffset);
+        // 只有当距离较远时才滚动，避免微小跳动
+        if(Math.abs(targetScroll - sc.scrollTop) > 20){
+          sc.scrollTo({top: targetScroll, behavior: 'smooth'});
+        }
+      }
+    }, 60);
   } else {
     currentSvcAccordion = '';
   }
@@ -1271,7 +1285,7 @@ function toggleAccordion(name){
   if(!isActive){
     target.classList.add('active');
     currentAccordion = name;
-    // 滚动到手风琴标题位置（确保吸顶效果正确）
+    // 滚动到手风琴标题吸顶位置（刚好吸顶在tab下方，给当前展开项最大操作空间）
     setTimeout(function(){
       var header = target.querySelector('.accordion-header');
       if(header){
@@ -1279,13 +1293,15 @@ function toggleAccordion(name){
         var scRect = sc.getBoundingClientRect();
         var headerRect = header.getBoundingClientRect();
         var headerTopInContainer = headerRect.top - scRect.top + sc.scrollTop;
-        // 标题吸顶在滚动容器顶部
-        var targetScroll = headerTopInContainer - 5;
-        if(targetScroll > 0 && (targetScroll < sc.scrollTop - 10 || targetScroll > sc.scrollTop + 50)){
+        // sticky top设为4px，多滚4px确保稳定吸顶
+        var stickyOffset = 8;
+        var targetScroll = Math.max(0, headerTopInContainer - stickyOffset);
+        // 只有当距离较远时才滚动，避免微小跳动
+        if(Math.abs(targetScroll - sc.scrollTop) > 20){
           sc.scrollTo({top: targetScroll, behavior: 'smooth'});
         }
       }
-    }, 50);
+    }, 60);
   } else {
     currentAccordion = '';
   }
@@ -1529,6 +1545,9 @@ function updateRecCount(){
 var sig1Data='',sig2Data='',sig1Canvas=null,sig2Canvas=null,curSig=1,sigCvs,sigCtx,sigDraw=false,sigLX=0,sigLY=0;
 document.getElementById('sd1').addEventListener('click',function(){curSig=1;openSig();});
 document.getElementById('sd2').addEventListener('click',function(){curSig=2;openSig();});
+// 页面签名预览区点击打开签名画板
+function startSign(n){curSig=n;openSig();}
+window.startSign = startSign;
 function openSig(){document.getElementById('sigTitle').textContent=curSig===1?'✍️ 服务人签名':'✍️ 被服务人员签名';document.getElementById('sigPH').style.display='';
 var mo=document.getElementById('sigMo');mo.style.display='block';
 sigMoVisible=true;
