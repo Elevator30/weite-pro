@@ -256,10 +256,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
 }
 
 /* ===== 手风琴样式 ===== */
-.accordion{background:#fff;border-radius:12px;overflow:hidden;margin-bottom:10px;border:1.5px solid #e2e8f0;
+.accordion{background:#fff;border-radius:12px;margin-bottom:10px;border:1.5px solid #e2e8f0;
   box-shadow:0 1px 4px rgba(0,0,0,.04);}
 .accordion-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;
-  cursor:pointer;background:#fff;transition:background .2s;-webkit-tap-highlight-color:transparent;}
+  cursor:pointer;background:#fff;transition:background .2s;-webkit-tap-highlight-color:transparent;
+  border-top-left-radius:10.5px;border-top-right-radius:10.5px;}
+.accordion:not(.active) .accordion-header{border-bottom-left-radius:10.5px;border-bottom-right-radius:10.5px;}
+.accordion.active .accordion-body{border-bottom-left-radius:10.5px;border-bottom-right-radius:10.5px;}
 .accordion-header:active{background:#f7fafc;}
 .accordion-header .acc-left{display:flex;align-items:center;gap:10px;}
 .accordion-header .acc-icon{font-size:20px;}
@@ -1082,27 +1085,51 @@ function toggleSvcAccordion(name){
   });
   if(!target) return;
   var isActive = target.classList.contains('active');
+  // 先记录之前展开的手风琴（用于估算折叠后目标位置，必须在移除active之前）
+  var itemsArr = Array.prototype.slice.call(items);
+  var targetIdx = itemsArr.indexOf(target);
+  var prevActive = null;
+  var prevIdx = -1;
+  var prevBodyOffset = 0;
+  if(!isActive){
+    items.forEach(function(item){
+      if(item.classList.contains('active')){ prevActive = item; prevIdx = itemsArr.indexOf(item); }
+    });
+    if(prevActive && prevIdx < targetIdx){
+      var prevBody = prevActive.querySelector('.accordion-body');
+      if(prevBody) prevBodyOffset = prevBody.offsetHeight;
+    }
+  }
   items.forEach(function(item){ item.classList.remove('active'); });
   if(!isActive){
     target.classList.add('active');
     currentSvcAccordion = name;
-    // 滚动到手风琴标题吸顶位置（刚好吸顶在tab下方，给当前展开项最大操作空间）
+    // 先做一次近似滚动（基于展开前位置估算，快速响应）
+    var sc = _getScrollContainer();
+    var header = target.querySelector('.accordion-header');
+    if(header){
+      var scRect = sc.getBoundingClientRect();
+      var headerRect = header.getBoundingClientRect();
+      var headerTopInContainer = headerRect.top - scRect.top + sc.scrollTop;
+      var roughScroll = Math.max(0, headerTopInContainer - prevBodyOffset - 4);
+      if(Math.abs(roughScroll - sc.scrollTop) > 4){
+        sc.scrollTo({top: roughScroll, behavior: 'smooth'});
+      }
+    }
+    // 过渡结束后精确校准（300ms过渡+20ms缓冲）
     setTimeout(function(){
-      var header = target.querySelector('.accordion-header');
-      if(header){
-        var sc = _getScrollContainer();
-        var scRect = sc.getBoundingClientRect();
-        var headerRect = header.getBoundingClientRect();
-        var headerTopInContainer = headerRect.top - scRect.top + sc.scrollTop;
-        // sticky top设为4px，多滚4px确保稳定吸顶
-        var stickyOffset = 8;
-        var targetScroll = Math.max(0, headerTopInContainer - stickyOffset);
-        // 只有当距离较远时才滚动，避免微小跳动
-        if(Math.abs(targetScroll - sc.scrollTop) > 20){
-          sc.scrollTo({top: targetScroll, behavior: 'smooth'});
+      var header2 = target.querySelector('.accordion-header');
+      if(header2){
+        var sc2 = _getScrollContainer();
+        var scRect2 = sc2.getBoundingClientRect();
+        var headerRect2 = header2.getBoundingClientRect();
+        var headerTopFinal = headerRect2.top - scRect2.top + sc2.scrollTop;
+        var targetScroll = Math.max(0, headerTopFinal - 4);
+        if(Math.abs(targetScroll - sc2.scrollTop) > 2){
+          sc2.scrollTo({top: targetScroll, behavior: 'smooth'});
         }
       }
-    }, 60);
+    }, 320);
   } else {
     currentSvcAccordion = '';
   }
@@ -1281,27 +1308,51 @@ function toggleAccordion(name){
   });
   if(!target) return;
   var isActive = target.classList.contains('active');
+  // 先记录之前展开的手风琴（用于估算折叠后目标位置，必须在移除active之前）
+  var itemsArr = Array.prototype.slice.call(items);
+  var targetIdx = itemsArr.indexOf(target);
+  var prevActive = null;
+  var prevIdx = -1;
+  var prevBodyOffset = 0;
+  if(!isActive){
+    items.forEach(function(item){
+      if(item.classList.contains('active')){ prevActive = item; prevIdx = itemsArr.indexOf(item); }
+    });
+    if(prevActive && prevIdx < targetIdx){
+      var prevBody = prevActive.querySelector('.accordion-body');
+      if(prevBody) prevBodyOffset = prevBody.offsetHeight;
+    }
+  }
   items.forEach(function(item){ item.classList.remove('active'); });
   if(!isActive){
     target.classList.add('active');
     currentAccordion = name;
-    // 滚动到手风琴标题吸顶位置（刚好吸顶在tab下方，给当前展开项最大操作空间）
+    // 先做一次近似滚动（基于展开前位置估算，快速响应）
+    var sc = _getScrollContainer();
+    var header = target.querySelector('.accordion-header');
+    if(header){
+      var scRect = sc.getBoundingClientRect();
+      var headerRect = header.getBoundingClientRect();
+      var headerTopInContainer = headerRect.top - scRect.top + sc.scrollTop;
+      var roughScroll = Math.max(0, headerTopInContainer - prevBodyOffset - 4);
+      if(Math.abs(roughScroll - sc.scrollTop) > 4){
+        sc.scrollTo({top: roughScroll, behavior: 'smooth'});
+      }
+    }
+    // 过渡结束后精确校准（300ms过渡+20ms缓冲）
     setTimeout(function(){
-      var header = target.querySelector('.accordion-header');
-      if(header){
-        var sc = _getScrollContainer();
-        var scRect = sc.getBoundingClientRect();
-        var headerRect = header.getBoundingClientRect();
-        var headerTopInContainer = headerRect.top - scRect.top + sc.scrollTop;
-        // sticky top设为4px，多滚4px确保稳定吸顶
-        var stickyOffset = 8;
-        var targetScroll = Math.max(0, headerTopInContainer - stickyOffset);
-        // 只有当距离较远时才滚动，避免微小跳动
-        if(Math.abs(targetScroll - sc.scrollTop) > 20){
-          sc.scrollTo({top: targetScroll, behavior: 'smooth'});
+      var header2 = target.querySelector('.accordion-header');
+      if(header2){
+        var sc2 = _getScrollContainer();
+        var scRect2 = sc2.getBoundingClientRect();
+        var headerRect2 = header2.getBoundingClientRect();
+        var headerTopFinal = headerRect2.top - scRect2.top + sc2.scrollTop;
+        var targetScroll = Math.max(0, headerTopFinal - 4);
+        if(Math.abs(targetScroll - sc2.scrollTop) > 2){
+          sc2.scrollTo({top: targetScroll, behavior: 'smooth'});
         }
       }
-    }, 60);
+    }, 320);
   } else {
     currentAccordion = '';
   }
