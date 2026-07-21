@@ -1078,11 +1078,13 @@ window.switchTab = switchTab;
 // ===== 服务详情手风琴切换 =====
 var currentSvcAccordion = 'svcCategory';
 function toggleSvcAccordion(name){
-  var items = document.querySelectorAll('#zonePanel_1 .accordion');
+  var items = Array.from(document.querySelectorAll('#zonePanel_1 .accordion'));
   var target = null;
-  items.forEach(function(item){
+  var targetIdx = -1;
+  items.forEach(function(item, idx){
     if(item.getAttribute('data-acc-svc') === name){
       target = item;
+      targetIdx = idx;
     }
   });
   if(!target) return;
@@ -1094,13 +1096,15 @@ function toggleSvcAccordion(name){
     // 展开当前项
     target.classList.add('active');
     currentSvcAccordion = name;
-    // 隐藏其他手风琴（display:none）
-    items.forEach(function(item){
-      if(item !== target){
+    // 上面的手风琴隐藏，下面的手风琴显示（折叠状态）
+    items.forEach(function(item, idx){
+      if(idx < targetIdx){
         item.style.display = 'none';
+      } else {
+        item.style.display = '';
       }
     });
-    // 滚动到内容区顶部（其他手风琴已隐藏，当前项自然在顶部）
+    // 滚动到内容区顶部
     var sc = _getScrollContainer();
     sc.scrollTo({top: 0});
   } else {
@@ -1276,11 +1280,13 @@ window.goBackToList = goBackToList;
 // ===== 手风琴切换函数 =====
 var currentAccordion = 'basic';
 function toggleAccordion(name){
-  var items = document.querySelectorAll('#zonePanel_0 .accordion');
+  var items = Array.from(document.querySelectorAll('#zonePanel_0 .accordion'));
   var target = null;
-  items.forEach(function(item){
+  var targetIdx = -1;
+  items.forEach(function(item, idx){
     if(item.getAttribute('data-acc') === name){
       target = item;
+      targetIdx = idx;
     }
   });
   if(!target) return;
@@ -1292,13 +1298,15 @@ function toggleAccordion(name){
     // 展开当前项
     target.classList.add('active');
     currentAccordion = name;
-    // 隐藏其他手风琴（display:none）
-    items.forEach(function(item){
-      if(item !== target){
+    // 上面的手风琴隐藏，下面的手风琴显示（折叠状态）
+    items.forEach(function(item, idx){
+      if(idx < targetIdx){
         item.style.display = 'none';
+      } else {
+        item.style.display = '';
       }
     });
-    // 滚动到内容区顶部（其他手风琴已隐藏，当前项自然在顶部）
+    // 滚动到内容区顶部
     var sc = _getScrollContainer();
     sc.scrollTo({top: 0});
   } else {
@@ -1313,19 +1321,34 @@ function toggleAccordion(name){
 window.toggleAccordion = toggleAccordion;
 
 // ===== 同步手风琴可见性 =====
-// 根据当前展开状态同步所有手风琴的display：有展开项则隐藏其他，全收起则全部显示
+// 根据当前展开状态同步所有手风琴的display：
+// 有展开项时，上面的隐藏、下面的显示（折叠）；全收起则全部显示
 function _syncAccordionVisibility(){
   // 基本信息tab
-  var items0 = document.querySelectorAll('#zonePanel_0 .accordion');
-  var active0 = document.querySelector('#zonePanel_0 .accordion.active');
-  items0.forEach(function(item){
-    item.style.display = active0 && item !== active0 ? 'none' : '';
+  var items0 = Array.from(document.querySelectorAll('#zonePanel_0 .accordion'));
+  var activeIdx0 = -1;
+  items0.forEach(function(item, idx){
+    if(item.classList.contains('active')) activeIdx0 = idx;
+  });
+  items0.forEach(function(item, idx){
+    if(activeIdx0 >= 0 && idx < activeIdx0){
+      item.style.display = 'none';
+    } else {
+      item.style.display = '';
+    }
   });
   // 服务详情tab
-  var items1 = document.querySelectorAll('#zonePanel_1 .accordion');
-  var active1 = document.querySelector('#zonePanel_1 .accordion.active');
-  items1.forEach(function(item){
-    item.style.display = active1 && item !== active1 ? 'none' : '';
+  var items1 = Array.from(document.querySelectorAll('#zonePanel_1 .accordion'));
+  var activeIdx1 = -1;
+  items1.forEach(function(item, idx){
+    if(item.classList.contains('active')) activeIdx1 = idx;
+  });
+  items1.forEach(function(item, idx){
+    if(activeIdx1 >= 0 && idx < activeIdx1){
+      item.style.display = 'none';
+    } else {
+      item.style.display = '';
+    }
   });
 }
 window._syncAccordionVisibility = _syncAccordionVisibility;
