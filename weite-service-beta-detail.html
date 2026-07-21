@@ -211,12 +211,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
 .zone-tab.active.done{color:#667eea;border-bottom-color:#667eea;}
 
 /* ===== 内容区容器：固定高度防抖动 ===== */
-.zone-content{position:relative;overflow:hidden;}
+.zone-content{position:relative;overflow:visible;}
+.zone-content.animating{overflow:hidden;}
 .zone-panel{display:none;padding:12px;}
 .zone-panel.active{display:block;}
 
 /* ===== 改进的Tab滑动动画 ===== */
-.zone-content{position:relative;overflow:hidden;}
+.zone-content{position:relative;overflow:visible;}
+.zone-content.animating{overflow:hidden;}
 .zone-panel{display:none;padding:12px;width:100%;}
 .zone-panel.active{display:block;}
 .zone-content.animating .zone-panel.slide-in{display:block;position:absolute;top:0;left:0;right:0;}
@@ -403,7 +405,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
 
 /* ===== 手风琴标题吸顶 ===== */
 .zone-panel{position:relative;}
-.accordion-header.sticky-acc{position:sticky;top:4px;z-index:5;background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.06);-webkit-backface-visibility:hidden;border-radius:8px;}
+.accordion-header.sticky-acc{position:-webkit-sticky;position:sticky;top:4px;z-index:5;background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.06);-webkit-backface-visibility:hidden;border-radius:8px;}
 .accordion.active .accordion-header.sticky-acc{background:linear-gradient(135deg,#f8f9ff,#f5f3ff);}
 
 /* ===== 顶部更多菜单 ===== */
