@@ -1208,6 +1208,19 @@ window.goBackToList = goBackToList;
 
   function handleTouchMove(e){
     if(e.touches.length !== 1) return;
+    // 弹窗内不处理手势，避免影响内部滚动
+    var inModal = false;
+    var modals = document.querySelectorAll('.mo');
+    for(var mi = 0; mi < modals.length; mi++){
+      if(modals[mi].style.display === 'block'){
+        inModal = true;
+        break;
+      }
+    }
+    if(inModal) return;
+    if(document.getElementById('sigMo') && document.getElementById('sigMo').style.display === 'block') return;
+    if(document.getElementById('pdfPreviewMo') && document.getElementById('pdfPreviewMo').style.display === 'block') return;
+    
     var deltaX = e.touches[0].clientX - touchStartX;
     var deltaY = e.touches[0].clientY - touchStartY;
     
@@ -1485,8 +1498,23 @@ selC.addEventListener('change',function(){selX.innerHTML='<option value="">区/�
 var locStep='province',locHistory=[];
 window.showLocPicker=function(){
   locStep='province';locHistory=[];
-  renderLocList(Object.keys(R),'选择省份');
+  // 锁定背景页面，防止iOS下页面整体滚动
+  var sc=_getScrollContainer(); var scrollY=sc.scrollTop;
+  document.body.style.position='fixed';
+  document.body.style.top='-'+scrollY+'px';
+  document.body.style.width='100%';
+  document.body.style.overflow='hidden';
+  document.body.dataset.scrollY=scrollY;
+  sc.style.overflow='hidden';
+  // 先显示弹窗，再渲染列表，确保滚动容器高度正确计算
+  // （display:none状态下渲染内容会导致iOS Safari滚动失效）
   document.getElementById('locMo').style.display='block';
+  setTimeout(function(){
+    renderLocList(Object.keys(R),'选择省份');
+    // 强制触发滚动容器重绘，修复iOS下第一次滚动不灵敏的问题
+    var mb=document.querySelector('#locMo .mb');
+    if(mb){var _t=mb.scrollTop;mb.scrollTop=_t+1;mb.scrollTop=_t;}
+  }, 30);
 };
 function renderLocList(items,title){
   document.getElementById('locTitle').textContent=title;
@@ -1523,14 +1551,26 @@ function renderLocList(items,title){
         if(selC.value&&selC.value!==selP.value)locText+=selC.value;
         locText+=k;
         document.getElementById('locDisplay').value=locText;
-        document.getElementById('locMo').style.display='none';
-        updateBtnStatus();
+        closeLocPicker();
       }
     });
     box.appendChild(btn);
   });
 }
-document.getElementById('locClose').addEventListener('click',function(){document.getElementById('locMo').style.display='none';});
+function closeLocPicker(){
+  document.getElementById('locMo').style.display='none';
+  // 恢复背景页面滚动
+  var scrollY=parseInt(document.body.dataset.scrollY||'0');
+  document.body.style.position='';
+  document.body.style.top='';
+  document.body.style.width='';
+  document.body.style.overflow='';
+  var sc=_getScrollContainer();
+  sc.style.overflow='';
+  sc.scrollTop = scrollY;
+  updateBtnStatus();
+}
+document.getElementById('locClose').addEventListener('click',closeLocPicker);
 
 function setSel(sel,txt){if(!txt)return;for(var i=0;i<sel.options.length;i++){if(sel.options[i].value===txt||sel.options[i].textContent===txt){sel.selectedIndex=i;sel.dispatchEvent(new Event('change'));return;}}}
 // Elevator rows - 型号+多个编号
@@ -1683,11 +1723,11 @@ document.getElementById('saveBtn').addEventListener('click',function(){
     var dup=list.some(function(item){var iKey=(item.serviceTime||'')+'_'+(item.elevators?item.elevators.map(function(e){return e.serials.join(',')}).join('|'):'');return iKey===dKey;});
     if(dup){if(!confirm('检测到相同服务时间和设备编号的记录已存在，是否仍要保存？'))return;}
     list.unshift(d);
-  }if(list.length>50)list=list.slice(0,50);try{_wtListCache=list;_saveWtListCache();showToast('✅ 已保存');renderList();}catch(e){showToast('存储空间不足');}
-  // 保存后清空表单
-  document.querySelectorAll('input[type="text"],input[type="tel"],input[type="date"],input[type="datetime-local"],input[type="number"]').forEach(function(el){el.value='';});document.querySelectorAll('select').forEach(function(el){el.selectedIndex=0;});document.querySelectorAll('input[type="checkbox"]').forEach(function(el){el.checked=false;el.parentElement.classList.remove('ck');});document.querySelectorAll('.sd').forEach(function(el){el.innerHTML='<span>点击签名</span>';});sig1Data='';sig2Data='';sig1Canvas=null;sig2Canvas=null;
-  var sp1=document.getElementById('signPrev1');if(sp1)sp1.innerHTML='<span>点击签名</span>';
-  var sp2=document.getElementById('signPrev2');if(sp2)sp2.innerHTML='<span>点击签名</span>';document.getElementById('locDisplay').value='';document.getElementById('elevBox').innerHTML='';elevN=0;addElevRow('',['']);editingIdx=-1;document.getElementById('recBox').innerHTML='';recN=0;addRec();_getScrollContainer().scrollTop=0;updateBtnStatus();});
+  }if(list.length>50)list=list.slice(0,50);try{_wtListCache=list;_saveWtListCache();showToast('✅ 已保存');renderList();
+    // 保存成功后返回列表页（与厂检V2对齐：保存→提示成功→返回列表）
+    setTimeout(function(){location.href='weite-service-beta.html';}, 800);
+  }catch(e){showToast('存储空间不足');}
+});
 document.getElementById('clearBtn').addEventListener('click',function(){if(!confirm('确定清空所有表单数据？'))return;document.querySelectorAll('input[type="text"],input[type="tel"],input[type="date"],input[type="datetime-local"],input[type="number"]').forEach(function(el){el.value='';});document.querySelectorAll('select').forEach(function(el){el.selectedIndex=0;});document.querySelectorAll('input[type="checkbox"]').forEach(function(el){el.checked=false;});document.querySelectorAll('.ci').forEach(function(el){el.classList.remove('ck');});document.querySelectorAll('.sd').forEach(function(el){el.innerHTML='<span>点击签名</span>';});sig1Data='';sig2Data='';sig1Canvas=null;sig2Canvas=null;
   var sp1=document.getElementById('signPrev1');if(sp1)sp1.innerHTML='<span>点击签名</span>';
   var sp2=document.getElementById('signPrev2');if(sp2)sp2.innerHTML='<span>点击签名</span>';document.getElementById('locDisplay').value='';document.getElementById('elevBox').innerHTML='';elevN=0;addElevRow('',['']);editingIdx=-1;document.getElementById('recBox').innerHTML='';recN=0;addRec();_getScrollContainer().scrollTop=0;showToast('已清空');updateBtnStatus();});
