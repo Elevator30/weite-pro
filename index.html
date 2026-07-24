@@ -100,6 +100,7 @@ body {
 .card-icon.blue { background: linear-gradient(135deg, #667eea, #764ba2); }
 .card-icon.green { background: linear-gradient(135deg, #11998e, #38ef7d); }
 .card-icon.orange { background: linear-gradient(135deg, #f093fb, #f5576c); }
+.card-icon.cyan { background: linear-gradient(135deg, #00b4db, #0083b0); }
 .card-body { flex: 1; }
 .card-title {
   font-size: 17px;
@@ -234,6 +235,15 @@ body {
       </div>
       <div class="card-arrow">›</div>
     </div>
+
+    <div class="card" onclick="openApp('civil', '土建勘测')">
+      <div class="card-icon cyan">🏗️</div>
+      <div class="card-body">
+        <div class="card-title">土建勘测</div>
+        <div class="card-desc">电梯井道土建勘测记录 V2</div>
+      </div>
+      <div class="card-arrow">›</div>
+    </div>
   </div>
 
   <div class="footer">
@@ -250,6 +260,7 @@ body {
   <iframe class="app-iframe" id="iframe-service" data-url="weite-service-beta.html" style="display:none;"></iframe>
   <iframe class="app-iframe" id="iframe-factory" data-url="factory-inspection-v2.html" style="display:none;"></iframe>
   <iframe class="app-iframe" id="iframe-travel" data-url="travel-expense.html" style="display:none;"></iframe>
+  <iframe class="app-iframe" id="iframe-civil" data-url="civil-survey-list.html" style="display:none;"></iframe>
 </div>
 
 <script>
@@ -257,7 +268,8 @@ var currentApp = null;
 var appUrls = {
   service: 'weite-service-beta.html',
   factory: 'factory-inspection-v2.html',
-  travel: 'travel-expense.html'
+  travel: 'travel-expense.html',
+  civil: 'civil-survey-list.html'
 };
 
 function openApp(key, title) {

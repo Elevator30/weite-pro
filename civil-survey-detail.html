@@ -1,0 +1,1944 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#667eea">
+<title>土建勘测 - 详情</title>
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%231a3a6b'/%3E%3Ctext x='50' y='42' font-family='Arial' font-size='28' font-weight='900' text-anchor='middle' fill='white'%3EVEITE%3C/text%3E%3Ctext x='50' y='72' font-family='serif' font-size='16' font-weight='800' text-anchor='middle' fill='%23e63946'%3E电梯%3C/text%3E%3C/svg%3E">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+/* ===== 基础重置 ===== */
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;}
+body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',sans-serif;background:#f5f7fa;-webkit-overflow-scrolling:touch;}
+
+/* ===== 整体布局 ===== */
+.app-container{display:flex;flex-direction:column;height:100vh;overflow:hidden;position:relative;}
+
+/* ===== 顶部Header（固定） ===== */
+.detail-header{padding:10px 12px 8px;background:#fff;flex-shrink:0;z-index:50;box-shadow:0 2px 8px rgba(0,0,0,.06);position:relative;}
+.detail-header-row{display:flex;align-items:center;justify-content:space-between;}
+.header-back{width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:26px;color:#2d3748;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.header-title-center{flex:1;text-align:center;font-size:16px;font-weight:700;color:#1a3a6b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 8px;}
+.header-menu{width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:22px;color:#4a5568;cursor:pointer;-webkit-tap-highlight-color:transparent;position:relative;}
+.header-sub{font-size:11px;color:#a0aec0;text-align:center;letter-spacing:2px;margin-top:2px;}
+
+/* ===== Tab栏（吸顶） ===== */
+.zone-tabs{display:flex;gap:0;padding:0 8px;background:#fff;overflow-x:auto;flex-shrink:0;
+  -webkit-overflow-scrolling:touch;border-bottom:2px solid #edf2f7;z-index:48;scroll-behavior:smooth;}
+.zone-tabs::-webkit-scrollbar{display:none;}
+.zone-tab{padding:12px 14px;white-space:nowrap;font-size:13px;font-weight:600;color:#718096;
+  cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s ease;flex-shrink:0;
+  -webkit-tap-highlight-color:transparent;}
+.zone-tab.active{color:#667eea;border-bottom-color:#667eea;font-weight:700;}
+
+/* ===== 内容滑动容器 ===== */
+.zone-slider{flex:1;overflow:hidden;position:relative;}
+.zone-content{display:flex;width:600%;height:100%;transition:transform .3s cubic-bezier(0.25, 0.46, 0.45, 0.94);}
+.zone-panel{width:16.666%;height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px;padding-bottom:30px;flex-shrink:0;}
+.zone-panel::-webkit-scrollbar{width:6px;}
+.zone-panel::-webkit-scrollbar-thumb{background:#cbd5e0;border-radius:3px;}
+
+/* ===== 卡片通用 ===== */
+.card{background:#fff;border-radius:12px;padding:14px 16px;margin-bottom:12px;border:1.5px solid #e2e8f0;box-shadow:0 1px 4px rgba(0,0,0,.04);}
+.card-title{font-size:15px;font-weight:700;color:#2d3748;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;}
+.card-title .badge{font-size:11px;font-weight:500;padding:2px 10px;border-radius:12px;background:#edf2ff;color:#667eea;}
+
+/* ===== 表单 ===== */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.form-row{margin-bottom:0;}
+.form-row.full{grid-column:1/-1;}
+.form-row label{display:block;font-size:12px;color:#4a5568;margin-bottom:5px;font-weight:500;}
+.form-row input,.form-row select,.form-row textarea{
+  width:100%;border:1.5px solid #e2e8f0;border-radius:8px;padding:9px 10px;
+  font-size:13px;background:#fafafa;transition:all .15s;font-family:inherit;
+}
+.form-row input:focus,.form-row select:focus,.form-row textarea:focus{
+  border-color:#667eea;background:#fff;outline:none;
+}
+.form-row input[readonly]{background:#f0f4ff;color:#667eea;font-weight:600;}
+.form-row textarea{min-height:70px;resize:vertical;}
+.form-hint{font-size:11px;color:#a0aec0;margin-top:4px;}
+
+/* ===== 开关样式 ===== */
+.switch-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;}
+.switch-label{font-size:13px;color:#4a5568;font-weight:500;}
+.switch{position:relative;width:48px;height:26px;background:#cbd5e0;border-radius:13px;cursor:pointer;transition:background .2s;}
+.switch.on{background:#667eea;}
+.switch-dot{position:absolute;top:3px;left:3px;width:20px;height:20px;background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2);}
+.switch.on .switch-dot{transform:translateX(22px);}
+
+/* ===== 手风琴样式 ===== */
+.accordion{background:#fff;border-radius:12px;margin-bottom:10px;border:1.5px solid #e2e8f0;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);overflow:hidden;}
+.accordion-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;
+  cursor:pointer;background:#fff;transition:background .2s;-webkit-tap-highlight-color:transparent;}
+.accordion:not(.active) .accordion-header{/* 折叠态圆角 */}
+.accordion-header:active{background:#f7fafc;}
+.acc-left{display:flex;align-items:center;gap:10px;}
+.acc-icon{font-size:20px;}
+.acc-title{font-size:14px;font-weight:600;color:#2d3748;}
+.acc-arrow{font-size:14px;color:#a0aec0;transition:transform .25s ease;flex-shrink:0;}
+.accordion.active .accordion-header .acc-arrow{transform:rotate(180deg);color:#667eea;}
+.accordion.active .accordion-header{background:linear-gradient(135deg,#f8f9ff,#f5f3ff);}
+.accordion-body{max-height:0;overflow:hidden;transition:max-height .3s ease;padding:0 16px;}
+.accordion.active .accordion-body{max-height:3000px;padding:14px 16px 16px;border-top:1px solid #edf2f7;}
+
+/* ===== 分区小标题 ===== */
+.zone-section-title{font-size:13px;font-weight:700;color:#718096;padding:8px 4px 10px;letter-spacing:1px;}
+
+/* ===== 楼层卡片 ===== */
+.floor-cards{display:flex;flex-direction:column;gap:10px;}
+.floor-card{background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;padding:12px 14px;
+  box-shadow:0 1px 4px rgba(0,0,0,.03);position:relative;}
+.floor-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;
+  padding-bottom:8px;border-bottom:1px dashed #edf2f7;}
+.floor-no-badge{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;font-size:14px;
+  font-weight:700;padding:4px 14px;border-radius:20px;min-width:50px;text-align:center;}
+.floor-del-btn{background:none;border:none;color:#e53e3e;cursor:pointer;font-size:20px;
+  padding:2px 8px;line-height:1;-webkit-tap-highlight-color:transparent;}
+.floor-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.floor-field{min-width:0;}
+.floor-field label{display:block;font-size:11px;color:#718096;margin-bottom:3px;font-weight:500;}
+.floor-field input{width:100%;border:1.5px solid #e2e8f0;border-radius:7px;padding:7px 8px;
+  font-size:13px;background:#fafafa;text-align:center;}
+.floor-field input:focus{border-color:#667eea;background:#fff;outline:none;}
+.floor-field.full{grid-column:1/-1;}
+
+/* 楼层操作栏 */
+.floor-toolbar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center;}
+.floor-toolbar-btn{padding:8px 14px;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.floor-toolbar-btn.primary{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;}
+.floor-toolbar-btn.secondary{background:#f7fafc;color:#4a5568;border:1.5px solid #e2e8f0;}
+
+/* 楼层统计栏 */
+.floor-stats{background:linear-gradient(135deg,#f8f9ff,#f5f3ff);border-radius:10px;padding:10px 14px;margin-bottom:12px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;}
+.floor-stat-item .stat-val{font-size:15px;font-weight:700;color:#667eea;}
+.floor-stat-item .stat-lab{font-size:10px;color:#718096;margin-top:2px;}
+
+/* ===== 上传区域 ===== */
+.upload-area{border:2px dashed #cbd5e0;border-radius:12px;padding:24px 16px;text-align:center;cursor:pointer;transition:all .2s;background:#fafafa;}
+.upload-area:active{background:#f0f4ff;border-color:#667eea;}
+.upload-icon{font-size:36px;margin-bottom:8px;opacity:.6;}
+.upload-text{font-size:13px;color:#718096;margin-bottom:4px;}
+.upload-hint{font-size:11px;color:#a0aec0;}
+.upload-preview{position:relative;margin-top:10px;border-radius:10px;overflow:hidden;}
+.upload-preview img{width:100%;display:block;border-radius:10px;}
+.upload-del{position:absolute;top:8px;right:8px;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;}
+
+/* ===== 签字区域 ===== */
+.sign-section{margin-bottom:16px;}
+.sign-label{font-size:13px;color:#4a5568;font-weight:600;margin-bottom:8px;}
+.sign-canvas-box{background:#fff;border:1.5px solid #e2e8f0;border-radius:10px;padding:4px;position:relative;}
+.sign-canvas{width:100%;height:160px;display:block;border-radius:8px;cursor:crosshair;touch-action:none;}
+.sign-clear-btn{position:absolute;top:10px;right:10px;padding:5px 12px;background:rgba(102,126,234,.1);border:1px solid #667eea;color:#667eea;border-radius:6px;font-size:12px;cursor:pointer;}
+
+/* ===== Toast ===== */
+.toast{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.78);color:#fff;padding:12px 24px;border-radius:10px;font-size:14px;z-index:9999;max-width:80%;text-align:center;}
+
+/* ===== 确认弹窗 ===== */
+.confirm-mask{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:9999;align-items:center;justify-content:center;padding:30px;}
+.confirm-mask.show{display:flex;}
+.confirm-box{background:#fff;border-radius:14px;padding:22px;max-width:320px;width:100%;text-align:center;}
+.confirm-box h3{font-size:17px;font-weight:700;color:#2d3748;margin-bottom:10px;}
+.confirm-box p{font-size:13px;color:#718096;margin-bottom:18px;line-height:1.5;}
+.confirm-btns{display:flex;gap:10px;}
+.confirm-btn{flex:1;padding:11px;border-radius:9px;font-size:14px;cursor:pointer;font-weight:500;border:none;}
+.confirm-cancel{background:#f7fafc;color:#718096;border:1px solid #e2e8f0;}
+.confirm-ok{background:#e53e3e;color:#fff;font-weight:600;}
+
+/* ===== 右上角菜单 ===== */
+.menu-dropdown{position:absolute;top:48px;right:8px;background:#fff;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.15);z-index:200;overflow:hidden;display:none;min-width:140px;}
+.menu-dropdown.show{display:block;}
+.menu-dropdown-item{padding:12px 16px;font-size:14px;color:#4a5568;cursor:pointer;display:flex;align-items:center;gap:8px;}
+.menu-dropdown-item:active{background:#f7fafc;}
+.menu-dropdown-item.danger{color:#e53e3e;}
+.menu-dropdown-divider{height:1px;background:#edf2f7;}
+
+/* ===== 打印区域（隐藏） ===== */
+.print-area{display:none;}
+
+@media(max-width:360px){
+  .form-grid{gap:10px;}
+  .floor-grid{gap:6px;}
+}
+</style>
+</head>
+<body>
+
+<div class="app-container" id="appContainer">
+
+  <!-- 顶部Header -->
+  <div class="detail-header">
+    <div class="detail-header-row">
+      <div class="header-back" onclick="goBack()">‹</div>
+      <div class="header-title-center" id="headerTitle">新建勘测</div>
+      <div class="header-menu" onclick="toggleMenu(event)">≡
+        <div class="menu-dropdown" id="menuDropdown">
+          <div class="menu-dropdown-item" onclick="saveData()">💾 保存</div>
+          <div class="menu-dropdown-item" onclick="printSurvey()">🖨️ 打印</div>
+          <div class="menu-dropdown-divider"></div>
+          <div class="menu-dropdown-item" onclick="goBack()">📋 返回列表</div>
+        </div>
+      </div>
+    </div>
+    <div class="header-sub">CIVIL SURVEY</div>
+  </div>
+
+  <!-- Tab栏 -->
+  <div class="zone-tabs" id="zoneTabs">
+    <div class="zone-tab active" onclick="switchTab(0)">基本参数</div>
+    <div class="zone-tab" onclick="switchTab(1)">井道结构</div>
+    <div class="zone-tab" onclick="switchTab(2)">顶层底坑</div>
+    <div class="zone-tab" onclick="switchTab(3)">楼层测量</div>
+    <div class="zone-tab" onclick="switchTab(4)">示意图</div>
+    <div class="zone-tab" onclick="switchTab(5)">签字</div>
+  </div>
+
+  <!-- 内容滑动容器 -->
+  <div class="zone-slider">
+    <div class="zone-content" id="zoneContent">
+
+      <!-- Tab1: 基本参数 -->
+      <div class="zone-panel" id="panel0">
+        <div class="zone-section-title">📋 项目基本信息</div>
+        <div class="card">
+          <div class="form-grid">
+            <div class="form-row full">
+              <label>项目名称 *</label>
+              <input type="text" id="f_projectName" placeholder="请输入项目名称" onblur="updateField('projectName', this.value)">
+            </div>
+            <div class="form-row">
+              <label>省份</label>
+              <select id="f_province" onchange="onProvinceChange()">
+                <option value="">请选择</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label>城市</label>
+              <select id="f_city" onchange="onCityChange()">
+                <option value="">请选择</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label>区县</label>
+              <select id="f_district" onchange="onDistrictChange()">
+                <option value="">请选择</option>
+              </select>
+            </div>
+            <div class="form-row full">
+              <label>详细地址</label>
+              <input type="text" id="f_address" placeholder="请输入详细地址" onblur="updateLocation('detail', this.value)">
+            </div>
+            <div class="form-row">
+              <label>销售</label>
+              <input type="text" id="f_sales" placeholder="销售姓名" onblur="updateField('sales', this.value)">
+            </div>
+            <div class="form-row">
+              <label>联系电话</label>
+              <input type="tel" id="f_phone" placeholder="联系电话" onblur="updateField('phone', this.value)">
+            </div>
+          </div>
+        </div>
+
+        <div class="zone-section-title">🛗 电梯参数</div>
+        <div class="card">
+          <div class="form-grid">
+            <div class="form-row">
+              <label>电梯型号</label>
+              <select id="f_elevatorModel" onchange="updateField('elevatorModel', this.value)">
+                <option value="客梯">客梯</option>
+                <option value="货梯">货梯</option>
+                <option value="观光梯">观光梯</option>
+                <option value="医用梯">医用梯</option>
+                <option value="杂物梯">杂物梯</option>
+                <option value="别墅梯">别墅梯</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label>载重(kg)</label>
+              <input type="number" id="f_load" placeholder="如：1000" onblur="updateField('load', this.value)">
+            </div>
+            <div class="form-row">
+              <label>速度(m/s)</label>
+              <input type="number" step="0.1" id="f_speed" placeholder="如：1.5" onblur="updateField('speed', this.value)">
+            </div>
+            <div class="form-row">
+              <label>层站</label>
+              <div style="display:flex;gap:6px;align-items:center;">
+                <input type="number" id="f_floors" placeholder="层" onblur="updateField('floors', this.value)" style="flex:1;text-align:center;">
+                <span style="color:#a0aec0;font-size:13px;">层</span>
+                <input type="number" id="f_stops" placeholder="站" onblur="updateField('stops', this.value)" style="flex:1;text-align:center;">
+                <span style="color:#a0aec0;font-size:13px;">站</span>
+              </div>
+            </div>
+            <div class="form-row">
+              <label>开门方式</label>
+              <select id="f_doorType" onchange="updateField('doorType', this.value)">
+                <option value="中分">中分</option>
+                <option value="旁开">旁开</option>
+                <option value="双折">双折</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label>开门位置</label>
+              <select id="f_doorPosition" onchange="updateField('doorPosition', this.value)">
+                <option value="前门">前门</option>
+                <option value="后门">后门</option>
+                <option value="贯通">贯通</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab2: 井道结构 -->
+      <div class="zone-panel" id="panel1">
+        <div class="zone-section-title">🧱 四面墙结构</div>
+        
+        <div class="accordion active" id="accWall1">
+          <div class="accordion-header" onclick="toggleAccordion('accWall1')">
+            <div class="acc-left"><span class="acc-icon">◼</span><span class="acc-title">后墙</span></div>
+            <span class="acc-arrow">▼</span>
+          </div>
+          <div class="accordion-body">
+            <div class="form-grid">
+              <div class="form-row">
+                <label>结构类型</label>
+                <select onchange="updateWall('back','type',this.value)">
+                  <option value="砖混墙">砖混墙</option>
+                  <option value="混凝土墙">混凝土墙</option>
+                  <option value="钢架">钢架</option>
+                  <option value="剪力墙">剪力墙</option>
+                </select>
+              </div>
+              <div class="form-row">
+                <label>厚度(mm)</label>
+                <input type="number" id="wall_back_thick" onblur="updateWall('back','thick',this.value)">
+              </div>
+              <div class="form-row">
+                <label>外墙</label>
+                <select onchange="updateWall('back','outer',this.value)">
+                  <option value="否">否</option>
+                  <option value="是">是</option>
+                </select>
+              </div>
+              <div class="form-row">
+                <label>圈梁间距(mm)</label>
+                <input type="number" id="wall_back_ringBeam" onblur="updateWall('back','ringBeam',this.value)">
+              </div>
+              <div class="form-row full">
+                <label>支架间距(mm)</label>
+                <input type="number" id="wall_back_bracket" onblur="updateWall('back','bracket',this.value)">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="accordion" id="accWall2">
+          <div class="accordion-header" onclick="toggleAccordion('accWall2')">
+            <div class="acc-left"><span class="acc-icon">◼</span><span class="acc-title">左墙</span></div>
+            <span class="acc-arrow">▼</span>
+          </div>
+          <div class="accordion-body">
+            <div class="form-grid">
+              <div class="form-row">
+                <label>结构类型</label>
+                <select onchange="updateWall('left','type',this.value)">
+                  <option value="砖混墙">砖混墙</option>
+                  <option value="混凝土墙">混凝土墙</option>
+                  <option value="钢架">钢架</option>
+                  <option value="剪力墙">剪力墙</option>
+                </select>
+              </div>
+              <div class="form-row">
+                <label>厚度(mm)</label>
+                <input type="number" id="wall_left_thick" onblur="updateWall('left','thick',this.value)">
+              </div>
+              <div class="form-row">
+                <label>外墙</label>
+                <select onchange="updateWall('left','outer',this.value)">
+                  <option value="否">否</option>
+                  <option value="是">是</option>
+                </select>
+              </div>
+              <div class="form-row">
+                <label>圈梁间距(mm)</label>
+                <input type="number" id="wall_left_ringBeam" onblur="updateWall('left','ringBeam',this.value)">
+              </div>
+              <div class="form-row full">
+                <label>支架间距(mm)</label>
+                <input type="number" id="wall_left_bracket" onblur="updateWall('left','bracket',this.value)">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="accordion" id="accWall3">
+          <div class="accordion-header" onclick="toggleAccordion('accWall3')">
+            <div class="acc-left"><span class="acc-icon">◼</span><span class="acc-title">右墙</span></div>
+            <span class="acc-arrow">▼</span>
+          </div>
+          <div class="accordion-body">
+            <div class="form-grid">
+              <div class="form-row">
+                <label>结构类型</label>
+                <select onchange="updateWall('right','type',this.value)">
+                  <option value="砖混墙">砖混墙</option>
+                  <option value="混凝土墙">混凝土墙</option>
+                  <option value="钢架">钢架</option>
+                  <option value="剪力墙">剪力墙</option>
+                </select>
+              </div>
+              <div class="form-row">
+                <label>厚度(mm)</label>
+                <input type="number" id="wall_right_thick" onblur="updateWall('right','thick',this.value)">
+              </div>
+              <div class="form-row">
+                <label>外墙</label>
+                <select onchange="updateWall('right','outer',this.value)">
+                  <option value="否">否</option>
+                  <option value="是">是</option>
+                </select>
+              </div>
+              <div class="form-row">
+                <label>圈梁间距(mm)</label>
+                <input type="number" id="wall_right_ringBeam" onblur="updateWall('right','ringBeam',this.value)">
+              </div>
+              <div class="form-row full">
+                <label>支架间距(mm)</label>
+                <input type="number" id="wall_right_bracket" onblur="updateWall('right','bracket',this.value)">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="accordion" id="accWall4">
+          <div class="accordion-header" onclick="toggleAccordion('accWall4')">
+            <div class="acc-left"><span class="acc-icon">◼</span><span class="acc-title">前墙</span></div>
+            <span class="acc-arrow">▼</span>
+          </div>
+          <div class="accordion-body">
+            <div class="form-grid">
+              <div class="form-row">
+                <label>结构类型</label>
+                <select onchange="updateWall('front','type',this.value)">
+                  <option value="砖混墙">砖混墙</option>
+                  <option value="混凝土墙">混凝土墙</option>
+                  <option value="钢架">钢架</option>
+                  <option value="剪力墙">剪力墙</option>
+                </select>
+              </div>
+              <div class="form-row">
+                <label>厚度(mm)</label>
+                <input type="number" id="wall_front_thick" onblur="updateWall('front','thick',this.value)">
+              </div>
+              <div class="form-row">
+                <label>外墙</label>
+                <select onchange="updateWall('front','outer',this.value)">
+                  <option value="否">否</option>
+                  <option value="是">是</option>
+                </select>
+              </div>
+              <div class="form-row">
+                <label>圈梁间距(mm)</label>
+                <input type="number" id="wall_front_ringBeam" onblur="updateWall('front','ringBeam',this.value)">
+              </div>
+              <div class="form-row full">
+                <label>支架间距(mm)</label>
+                <input type="number" id="wall_front_bracket" onblur="updateWall('front','bracket',this.value)">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="zone-section-title">🚪 门过梁与门垛</div>
+        <div class="accordion active" id="accDoor">
+          <div class="accordion-header" onclick="toggleAccordion('accDoor')">
+            <div class="acc-left"><span class="acc-icon">🚪</span><span class="acc-title">门过梁与门垛</span></div>
+            <span class="acc-arrow">▼</span>
+          </div>
+          <div class="accordion-body">
+            <div class="form-grid">
+              <div class="form-row">
+                <label>≥300mm门过梁</label>
+                <select id="pier_headerBeam" onchange="updatePier('headerBeam', this.value)">
+                  <option value="有">有</option>
+                  <option value="无">无</option>
+                </select>
+              </div>
+              <div class="form-row">
+                <label>门垛结构</label>
+                <select id="pier_structure" onchange="updatePier('structure', this.value)">
+                  <option value="混凝土">混凝土</option>
+                  <option value="砖墙">砖墙</option>
+                  <option value="钢架">钢架</option>
+                </select>
+              </div>
+              <div class="form-row">
+                <label>门垛状态</label>
+                <select id="pier_status" onchange="updatePier('status', this.value)">
+                  <option value="未建">未建</option>
+                  <option value="在建">在建</option>
+                  <option value="已建">已建</option>
+                </select>
+              </div>
+              <div class="form-row">
+                <label>是否有门垛</label>
+                <select id="pier_hasPier" onchange="updatePier('hasPier', this.value); updateFloorPierVisibility()">
+                  <option value="有">有</option>
+                  <option value="无">无</option>
+                </select>
+              </div>
+              <div class="form-row">
+                <label>左门垛宽(mm)</label>
+                <input type="number" id="pier_leftWidth" onblur="updatePier('leftWidth', this.value)">
+              </div>
+              <div class="form-row">
+                <label>右门垛宽(mm)</label>
+                <input type="number" id="pier_rightWidth" onblur="updatePier('rightWidth', this.value)">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="zone-section-title">🔧 其他井道参数</div>
+        <div class="card">
+          <div class="form-grid">
+            <div class="form-row">
+              <label>外呼盒形式</label>
+              <select id="shaft_callBoxType" onchange="updateShaft('callBoxType', this.value)">
+                <option value="有底盒">有底盒</option>
+                <option value="无底盒">无底盒</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label>井道预留牛腿</label>
+              <select id="shaft_hasCorbel" onchange="updateShaft('hasCorbel', this.value)">
+                <option value="无">无</option>
+                <option value="有">有</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label>贯通</label>
+              <select id="shaft_isThrough" onchange="updateShaft('isThrough', this.value)">
+                <option value="否">否</option>
+                <option value="是">是</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label>动力电源</label>
+              <select id="shaft_powerSupply" onchange="updateShaft('powerSupply', this.value)">
+                <option value="三相380V">三相380V</option>
+                <option value="单相220V">单相220V</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab3: 顶层底坑 -->
+      <div class="zone-panel" id="panel2">
+        <div class="zone-section-title">🌅 观光设置</div>
+        <div class="card">
+          <div class="switch-row">
+            <span class="switch-label">是否观光梯</span>
+            <div class="switch" id="swSightseeing" onclick="toggleSightseeing()">
+              <div class="switch-dot"></div>
+            </div>
+          </div>
+          <div id="sightseeingOptions" style="display:none;padding-top:10px;border-top:1px solid #edf2f7;">
+            <div class="form-grid">
+              <div class="form-row">
+                <label>观光类型</label>
+                <select id="tp_sightseeingType" onchange="updateTopPit('sightseeingType', this.value)">
+                  <option value="方形">方形</option>
+                  <option value="半圆形">半圆形</option>
+                  <option value="菱形">菱形</option>
+                  <option value="全圆形">全圆形</option>
+                </select>
+              </div>
+              <div class="form-row">
+                <label>观光面数</label>
+                <select onchange="updateTopPit('sightseeingSides', this.value)">
+                  <option value="1面">1面</option>
+                  <option value="2面">2面</option>
+                  <option value="3面">3面</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="zone-section-title">⬇️ 底坑参数</div>
+        <div class="card">
+          <div class="form-grid">
+            <div class="form-row">
+              <label>实测深度(mm)</label>
+              <input type="number" id="tp_pitMeasuredDepth" onblur="updateTopPit('pitMeasuredDepth', this.value); calcPitDepth()">
+            </div>
+            <div class="form-row">
+              <label>底坑装修高度(mm)</label>
+              <input type="number" id="tp_pitFinishHeight" onblur="updateTopPit('pitFinishHeight', this.value); calcPitDepth()">
+            </div>
+            <div class="form-row full">
+              <label>底坑深度(mm) <span style="color:#667eea;font-size:11px;">（自动计算）</span></label>
+              <input type="text" id="tp_pitDepth" readonly>
+            </div>
+          </div>
+          <div class="form-hint" style="margin-top:8px;">底坑深度 = 实测深度 + 底坑装修高度</div>
+        </div>
+
+        <div class="zone-section-title">⬆️ 顶层参数</div>
+        <div class="card">
+          <div class="form-grid">
+            <div class="form-row">
+              <label>实测高度(mm)</label>
+              <input type="number" id="tp_topMeasuredHeight" onblur="updateTopPit('topMeasuredHeight', this.value); calcTopHeight()">
+            </div>
+            <div class="form-row">
+              <label>顶层装修高度(mm)</label>
+              <input type="number" id="tp_topFinishHeight" onblur="updateTopPit('topFinishHeight', this.value); calcTopHeight()">
+            </div>
+            <div class="form-row full">
+              <label>顶层高度(mm) <span style="color:#667eea;font-size:11px;">（自动计算）</span></label>
+              <input type="text" id="tp_topHeight" readonly>
+            </div>
+          </div>
+          <div class="form-hint" style="margin-top:8px;">顶层高度 = 实测高度 - 顶层装修高度</div>
+        </div>
+
+        <div class="zone-section-title">📊 汇总参数</div>
+        <div class="card">
+          <div class="floor-stats" style="margin-bottom:0;">
+            <div class="floor-stat-item">
+              <div class="stat-val" id="sumLiftHeight">-</div>
+              <div class="stat-lab">提升高度(mm)</div>
+            </div>
+            <div class="floor-stat-item">
+              <div class="stat-val" id="sumPitDepth">-</div>
+              <div class="stat-lab">底坑深度(mm)</div>
+            </div>
+            <div class="floor-stat-item">
+              <div class="stat-val" id="sumTotalHeight">-</div>
+              <div class="stat-lab">井道总高(mm)</div>
+            </div>
+          </div>
+          <div class="form-hint" style="margin-top:10px;text-align:center;">井道总高 = 提升高度 + 底坑深度 + 顶层高度</div>
+        </div>
+      </div>
+
+      <!-- Tab4: 楼层测量 -->
+      <div class="zone-panel" id="panel3">
+        <div class="floor-toolbar">
+          <button class="floor-toolbar-btn primary" onclick="addFloor()">+ 添加一层</button>
+          <button class="floor-toolbar-btn secondary" onclick="openBatchGen()">批量生成</button>
+        </div>
+
+        <div class="floor-stats">
+          <div class="floor-stat-item">
+            <div class="stat-val" id="floorStatCount">0</div>
+            <div class="stat-lab">楼层数</div>
+          </div>
+          <div class="floor-stat-item">
+            <div class="stat-val" id="floorStatLift">-</div>
+            <div class="stat-lab">提升高度(mm)</div>
+          </div>
+          <div class="floor-stat-item">
+            <div class="stat-val" id="floorStatAvg">-</div>
+            <div class="stat-lab">平均层高(mm)</div>
+          </div>
+        </div>
+
+        <div class="floor-cards" id="floorCards"></div>
+
+        <div style="height:20px;"></div>
+      </div>
+
+      <!-- Tab5: 示意图 -->
+      <div class="zone-panel" id="panel4">
+        <div class="zone-section-title">📐 井道示意图</div>
+        <div class="card">
+          <div class="upload-area" id="shaftUploadArea" onclick="document.getElementById('shaftFileInput').click()">
+            <div class="upload-icon">🏗️</div>
+            <div class="upload-text">点击上传井道示意图</div>
+            <div class="upload-hint">支持 JPG / PNG 格式</div>
+          </div>
+          <input type="file" id="shaftFileInput" accept="image/*" style="display:none;" onchange="onShaftUpload(event)">
+          <div class="upload-preview" id="shaftPreview" style="display:none;">
+            <img id="shaftPreviewImg" alt="井道示意图">
+            <div class="upload-del" onclick="clearShaftImg()">×</div>
+          </div>
+        </div>
+
+        <div class="zone-section-title">🏢 机房示意图</div>
+        <div class="card">
+          <div class="upload-area" id="roomUploadArea" onclick="document.getElementById('roomFileInput').click()">
+            <div class="upload-icon">🏢</div>
+            <div class="upload-text">点击上传机房示意图</div>
+            <div class="upload-hint">支持 JPG / PNG 格式</div>
+          </div>
+          <input type="file" id="roomFileInput" accept="image/*" style="display:none;" onchange="onRoomUpload(event)">
+          <div class="upload-preview" id="roomPreview" style="display:none;">
+            <img id="roomPreviewImg" alt="机房示意图">
+            <div class="upload-del" onclick="clearRoomImg()">×</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab6: 签字 -->
+      <div class="zone-panel" id="panel5">
+        <div class="zone-section-title">✍️ 测量人签字</div>
+        <div class="sign-section">
+          <div class="sign-canvas-box">
+            <canvas class="sign-canvas" id="signCanvas"></canvas>
+            <button class="sign-clear-btn" onclick="clearSignature()">清除</button>
+          </div>
+          <div class="form-hint" style="margin-top:8px;text-align:center;">请在上方区域手写签字</div>
+        </div>
+
+        <div style="padding:20px 10px;text-align:center;">
+          <button style="padding:12px 32px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;box-shadow:0 4px 12px rgba(102,126,234,.3);cursor:pointer;" onclick="saveAndReturn()">
+            💾 保存并返回
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- 批量生成楼层弹窗 -->
+<div class="confirm-mask" id="batchGenMask">
+  <div class="confirm-box">
+    <h3>批量生成楼层</h3>
+    <div style="text-align:left;margin-bottom:16px;">
+      <div style="margin-bottom:10px;">
+        <label style="font-size:12px;color:#4a5568;display:block;margin-bottom:4px;">起始楼层</label>
+        <input type="number" id="batchStart" value="1" style="width:100%;border:1.5px solid #e2e8f0;border-radius:8px;padding:9px 10px;font-size:13px;">
+      </div>
+      <div style="margin-bottom:10px;">
+        <label style="font-size:12px;color:#4a5568;display:block;margin-bottom:4px;">结束楼层</label>
+        <input type="number" id="batchEnd" value="10" style="width:100%;border:1.5px solid #e2e8f0;border-radius:8px;padding:9px 10px;font-size:13px;">
+      </div>
+      <div class="form-hint">将从起始层到结束层生成所有楼层（含两端），跳过0层</div>
+    </div>
+    <div class="confirm-btns">
+      <button class="confirm-btn confirm-cancel" onclick="hideBatchGen()">取消</button>
+      <button class="confirm-btn confirm-ok" style="background:linear-gradient(135deg,#667eea,#764ba2);" onclick="doBatchGen()">生成</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- 打印区域 -->
+<div class="print-area" id="printArea"></div>
+
+<script>
+(function(){
+'use strict';
+
+// ============ 全局状态 ============
+var STORAGE_KEY = 'wtCivilSurveyList';
+var currentTab = 0;
+var isNew = true;
+var data = null;
+
+// ============ 省市区数据（简化版） ============
+var regionData = {
+  "北京市": { "北京市": ["东城区","西城区","朝阳区","海淀区","丰台区","石景山区","通州区","昌平区","大兴区","顺义区","房山区","门头沟区","怀柔区","平谷区","密云区","延庆区"] },
+  "上海市": { "上海市": ["黄浦区","徐汇区","长宁区","静安区","普陀区","虹口区","杨浦区","闵行区","宝山区","嘉定区","浦东新区","金山区","松江区","青浦区","奉贤区","崇明区"] },
+  "广东省": {
+    "广州市": ["天河区","越秀区","海珠区","荔湾区","白云区","黄埔区","番禺区","花都区","南沙区","从化区","增城区"],
+    "深圳市": ["福田区","罗湖区","南山区","宝安区","龙岗区","盐田区","龙华区","坪山区","光明区"],
+    "佛山市": ["禅城区","南海区","顺德区","三水区","高明区"],
+    "东莞市": ["东城街道","南城街道","万江街道","莞城街道","虎门镇","长安镇"]
+  },
+  "江苏省": {
+    "南京市": ["玄武区","秦淮区","建邺区","鼓楼区","浦口区","栖霞区","雨花台区","江宁区","六合区","溧水区","高淳区"],
+    "苏州市": ["姑苏区","虎丘区","吴中区","相城区","吴江区","昆山市","常熟市","张家港市","太仓市"],
+    "无锡市": ["梁溪区","锡山区","惠山区","滨湖区","新吴区","江阴市","宜兴市"]
+  },
+  "浙江省": {
+    "杭州市": ["上城区","下城区","江干区","拱墅区","西湖区","滨江区","萧山区","余杭区","富阳区","临安区"],
+    "宁波市": ["海曙区","江北区","北仑区","镇海区","鄞州区","奉化区","余姚市","慈溪市"],
+    "温州市": ["鹿城区","龙湾区","瓯海区","洞头区","瑞安市","乐清市"]
+  },
+  "四川省": {
+    "成都市": ["锦江区","青羊区","金牛区","武侯区","成华区","龙泉驿区","青白江区","新都区","温江区","双流区","郫都区"],
+    "绵阳市": ["涪城区","游仙区","安州区","江油市"]
+  },
+  "山东省": {
+    "济南市": ["历下区","市中区","槐荫区","天桥区","历城区","长清区","章丘区","济阳区"],
+    "青岛市": ["市南区","市北区","李沧区","崂山区","城阳区","黄岛区","即墨区","胶州市","平度市","莱西市"]
+  },
+  "湖北省": {
+    "武汉市": ["江岸区","江汉区","硚口区","汉阳区","武昌区","青山区","洪山区","东西湖区","汉南区","蔡甸区","江夏区","黄陂区","新洲区"]
+  },
+  "陕西省": {
+    "西安市": ["新城区","碑林区","莲湖区","灞桥区","未央区","雁塔区","阎良区","临潼区","长安区","高陵区","鄠邑区"]
+  },
+  "河南省": {
+    "郑州市": ["中原区","二七区","管城回族区","金水区","上街区","惠济区","中牟县","巩义市","荥阳市","新密市","新郑市","登封市"]
+  },
+  "重庆市": { "重庆市": ["渝中区","江北区","南岸区","九龙坡区","沙坪坝区","大渡口区","渝北区","巴南区","北碚区","两江新区"] },
+  "天津市": { "天津市": ["和平区","河东区","河西区","南开区","河北区","红桥区","东丽区","西青区","津南区","北辰区","武清区","宝坻区","滨海新区"] },
+  "福建省": {
+    "福州市": ["鼓楼区","台江区","仓山区","马尾区","晋安区","长乐区","福清市"],
+    "厦门市": ["思明区","海沧区","湖里区","集美区","同安区","翔安区"]
+  },
+  "安徽省": {
+    "合肥市": ["瑶海区","庐阳区","蜀山区","包河区","长丰县","肥东县","肥西县","庐江县","巢湖市"]
+  },
+  "湖南省": {
+    "长沙市": ["芙蓉区","天心区","岳麓区","开福区","雨花区","望城区","长沙县","浏阳市","宁乡市"]
+  },
+  "河北省": {
+    "石家庄市": ["长安区","桥西区","新华区","井陉矿区","裕华区","藁城区","鹿泉区","栾城区"],
+    "唐山市": ["路南区","路北区","古冶区","开平区","丰南区","丰润区","曹妃甸区"]
+  },
+  "辽宁省": {
+    "沈阳市": ["和平区","沈河区","大东区","皇姑区","铁西区","苏家屯区","浑南区","沈北新区","于洪区"],
+    "大连市": ["中山区","西岗区","沙河口区","甘井子区","旅顺口区","金州区","普兰店区"]
+  }
+};
+
+// ============ 工具函数 ============
+function showToast(msg, dur){
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  clearTimeout(t._t);
+  t._t = setTimeout(function(){ t.style.display = 'none'; }, dur || 2000);
+}
+
+function escapeHtml(str){
+  if(!str) return '';
+  var d = document.createElement('div');
+  d.appendChild(document.createTextNode(str));
+  return d.innerHTML;
+}
+
+function genId(){
+  return 'cs_' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
+}
+
+function toNum(v){
+  var n = parseFloat(v);
+  return isNaN(n) ? 0 : n;
+}
+
+// ============ 数据模型 ============
+function createDefaultData(){
+  return {
+    id: genId(),
+    projectName: '',
+    location: { province: '', city: '', district: '', detail: '' },
+    sales: '',
+    phone: '',
+    elevatorModel: '客梯',
+    load: '',
+    speed: '',
+    floors: '',
+    stops: '',
+    doorType: '中分',
+    doorPosition: '前门',
+    createTime: Date.now(),
+    updateTime: Date.now(),
+    
+    shaft: {
+      walls: {
+        back: { type: '砖混墙', thick: '', outer: '否', ringBeam: '', bracket: '' },
+        left: { type: '砖混墙', thick: '', outer: '否', ringBeam: '', bracket: '' },
+        right: { type: '砖混墙', thick: '', outer: '否', ringBeam: '', bracket: '' },
+        front: { type: '砖混墙', thick: '', outer: '否', ringBeam: '', bracket: '' }
+      },
+      headerBeam: '有',
+      pier: {
+        structure: '混凝土',
+        status: '未建',
+        leftWidth: '',
+        rightWidth: '',
+        hasPier: '有'
+      },
+      callBoxType: '有底盒',
+      hasCorbel: '无',
+      isThrough: '否',
+      powerSupply: '三相380V'
+    },
+    
+    topPit: {
+      isSightseeing: '否',
+      sightseeingType: '方形',
+      sightseeingSides: '1面',
+      pitMeasuredDepth: '',
+      pitFinishHeight: '',
+      pitDepth: '',
+      topMeasuredHeight: '',
+      topFinishHeight: '',
+      topHeight: ''
+    },
+    
+    floorData: [],
+    liftHeight: '',
+    wellTotalHeight: '',
+    
+    sketches: {
+      shaftDiagram: '',
+      machineRoomDiagram: ''
+    },
+    
+    signatures: {
+      surveyor: ''
+    },
+    
+    specialNotes: ''
+  };
+}
+
+// ============ 数据加载保存 ============
+function loadData(){
+  var urlParams = new URLSearchParams(window.location.search);
+  var id = urlParams.get('id');
+  
+  if(id){
+    // 编辑模式
+    try{
+      var list = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      var found = list.find(function(x){ return x.id === id; });
+      if(found){
+        data = found;
+        isNew = false;
+        document.getElementById('headerTitle').textContent = data.projectName || '未命名项目';
+      }else{
+        data = createDefaultData();
+        isNew = true;
+      }
+    }catch(e){
+      data = createDefaultData();
+    }
+  }else{
+    // 新建模式
+    data = createDefaultData();
+    isNew = true;
+  }
+}
+
+function saveData(){
+  if(!data) return;
+  data.updateTime = Date.now();
+  
+  // 更新标题
+  if(data.projectName){
+    document.getElementById('headerTitle').textContent = data.projectName;
+  }
+  
+  try{
+    var list = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    var idx = list.findIndex(function(x){ return x.id === data.id; });
+    if(idx >= 0){
+      list[idx] = data;
+    }else{
+      list.unshift(data);
+      isNew = false;
+    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+    showToast('已保存');
+    return true;
+  }catch(e){
+    showToast('保存失败');
+    return false;
+  }
+}
+
+// ============ 字段更新 ============
+function updateField(key, val){
+  if(!data) return;
+  data[key] = val;
+  if(key === 'projectName'){
+    document.getElementById('headerTitle').textContent = val || '新建勘测';
+  }
+  autoSave();
+}
+
+function updateLocation(key, val){
+  if(!data || !data.location) return;
+  data.location[key] = val;
+  autoSave();
+}
+
+function updateWall(side, key, val){
+  if(!data || !data.shaft || !data.shaft.walls) return;
+  data.shaft.walls[side][key] = val;
+  autoSave();
+}
+
+function updatePier(key, val){
+  if(!data || !data.shaft || !data.shaft.pier) return;
+  data.shaft.pier[key] = val;
+  autoSave();
+}
+
+function updateShaft(key, val){
+  if(!data || !data.shaft) return;
+  data.shaft[key] = val;
+  autoSave();
+}
+
+function updateTopPit(key, val){
+  if(!data || !data.topPit) return;
+  data.topPit[key] = val;
+  autoSave();
+}
+
+// 自动保存（防抖）
+var _saveTimer = null;
+function autoSave(){
+  clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(function(){
+    saveDataSilent();
+  }, 800);
+}
+
+function saveDataSilent(){
+  if(!data) return;
+  data.updateTime = Date.now();
+  try{
+    var list = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    var idx = list.findIndex(function(x){ return x.id === data.id; });
+    if(idx >= 0){
+      list[idx] = data;
+    }else{
+      list.unshift(data);
+    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+  }catch(e){}
+}
+
+// ============ Tab切换 ============
+function switchTab(index){
+  if(index < 0 || index >= 6) return;
+  if(index === currentTab) return;
+  
+  var tabs = document.querySelectorAll('.zone-tab');
+  var content = document.getElementById('zoneContent');
+  
+  // 更新tab激活态
+  for(var i = 0; i < tabs.length; i++){
+    tabs[i].classList.toggle('active', i === index);
+  }
+  
+  // 滑动
+  content.style.transform = 'translateX(' + (-index * 16.666) + '%)';
+  
+  // Tab滚动到可视区域
+  var activeTab = tabs[index];
+  if(activeTab){
+    var tabsContainer = document.getElementById('zoneTabs');
+    var tabRect = activeTab.getBoundingClientRect();
+    var containerRect = tabsContainer.getBoundingClientRect();
+    if(tabRect.left < containerRect.left || tabRect.right > containerRect.right){
+      activeTab.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    }
+  }
+  
+  currentTab = index;
+  
+  // 切换tab时重新计算汇总
+  if(index === 2){
+    updateSummary();
+  }
+  if(index === 3){
+    renderFloors();
+    updateFloorStats();
+  }
+}
+
+// ============ 手风琴切换 ============
+function toggleAccordion(id){
+  var el = document.getElementById(id);
+  if(!el) return;
+  el.classList.toggle('active');
+}
+
+// ============ 省市区联动 ============
+function initRegionSelectors(){
+  var provSel = document.getElementById('f_province');
+  var html = '<option value="">请选择</option>';
+  for(var p in regionData){
+    html += '<option value="' + p + '">' + p + '</option>';
+  }
+  provSel.innerHTML = html;
+  
+  // 设置已有值
+  if(data && data.location){
+    if(data.location.province){
+      provSel.value = data.location.province;
+      onProvinceChange();
+      if(data.location.city){
+        document.getElementById('f_city').value = data.location.city;
+        onCityChange();
+        if(data.location.district){
+          document.getElementById('f_district').value = data.location.district;
+        }
+      }
+    }
+    if(data.location.detail){
+      document.getElementById('f_address').value = data.location.detail;
+    }
+  }
+}
+
+function onProvinceChange(){
+  var prov = document.getElementById('f_province').value;
+  var citySel = document.getElementById('f_city');
+  var distSel = document.getElementById('f_district');
+  updateLocation('province', prov);
+  
+  distSel.innerHTML = '<option value="">请选择</option>';
+  
+  if(!prov || !regionData[prov]){
+    citySel.innerHTML = '<option value="">请选择</option>';
+    updateLocation('city', '');
+    updateLocation('district', '');
+    return;
+  }
+  
+  var html = '<option value="">请选择</option>';
+  for(var c in regionData[prov]){
+    html += '<option value="' + c + '">' + c + '</option>';
+  }
+  citySel.innerHTML = html;
+  updateLocation('city', '');
+  updateLocation('district', '');
+}
+
+function onCityChange(){
+  var prov = document.getElementById('f_province').value;
+  var city = document.getElementById('f_city').value;
+  var distSel = document.getElementById('f_district');
+  updateLocation('city', city);
+  
+  if(!prov || !city || !regionData[prov] || !regionData[prov][city]){
+    distSel.innerHTML = '<option value="">请选择</option>';
+    updateLocation('district', '');
+    return;
+  }
+  
+  var html = '<option value="">请选择</option>';
+  var districts = regionData[prov][city];
+  for(var i = 0; i < districts.length; i++){
+    html += '<option value="' + districts[i] + '">' + districts[i] + '</option>';
+  }
+  distSel.innerHTML = html;
+  updateLocation('district', '');
+}
+
+function onDistrictChange(){
+  var dist = document.getElementById('f_district').value;
+  updateLocation('district', dist);
+}
+
+// ============ 观光开关 ============
+function toggleSightseeing(){
+  var sw = document.getElementById('swSightseeing');
+  var opt = document.getElementById('sightseeingOptions');
+  var isOn = !sw.classList.contains('on');
+  
+  if(isOn){
+    sw.classList.add('on');
+    opt.style.display = 'block';
+    updateTopPit('isSightseeing', '是');
+  }else{
+    sw.classList.remove('on');
+    opt.style.display = 'none';
+    updateTopPit('isSightseeing', '否');
+  }
+}
+
+// ============ 计算逻辑 ============
+function calcPitDepth(){
+  var measured = toNum(document.getElementById('tp_pitMeasuredDepth').value);
+  var finish = toNum(document.getElementById('tp_pitFinishHeight').value);
+  var depth = measured + finish;
+  document.getElementById('tp_pitDepth').value = depth || '';
+  if(data && data.topPit){
+    data.topPit.pitDepth = depth ? String(depth) : '';
+  }
+  updateSummary();
+  autoSave();
+}
+
+function calcTopHeight(){
+  var measured = toNum(document.getElementById('tp_topMeasuredHeight').value);
+  var finish = toNum(document.getElementById('tp_topFinishHeight').value);
+  var height = measured - finish;
+  document.getElementById('tp_topHeight').value = height > 0 ? height : '';
+  if(data && data.topPit){
+    data.topPit.topHeight = height > 0 ? String(height) : '';
+  }
+  updateSummary();
+  autoSave();
+}
+
+function calcLiftHeight(){
+  if(!data || !data.floorData || !data.floorData.length) return 0;
+  var total = 0;
+  for(var i = 0; i < data.floorData.length; i++){
+    total += toNum(data.floorData[i].floorHeight);
+  }
+  return total;
+}
+
+function updateSummary(){
+  var liftH = calcLiftHeight();
+  var pitD = toNum(data && data.topPit ? data.topPit.pitDepth : 0);
+  var topH = toNum(data && data.topPit ? data.topPit.topHeight : 0);
+  var total = liftH + pitD + topH;
+  
+  var el1 = document.getElementById('sumLiftHeight');
+  var el2 = document.getElementById('sumPitDepth');
+  var el3 = document.getElementById('sumTotalHeight');
+  if(el1) el1.textContent = liftH || '-';
+  if(el2) el2.textContent = pitD || '-';
+  if(el3) el3.textContent = total > 0 ? total : '-';
+  
+  if(data){
+    data.liftHeight = liftH ? String(liftH) : '';
+    data.wellTotalHeight = total > 0 ? String(total) : '';
+  }
+}
+
+// ============ 楼层管理 ============
+function renderFloors(){
+  var container = document.getElementById('floorCards');
+  if(!container) return;
+  
+  if(!data.floorData || !data.floorData.length){
+    container.innerHTML = '<div style="text-align:center;padding:40px 20px;color:#a0aec0;"><div style="font-size:48px;margin-bottom:12px;opacity:.5;">🏢</div><div style="font-size:14px;">暂无楼层数据</div><div style="font-size:12px;margin-top:6px;">点击上方"添加一层"或"批量生成"</div></div>';
+    return;
+  }
+  
+  // 按楼层号排序
+  var sorted = data.floorData.slice().sort(function(a, b){
+    return toNum(b.floorNo) - toNum(a.floorNo); // 从高到低
+  });
+  
+  var hasPier = data.shaft && data.shaft.pier && data.shaft.pier.hasPier === '有';
+  var doorPos = data.doorPosition || '前门';
+  var hasBackDoor = doorPos === '后门' || doorPos === '贯通';
+  
+  var html = '';
+  for(var i = 0; i < sorted.length; i++){
+    var floor = sorted[i];
+    var realIdx = data.floorData.indexOf(floor);
+    
+    html += '<div class="floor-card">';
+    html += '<div class="floor-card-header">';
+    html += '<div class="floor-no-badge">' + escapeHtml(floor.floorNo || '?') + '层</div>';
+    html += '<button class="floor-del-btn" onclick="deleteFloor(' + realIdx + ')">×</button>';
+    html += '</div>';
+    html += '<div class="floor-grid">';
+    
+    html += '<div class="floor-field full"><label>层高(mm)</label>';
+    html += '<input type="number" value="' + (floor.floorHeight || '') + '" onblur="updateFloor(' + realIdx + ',\'floorHeight\',this.value); updateFloorStats();"></div>';
+    
+    html += '<div class="floor-field"><label>前门宽(mm)</label>';
+    html += '<input type="number" value="' + (floor.frontDoorWidth || '') + '" onblur="updateFloor(' + realIdx + ',\'frontDoorWidth\',this.value)"></div>';
+    
+    if(hasBackDoor){
+      html += '<div class="floor-field"><label>后门宽(mm)</label>';
+      html += '<input type="number" value="' + (floor.backDoorWidth || '') + '" onblur="updateFloor(' + realIdx + ',\'backDoorWidth\',this.value)"></div>';
+    }
+    
+    html += '<div class="floor-field"><label>井道宽(mm)</label>';
+    html += '<input type="number" value="' + (floor.shaftWidth || '') + '" onblur="updateFloor(' + realIdx + ',\'shaftWidth\',this.value)"></div>';
+    
+    html += '<div class="floor-field"><label>井道深(mm)</label>';
+    html += '<input type="number" value="' + (floor.shaftDepth || '') + '" onblur="updateFloor(' + realIdx + ',\'shaftDepth\',this.value)"></div>';
+    
+    if(hasPier){
+      html += '<div class="floor-field"><label>左门垛(mm)</label>';
+      html += '<input type="number" value="' + (floor.leftPier || '') + '" onblur="updateFloor(' + realIdx + ',\'leftPier\',this.value)"></div>';
+      
+      html += '<div class="floor-field"><label>右门垛(mm)</label>';
+      html += '<input type="number" value="' + (floor.rightPier || '') + '" onblur="updateFloor(' + realIdx + ',\'rightPier\',this.value)"></div>';
+    }
+    
+    html += '<div class="floor-field full"><label>备注</label>';
+    html += '<input type="text" value="' + escapeHtml(floor.remark || '') + '" onblur="updateFloor(' + realIdx + ',\'remark\',this.value)" placeholder="选填"></div>';
+    
+    html += '</div></div>';
+  }
+  container.innerHTML = html;
+}
+
+function updateFloor(idx, key, val){
+  if(!data || !data.floorData || !data.floorData[idx]) return;
+  data.floorData[idx][key] = val;
+  updateSummary();
+  autoSave();
+}
+
+function addFloor(){
+  if(!data.floorData) data.floorData = [];
+  var maxNo = 0;
+  for(var i = 0; i < data.floorData.length; i++){
+    var n = toNum(data.floorData[i].floorNo);
+    if(n > maxNo) maxNo = n;
+  }
+  var newFloor = {
+    floorNo: String(maxNo + 1),
+    floorHeight: '',
+    frontDoorWidth: '',
+    backDoorWidth: '',
+    shaftWidth: '',
+    shaftDepth: '',
+    leftPier: '',
+    rightPier: '',
+    remark: ''
+  };
+  data.floorData.push(newFloor);
+  renderFloors();
+  updateFloorStats();
+  autoSave();
+  
+  // 滚动到底部
+  var panel = document.getElementById('panel3');
+  if(panel) setTimeout(function(){ panel.scrollTop = panel.scrollHeight; }, 100);
+}
+
+function deleteFloor(idx){
+  if(!data || !data.floorData) return;
+  if(!confirm('确定删除该楼层吗？')) return;
+  data.floorData.splice(idx, 1);
+  renderFloors();
+  updateFloorStats();
+  updateSummary();
+  autoSave();
+}
+
+function updateFloorStats(){
+  var count = data.floorData ? data.floorData.length : 0;
+  var lift = calcLiftHeight();
+  var avg = count > 0 ? Math.round(lift / count) : 0;
+  
+  var el1 = document.getElementById('floorStatCount');
+  var el2 = document.getElementById('floorStatLift');
+  var el3 = document.getElementById('floorStatAvg');
+  if(el1) el1.textContent = count;
+  if(el2) el2.textContent = lift || '-';
+  if(el3) el3.textContent = avg || '-';
+}
+
+function updateFloorPierVisibility(){
+  // 门垛状态变化时重新渲染楼层
+  if(currentTab === 3){
+    renderFloors();
+  }
+}
+
+// ============ 批量生成楼层 ============
+function openBatchGen(){
+  document.getElementById('batchGenMask').classList.add('show');
+}
+
+function hideBatchGen(){
+  document.getElementById('batchGenMask').classList.remove('show');
+}
+
+function doBatchGen(){
+  var start = parseInt(document.getElementById('batchStart').value);
+  var end = parseInt(document.getElementById('batchEnd').value);
+  
+  if(isNaN(start) || isNaN(end)){
+    showToast('请输入有效的楼层号');
+    return;
+  }
+  
+  if(start === end){
+    showToast('起始层和结束层不能相同');
+    return;
+  }
+  
+  if(!data.floorData) data.floorData = [];
+  
+  var min = Math.min(start, end);
+  var max = Math.max(start, end);
+  var added = 0;
+  
+  for(var n = min; n <= max; n++){
+    if(n === 0) continue; // 跳过0层
+    // 检查是否已存在
+    var exists = data.floorData.some(function(f){ return toNum(f.floorNo) === n; });
+    if(!exists){
+      data.floorData.push({
+        floorNo: String(n),
+        floorHeight: '',
+        frontDoorWidth: '',
+        backDoorWidth: '',
+        shaftWidth: '',
+        shaftDepth: '',
+        leftPier: '',
+        rightPier: '',
+        remark: ''
+      });
+      added++;
+    }
+  }
+  
+  hideBatchGen();
+  renderFloors();
+  updateFloorStats();
+  autoSave();
+  showToast('已生成 ' + added + ' 层');
+}
+
+// ============ 图片上传 ============
+function compressImage(file, maxW, callback){
+  var reader = new FileReader();
+  reader.onload = function(e){
+    var img = new Image();
+    img.onload = function(){
+      var canvas = document.createElement('canvas');
+      var w = img.width;
+      var h = img.height;
+      if(w > maxW){
+        h = Math.round(h * maxW / w);
+        w = maxW;
+      }
+      canvas.width = w;
+      canvas.height = h;
+      var ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      callback(canvas.toDataURL('image/jpeg', 0.7));
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function onShaftUpload(e){
+  var file = e.target.files[0];
+  if(!file) return;
+  compressImage(file, 1200, function(dataUrl){
+    if(data.sketches) data.sketches.shaftDiagram = dataUrl;
+    document.getElementById('shaftPreviewImg').src = dataUrl;
+    document.getElementById('shaftPreview').style.display = 'block';
+    document.getElementById('shaftUploadArea').style.display = 'none';
+    autoSave();
+    showToast('上传成功');
+  });
+  e.target.value = '';
+}
+
+function clearShaftImg(){
+  if(data.sketches) data.sketches.shaftDiagram = '';
+  document.getElementById('shaftPreview').style.display = 'none';
+  document.getElementById('shaftUploadArea').style.display = 'block';
+  autoSave();
+}
+
+function onRoomUpload(e){
+  var file = e.target.files[0];
+  if(!file) return;
+  compressImage(file, 1200, function(dataUrl){
+    if(data.sketches) data.sketches.machineRoomDiagram = dataUrl;
+    document.getElementById('roomPreviewImg').src = dataUrl;
+    document.getElementById('roomPreview').style.display = 'block';
+    document.getElementById('roomUploadArea').style.display = 'none';
+    autoSave();
+    showToast('上传成功');
+  });
+  e.target.value = '';
+}
+
+function clearRoomImg(){
+  if(data.sketches) data.sketches.machineRoomDiagram = '';
+  document.getElementById('roomPreview').style.display = 'none';
+  document.getElementById('roomUploadArea').style.display = 'block';
+  autoSave();
+}
+
+// ============ 签字画布 ============
+var signCtx = null;
+var signDrawing = false;
+var signHasContent = false;
+
+function initSignCanvas(){
+  var canvas = document.getElementById('signCanvas');
+  if(!canvas) return;
+  
+  // 设置画布大小（匹配显示尺寸 * 像素比）
+  var dpr = window.devicePixelRatio || 1;
+  var rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width * dpr;
+  canvas.height = 160 * dpr;
+  signCtx = canvas.getContext('2d');
+  signCtx.scale(dpr, dpr);
+  signCtx.lineWidth = 2.5;
+  signCtx.lineCap = 'round';
+  signCtx.lineJoin = 'round';
+  signCtx.strokeStyle = '#1a1a2e';
+  
+  // 已有签字则显示
+  if(data && data.signatures && data.signatures.surveyor){
+    var img = new Image();
+    img.onload = function(){
+      signCtx.drawImage(img, 0, 0, rect.width, 160);
+      signHasContent = true;
+    };
+    img.src = data.signatures.surveyor;
+  }
+  
+  // 鼠标事件
+  canvas.addEventListener('mousedown', startSign);
+  canvas.addEventListener('mousemove', moveSign);
+  canvas.addEventListener('mouseup', endSign);
+  canvas.addEventListener('mouseleave', endSign);
+  
+  // 触摸事件
+  canvas.addEventListener('touchstart', function(e){
+    e.preventDefault();
+    var t = e.touches[0];
+    var r = canvas.getBoundingClientRect();
+    startSign({ clientX: t.clientX, clientY: t.clientY });
+  }, { passive: false });
+  
+  canvas.addEventListener('touchmove', function(e){
+    e.preventDefault();
+    var t = e.touches[0];
+    var r = canvas.getBoundingClientRect();
+    moveSign({ clientX: t.clientX, clientY: t.clientY });
+  }, { passive: false });
+  
+  canvas.addEventListener('touchend', function(e){
+    e.preventDefault();
+    endSign();
+  }, { passive: false });
+}
+
+function startSign(e){
+  signDrawing = true;
+  signHasContent = true;
+  var canvas = document.getElementById('signCanvas');
+  var rect = canvas.getBoundingClientRect();
+  signCtx.beginPath();
+  signCtx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+}
+
+function moveSign(e){
+  if(!signDrawing) return;
+  var canvas = document.getElementById('signCanvas');
+  var rect = canvas.getBoundingClientRect();
+  signCtx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+  signCtx.stroke();
+}
+
+function endSign(){
+  if(!signDrawing) return;
+  signDrawing = false;
+  // 保存签字数据
+  var canvas = document.getElementById('signCanvas');
+  if(signHasContent){
+    data.signatures.surveyor = canvas.toDataURL('image/png');
+    autoSave();
+  }
+}
+
+function clearSignature(){
+  var canvas = document.getElementById('signCanvas');
+  if(!signCtx || !canvas) return;
+  signCtx.clearRect(0, 0, canvas.width, canvas.height);
+  signHasContent = false;
+  if(data && data.signatures){
+    data.signatures.surveyor = '';
+  }
+  autoSave();
+}
+
+// ============ 菜单 ============
+function toggleMenu(e){
+  e.stopPropagation();
+  var m = document.getElementById('menuDropdown');
+  m.classList.toggle('show');
+}
+
+document.addEventListener('click', function(){
+  var m = document.getElementById('menuDropdown');
+  if(m) m.classList.remove('show');
+});
+
+// ============ 打印 ============
+function printSurvey(){
+  saveDataSilent();
+  
+  // 构建打印HTML
+  var html = buildPrintHTML();
+  var printWin = window.open('', '_blank');
+  printWin.document.write(html);
+  printWin.document.close();
+  
+  setTimeout(function(){
+    printWin.print();
+  }, 500);
+}
+
+function buildPrintHTML(){
+  var d = data;
+  var loc = d.location || {};
+  var locStr = [loc.province, loc.city, loc.district, loc.detail].filter(Boolean).join(' ');
+  
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>土建勘测报告</title>';
+  html += '<style>';
+  html += 'body{font-family:"Microsoft YaHei",sans-serif;padding:20px;font-size:12px;color:#333;}';
+  html += 'h1{text-align:center;font-size:18px;margin-bottom:5px;}';
+  html += '.subtitle{text-align:center;color:#666;margin-bottom:20px;font-size:11px;letter-spacing:3px;}';
+  html += '.section{margin-bottom:16px;}';
+  html += '.sec-title{font-size:14px;font-weight:bold;border-left:4px solid #667eea;padding-left:8px;margin-bottom:8px;color:#1a3a6b;}';
+  html += '.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 16px;}';
+  html += '.info-item{display:flex;}';
+  html += '.info-label{color:#666;flex-shrink:0;}';
+  html += '.info-value{flex:1;border-bottom:1px dotted #ccc;padding-left:4px;}';
+  html += 'table{width:100%;border-collapse:collapse;margin-top:8px;}';
+  html += 'th,td{border:1px solid #ccc;padding:6px 8px;text-align:center;font-size:11px;}';
+  html += 'th{background:#f0f4ff;color:#1a3a6b;}';
+  html += '.sig-area{margin-top:30px;display:grid;grid-template-columns:1fr 1fr;gap:20px;}';
+  html += '.sig-box{border:1px solid #ccc;height:100px;position:relative;}';
+  html += '.sig-box img{max-height:100%;max-width:100%;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);}';
+  html += '.sig-label{text-align:center;margin-top:4px;color:#666;font-size:11px;}';
+  html += '.img-area{margin-top:10px;text-align:center;}';
+  html += '.img-area img{max-width:100%;max-height:300px;border:1px solid #eee;}';
+  html += '@media print{body{padding:10px;}}';
+  html += '</style></head><body>';
+  
+  html += '<h1>威特电梯土建勘测报告</h1>';
+  html += '<div class="subtitle">WEITE ELEVATOR CIVIL SURVEY REPORT</div>';
+  
+  // 基本参数
+  html += '<div class="section"><div class="sec-title">一、基本参数</div>';
+  html += '<div class="info-grid">';
+  html += '<div class="info-item"><span class="info-label">项目名称：</span><span class="info-value">' + escapeHtml(d.projectName || '-') + '</span></div>';
+  html += '<div class="info-item"><span class="info-label">项目地点：</span><span class="info-value">' + escapeHtml(locStr || '-') + '</span></div>';
+  html += '<div class="info-item"><span class="info-label">销售：</span><span class="info-value">' + escapeHtml(d.sales || '-') + '</span></div>';
+  html += '<div class="info-item"><span class="info-label">联系电话：</span><span class="info-value">' + escapeHtml(d.phone || '-') + '</span></div>';
+  html += '<div class="info-item"><span class="info-label">电梯型号：</span><span class="info-value">' + escapeHtml(d.elevatorModel || '-') + '</span></div>';
+  html += '<div class="info-item"><span class="info-label">载重/速度：</span><span class="info-value">' + escapeHtml(d.load || '-') + 'kg / ' + escapeHtml(d.speed || '-') + 'm/s</span></div>';
+  html += '<div class="info-item"><span class="info-label">层站：</span><span class="info-value">' + escapeHtml(d.floors || '-') + '层' + escapeHtml(d.stops || '-') + '站</span></div>';
+  html += '<div class="info-item"><span class="info-label">开门方式：</span><span class="info-value">' + escapeHtml(d.doorType || '-') + ' / ' + escapeHtml(d.doorPosition || '-') + '</span></div>';
+  html += '</div></div>';
+  
+  // 井道结构
+  if(d.shaft && d.shaft.walls){
+    html += '<div class="section"><div class="sec-title">二、井道结构</div>';
+    var walls = d.shaft.walls;
+    html += '<table><tr><th>墙面</th><th>结构类型</th><th>厚度(mm)</th><th>外墙</th><th>圈梁间距(mm)</th><th>支架间距(mm)</th></tr>';
+    var wallNames = { back: '后墙', left: '左墙', right: '右墙', front: '前墙' };
+    for(var w in wallNames){
+      var wd = walls[w] || {};
+      html += '<tr><td>' + wallNames[w] + '</td><td>' + escapeHtml(wd.type || '-') + '</td><td>' + escapeHtml(wd.thick || '-') + '</td><td>' + escapeHtml(wd.outer || '-') + '</td><td>' + escapeHtml(wd.ringBeam || '-') + '</td><td>' + escapeHtml(wd.bracket || '-') + '</td></tr>';
+    }
+    html += '</table>';
+    
+    if(d.shaft.pier){
+      var p = d.shaft.pier;
+      html += '<div style="margin-top:10px;"><strong>门过梁与门垛：</strong>';
+      html += '过梁：' + escapeHtml(d.shaft.headerBeam || '-') + '，';
+      html += '结构：' + escapeHtml(p.structure || '-') + '，';
+      html += '状态：' + escapeHtml(p.status || '-') + '，';
+      html += '门垛：' + escapeHtml(p.hasPier || '-') + '，';
+      html += '左垛：' + escapeHtml(p.leftWidth || '-') + 'mm，';
+      html += '右垛：' + escapeHtml(p.rightWidth || '-') + 'mm';
+      html += '</div>';
+    }
+    html += '</div>';
+  }
+  
+  // 顶层底坑
+  if(d.topPit){
+    html += '<div class="section"><div class="sec-title">三、顶层与底坑</div>';
+    var tp = d.topPit;
+    html += '<div class="info-grid">';
+    html += '<div class="info-item"><span class="info-label">观光梯：</span><span class="info-value">' + escapeHtml(tp.isSightseeing || '否') + '</span></div>';
+    html += '<div class="info-item"><span class="info-label">观光类型：</span><span class="info-value">' + escapeHtml(tp.sightseeingType || '-') + '</span></div>';
+    html += '<div class="info-item"><span class="info-label">底坑实测深：</span><span class="info-value">' + escapeHtml(tp.pitMeasuredDepth || '-') + 'mm</span></div>';
+    html += '<div class="info-item"><span class="info-label">底坑装修高：</span><span class="info-value">' + escapeHtml(tp.pitFinishHeight || '-') + 'mm</span></div>';
+    html += '<div class="info-item"><span class="info-label">底坑深度：</span><span class="info-value"><strong>' + escapeHtml(tp.pitDepth || '-') + 'mm</strong></span></div>';
+    html += '<div class="info-item"><span class="info-label">顶层实测高：</span><span class="info-value">' + escapeHtml(tp.topMeasuredHeight || '-') + 'mm</span></div>';
+    html += '<div class="info-item"><span class="info-label">顶层装修高：</span><span class="info-value">' + escapeHtml(tp.topFinishHeight || '-') + 'mm</span></div>';
+    html += '<div class="info-item"><span class="info-label">顶层高度：</span><span class="info-value"><strong>' + escapeHtml(tp.topHeight || '-') + 'mm</strong></span></div>';
+    html += '</div></div>';
+  }
+  
+  // 楼层测量
+  if(d.floorData && d.floorData.length){
+    html += '<div class="section"><div class="sec-title">四、楼层测量</div>';
+    html += '<table><tr><th>楼层</th><th>层高(mm)</th><th>前门宽(mm)</th><th>后门宽(mm)</th><th>井道宽(mm)</th><th>井道深(mm)</th></tr>';
+    var sorted = d.floorData.slice().sort(function(a,b){ return toNum(b.floorNo) - toNum(a.floorNo); });
+    for(var i = 0; i < sorted.length; i++){
+      var f = sorted[i];
+      html += '<tr><td>' + escapeHtml(f.floorNo || '') + '</td><td>' + escapeHtml(f.floorHeight || '') + '</td><td>' + escapeHtml(f.frontDoorWidth || '') + '</td><td>' + escapeHtml(f.backDoorWidth || '') + '</td><td>' + escapeHtml(f.shaftWidth || '') + '</td><td>' + escapeHtml(f.shaftDepth || '') + '</td></tr>';
+    }
+    html += '</table>';
+    html += '<div style="margin-top:8px;text-align:right;"><strong>提升高度：' + (d.liftHeight || '-') + 'mm &nbsp;&nbsp; 井道总高：' + (d.wellTotalHeight || '-') + 'mm</strong></div>';
+    html += '</div>';
+  }
+  
+  // 示意图
+  if(d.sketches && (d.sketches.shaftDiagram || d.sketches.machineRoomDiagram)){
+    html += '<div class="section"><div class="sec-title">五、示意图</div>';
+    if(d.sketches.shaftDiagram){
+      html += '<div class="img-area"><strong>井道示意图</strong><br><img src="' + d.sketches.shaftDiagram + '"></div>';
+    }
+    if(d.sketches.machineRoomDiagram){
+      html += '<div class="img-area"><strong>机房示意图</strong><br><img src="' + d.sketches.machineRoomDiagram + '"></div>';
+    }
+    html += '</div>';
+  }
+  
+  // 签字
+  html += '<div class="section"><div class="sec-title">六、签字</div>';
+  html += '<div class="sig-area">';
+  html += '<div><div class="sig-box">';
+  if(d.signatures && d.signatures.surveyor){
+    html += '<img src="' + d.signatures.surveyor + '">';
+  }
+  html += '</div><div class="sig-label">测量人签字：</div></div>';
+  html += '<div><div class="sig-box"></div><div class="sig-label">日期：________年____月____日</div></div>';
+  html += '</div></div>';
+  
+  html += '</body></html>';
+  return html;
+}
+
+// ============ 返回 & 保存返回 ============
+function goBack(){
+  saveDataSilent();
+  window.location.href = 'civil-survey-list.html';
+}
+
+function saveAndReturn(){
+  if(!data.projectName){
+    showToast('请先填写项目名称');
+    switchTab(0);
+    return;
+  }
+  saveData();
+  setTimeout(function(){
+    window.location.href = 'civil-survey-list.html';
+  }, 500);
+}
+
+// ============ 填充表单数据 ============
+function fillFormData(){
+  if(!data) return;
+  
+  // 基本参数
+  document.getElementById('f_projectName').value = data.projectName || '';
+  document.getElementById('f_sales').value = data.sales || '';
+  document.getElementById('f_phone').value = data.phone || '';
+  document.getElementById('f_elevatorModel').value = data.elevatorModel || '客梯';
+  document.getElementById('f_load').value = data.load || '';
+  document.getElementById('f_speed').value = data.speed || '';
+  document.getElementById('f_floors').value = data.floors || '';
+  document.getElementById('f_stops').value = data.stops || '';
+  document.getElementById('f_doorType').value = data.doorType || '中分';
+  document.getElementById('f_doorPosition').value = data.doorPosition || '前门';
+  
+  // 井道 - 四面墙
+  var walls = data.shaft && data.shaft.walls ? data.shaft.walls : {};
+  var sides = ['back','left','right','front'];
+  var fields = ['type','thick','outer','ringBeam','bracket'];
+  for(var s = 0; s < sides.length; s++){
+    var wd = walls[sides[s]] || {};
+    for(var f = 0; f < fields.length; f++){
+      var el = document.getElementById('wall_' + sides[s] + '_' + fields[f]);
+      if(el){
+        // type 和 outer 是 select，其他是 input
+        var val = wd[fields[f]] || (fields[f] === 'type' ? '砖混墙' : (fields[f] === 'outer' ? '否' : ''));
+        // 找到对应的select
+        var selects = document.querySelectorAll('#panel1 select');
+        // 简化：type和outer通过 select 元素的 onchange 上下文来识别，这里跳过
+        // 实际上我们用 input 的 id 获取
+        if(el.tagName === 'SELECT'){
+          el.value = val;
+        }
+      }
+    }
+  }
+  
+  // 门垛
+  if(data.shaft && data.shaft.pier){
+    var p = data.shaft.pier;
+    document.getElementById('pier_headerBeam').value = data.shaft.headerBeam || '有';
+    document.getElementById('pier_structure').value = p.structure || '混凝土';
+    document.getElementById('pier_status').value = p.status || '未建';
+    document.getElementById('pier_hasPier').value = p.hasPier || '有';
+    document.getElementById('pier_leftWidth').value = p.leftWidth || '';
+    document.getElementById('pier_rightWidth').value = p.rightWidth || '';
+  }
+  
+  // 其他井道
+  if(data.shaft){
+    document.getElementById('shaft_callBoxType').value = data.shaft.callBoxType || '有底盒';
+    document.getElementById('shaft_hasCorbel').value = data.shaft.hasCorbel || '无';
+    document.getElementById('shaft_isThrough').value = data.shaft.isThrough || '否';
+    document.getElementById('shaft_powerSupply').value = data.shaft.powerSupply || '三相380V';
+  }
+  
+  // 顶层底坑
+  if(data.topPit){
+    var tp = data.topPit;
+    document.getElementById('tp_pitMeasuredDepth').value = tp.pitMeasuredDepth || '';
+    document.getElementById('tp_pitFinishHeight').value = tp.pitFinishHeight || '';
+    document.getElementById('tp_pitDepth').value = tp.pitDepth || '';
+    document.getElementById('tp_topMeasuredHeight').value = tp.topMeasuredHeight || '';
+    document.getElementById('tp_topFinishHeight').value = tp.topFinishHeight || '';
+    document.getElementById('tp_topHeight').value = tp.topHeight || '';
+    document.getElementById('tp_sightseeingType').value = tp.sightseeingType || '方形';
+    
+    if(tp.isSightseeing === '是'){
+      document.getElementById('swSightseeing').classList.add('on');
+      document.getElementById('sightseeingOptions').style.display = 'block';
+    }
+  }
+  
+  // 示意图
+  if(data.sketches){
+    if(data.sketches.shaftDiagram){
+      document.getElementById('shaftPreviewImg').src = data.sketches.shaftDiagram;
+      document.getElementById('shaftPreview').style.display = 'block';
+      document.getElementById('shaftUploadArea').style.display = 'none';
+    }
+    if(data.sketches.machineRoomDiagram){
+      document.getElementById('roomPreviewImg').src = data.sketches.machineRoomDiagram;
+      document.getElementById('roomPreview').style.display = 'block';
+      document.getElementById('roomUploadArea').style.display = 'none';
+    }
+  }
+}
+
+// 补充：四面墙 select 元素的回填
+function fillWallSelects(){
+  if(!data || !data.shaft || !data.shaft.walls) return;
+  var walls = data.shaft.walls;
+  
+  // 找到 panel1 中所有手风琴里的 select
+  var accIds = ['accWall1', 'accWall2', 'accWall3', 'accWall4'];
+  var sideMap = { 'accWall1': 'back', 'accWall2': 'left', 'accWall3': 'right', 'accWall4': 'front' };
+  
+  for(var i = 0; i < accIds.length; i++){
+    var acc = document.getElementById(accIds[i]);
+    if(!acc) continue;
+    var side = sideMap[accIds[i]];
+    var wd = walls[side] || {};
+    var selects = acc.querySelectorAll('select');
+    
+    // 第一个select: 结构类型
+    if(selects[0]) selects[0].value = wd.type || '砖混墙';
+    // 第二个select: 外墙
+    if(selects[1]) selects[1].value = wd.outer || '否';
+  }
+}
+
+// ============ 左右滑动手势 ============
+var _touchStartX = 0;
+var _touchStartY = 0;
+var _touchMoved = false;
+
+function initTouchSwipe(){
+  var slider = document.querySelector('.zone-slider');
+  if(!slider) return;
+  
+  slider.addEventListener('touchstart', function(e){
+    _touchStartX = e.touches[0].clientX;
+    _touchStartY = e.touches[0].clientY;
+    _touchMoved = false;
+  }, { passive: true });
+  
+  slider.addEventListener('touchend', function(e){
+    if(!_touchMoved) return;
+    var dx = e.changedTouches[0].clientX - _touchStartX;
+    var dy = e.changedTouches[0].clientY - _touchStartY;
+    
+    if(Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy)){
+      if(dx > 0 && currentTab > 0){
+        switchTab(currentTab - 1);
+      }else if(dx < 0 && currentTab < 5){
+        switchTab(currentTab + 1);
+      }
+    }
+  }, { passive: true });
+}
+
+// ============ 初始化 ============
+function init(){
+  loadData();
+  initRegionSelectors();
+  fillFormData();
+  fillWallSelects();
+  updateSummary();
+  initTouchSwipe();
+  
+  // 打印参数
+  var urlParams = new URLSearchParams(window.location.search);
+  if(urlParams.get('print') === '1'){
+    setTimeout(function(){ printSurvey(); }, 800);
+  }
+  
+  // 签字画布延迟初始化（确保tab5渲染后）
+  setTimeout(function(){
+    initSignCanvas();
+  }, 300);
+}
+
+// 页面加载完成后初始化
+if(document.readyState === 'loading'){
+  document.addEventListener('DOMContentLoaded', init);
+}else{
+  init();
+}
+
+// ============ 暴露全局函数 ============
+window.switchTab = switchTab;
+window.toggleAccordion = toggleAccordion;
+window.onProvinceChange = onProvinceChange;
+window.onCityChange = onCityChange;
+window.onDistrictChange = onDistrictChange;
+window.toggleSightseeing = toggleSightseeing;
+window.calcPitDepth = calcPitDepth;
+window.calcTopHeight = calcTopHeight;
+window.updateField = updateField;
+window.updateLocation = updateLocation;
+window.updateWall = updateWall;
+window.updatePier = updatePier;
+window.updateShaft = updateShaft;
+window.updateTopPit = updateTopPit;
+window.updateFloor = updateFloor;
+window.addFloor = addFloor;
+window.deleteFloor = deleteFloor;
+window.updateFloorPierVisibility = updateFloorPierVisibility;
+window.openBatchGen = openBatchGen;
+window.hideBatchGen = hideBatchGen;
+window.doBatchGen = doBatchGen;
+window.onShaftUpload = onShaftUpload;
+window.clearShaftImg = clearShaftImg;
+window.onRoomUpload = onRoomUpload;
+window.clearRoomImg = clearRoomImg;
+window.clearSignature = clearSignature;
+window.saveData = saveData;
+window.printSurvey = printSurvey;
+window.goBack = goBack;
+window.saveAndReturn = saveAndReturn;
+window.toggleMenu = toggleMenu;
+
+})();
+</script>
+</body>
+</html>
