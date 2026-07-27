@@ -2945,6 +2945,7 @@ function handleConfigUpload(input, mode) {
         '额定速度': ['额定速度', '速度', '运行速度'],
         '提升高度': ['提升高度', '行程', '提升行程'],
         '层站门': ['层/站/门', '层站门', '层数', '站数', '层站', '楼层数'],
+        '控制方式': ['控制方式', '拖动方式', '控制类型'],
         // 部件字段
         '控制柜_型号': ['控制柜'],
         '控制柜_编号': ['控制柜编号', '控制柜编号或'],
@@ -3060,7 +3061,7 @@ configPartsData = {};
       // === 2. 提取额定载重量和额定速度 ===
       // 配置单布局：第5行是表头，第7行是数据
       // 扩大搜索范围，同时搜索前10行和后10列
-      var loadCol = -1, speedCol = -1, heightCol = -1, floorsCol = -1, headerRow = -1;
+      var loadCol = -1, speedCol = -1, heightCol = -1, floorsCol = -1, controlCol = -1, headerRow = -1;
       for (var r2 = 0; r2 < 15; r2++) {
         for (var c2 = 0; c2 < 20; c2++) {
           var cv2 = val(r2, c2);
@@ -3069,9 +3070,31 @@ configPartsData = {};
           if (matchKw(cv2, kwMap['额定速度'])) { speedCol = c2; if (headerRow < 0) headerRow = r2; }
           if (matchKw(cv2, kwMap['提升高度'])) { heightCol = c2; if (headerRow < 0) headerRow = r2; }
           if (matchKw(cv2, kwMap['层站门'])) { floorsCol = c2; if (headerRow < 0) headerRow = r2; }
+          if (matchKw(cv2, kwMap['控制方式']) && controlCol < 0) { controlCol = c2; if (headerRow < 0) headerRow = r2; }
+        }
+      }
+      
+      // 两行合并表头检测："提升"+"高度" = "提升高度"（D4=提升, D5=高度）
+      // 如果没找到提升高度表头，尝试检测两行合并的情况
+      if (heightCol < 0) {
+        for (var r2b = 0; r2b < 13; r2b++) {
+          for (var c2b = 0; c2b < 20; c2b++) {
+            var vTop = val(r2b, c2b);
+            var vBottom = val(r2b + 1, c2b);
+            if (vTop && vBottom) {
+              var combined = normText(vTop + vBottom);
+              if (combined.indexOf('提升高度') >= 0 || combined.indexOf('行程') >= 0) {
+                heightCol = c2b;
+                if (headerRow < 0) headerRow = r2b;
+                break;
+              }
+            }
+          }
+          if (heightCol >= 0) break;
         }
       }
       // 如果没找到表头，尝试其他方式提取载重和速度
+      var controlMode = '';
       if (loadCol < 0) {
         for (var r3 = 0; r3 < 15; r3++) {
           for (var c3 = 0; c3 < 20; c3++) {
@@ -3116,7 +3139,14 @@ configPartsData = {};
               configPartsData['层站门'] = fv;
             }
           }
-          if (loadWeight && speed) break;
+          if (controlCol >= 0 && !controlMode) {
+            var cv = val(headerRow + dr, controlCol);
+            if (cv && !/^\s*$/.test(cv)) {
+              controlMode = cv.trim();
+              configPartsData['控制方式'] = controlMode;
+            }
+          }
+          if (loadWeight && speed && controlMode) break;
         }
       }
       
@@ -3124,24 +3154,53 @@ configPartsData = {};
       configPartsData['额定载重量'] = loadWeight;
       configPartsData['额定速度'] = speed;
       
+      // 如果控制方式还没找到，尝试从整表搜索
+      if (!controlMode) {
+        for (var rcm = 0; rcm < 15; rcm++) {
+          for (var ccm = 0; ccm < 20; ccm++) {
+            var cvCm = val(rcm, ccm);
+            if (matchKw(cvCm, kwMap['控制方式'])) {
+              // 在右边或下边找值
+              var cmVal = val(rcm, ccm + 1) || val(rcm + 1, ccm) || val(rcm, ccm + 2) || val(rcm + 2, ccm);
+              if (cmVal && !/[\u4e00-\u9fa5]控制/.test(cmVal)) {
+                controlMode = cmVal.trim();
+                configPartsData['控制方式'] = controlMode;
+                break;
+              }
+            }
+          }
+          if (controlMode) break;
+        }
+      }
+      
       // === 3. 拼接产品型号 ===
+      // 格式：型号前缀-载重/速度-控制方式，例如 TKJW-800/1.0-集选
       var model = '';
       if (modelPrefix) {
         model = modelPrefix;
       }
-      if (loadWeight) {
-        model += loadWeight;
+      if (loadWeight && model) {
+        model += '-' + loadWeight;
+      } else if (loadWeight) {
+        model = loadWeight;
       }
       if (speed) {
         model += '/' + speed;
       }
-      if (model.indexOf('JXW') < 0 && model.indexOf('VVVF') < 0) {
+      // 添加控制方式后缀（优先用配置表中的控制方式，没有则用默认的JXW-VVVF）
+      if (controlMode) {
+        model += '-' + controlMode;
+      } else if (model.indexOf('JXW') < 0 && model.indexOf('VVVF') < 0) {
         model += '-JXW-VVVF';
       } else if (model && !model.endsWith('-JXW-VVVF') && !model.endsWith('VVVF')) {
-        // 如果型号中已有内容但没有后缀，添加后缀
         if (!/-JXW|-VVVF/.test(model)) {
           model += '-JXW-VVVF';
         }
+      }
+      
+      // 保存完整产品型号到configPartsData
+      if (model) {
+        configPartsData['产品型号'] = model;
       }
       
       // === 4. 解析主要部件表格 ===
@@ -3163,42 +3222,72 @@ configPartsData = {};
         if (headerRow2 >= 0 && json[headerRow2]) {
           modelCol = -1;
           codeCol = -1;
+          var fuzzyCodeCol = -1; // 模糊匹配的编号列（产品编号、出厂编号等）
           for (var hc = 0; hc < json[headerRow2].length; hc++) {
             var hcell = String(json[headerRow2][hc] || '').replace(/\s/g, '').replace(/\n/g, '');
             // 型号列检测
             if ((hcell.indexOf('型号') >= 0 || hcell.indexOf('规格') >= 0) && hcell.indexOf('型式试验') < 0 && hcell.indexOf('证书') < 0) {
               if (modelCol < 0) modelCol = hc;
             }
-            // 编号列检测：识别"编号或制造批次号"及其带括号的变体，排除型式试验证书编号等
-            // 兼容写法：编号或制造批次号、编号（或制造批次号）、编号(或制造批次号)
-            // 精确匹配优先级：编号或制造批次号 > 出厂编号 > 产品编号 > 设备编号
-            // 排除包含"型式试验"、"证书编号"、"TSX"的列
+            // 编号列检测：精确匹配"编号或制造批次号"及其变体
             var isCodeCol = false;
             var codeHeaderPattern = /编号[（(]?或制造批次号[）)]?/;
             if (codeHeaderPattern.test(hcell)) {
               isCodeCol = true;
             }
-            // 其他含编号的列必须排除型式试验/证书相关
+            // 模糊匹配：出厂编号、产品编号、设备编号等（仅作为精确匹配失败后的备选）
+            // 排除包含"型式试验"、"证书编号"、"TSX"的列
             if (!isCodeCol && hcell.indexOf('编号') >= 0) {
               if (hcell.indexOf('型式试验') < 0 && hcell.indexOf('证书') < 0 && hcell.indexOf('TSX') < 0 && hcell.indexOf('tsx') < 0) {
-                // 只在没有找到精确匹配的情况下才考虑模糊匹配
-                // 但这里我们严格只认"编号或制造批次号"，所以不启用模糊匹配
+                // 产品编号列通常不是部件编号列（容易混淆），优先级最低
+                if (hcell.indexOf('出厂') >= 0 || hcell.indexOf('设备') >= 0) {
+                  if (fuzzyCodeCol < 0) fuzzyCodeCol = hc;
+                } else if (hcell.indexOf('产品') < 0) {
+                  // 其他不含"产品"的编号列也作为备选
+                  if (fuzzyCodeCol < 0) fuzzyCodeCol = hc;
+                }
               }
             }
             if (isCodeCol) {
               codeCol = hc;
             }
           }
-          // 如果没找到精确匹配的编号列，用默认值（D列，索引3）
-          if (codeCol < 0) codeCol = 3;
+          // 如果没找到精确匹配的编号列，用模糊匹配结果，再不行用默认值（D列，索引3，兼容旧模板格式）
+          if (codeCol < 0) codeCol = (fuzzyCodeCol >= 0) ? fuzzyCodeCol : 3;
           if (modelCol < 0) modelCol = 2;
         }
         
+        // 辅助函数：获取行中某列的值，若为空则尝试左右相邻列（处理合并单元格偏移）
+        function getColVal(row, col, maxOffset) {
+          if (!row || col < 0) return '';
+          var v = String(row[col] || '').trim();
+          if (v) return v;
+          // 向左右各找maxOffset列
+          for (var off = 1; off <= maxOffset; off++) {
+            if (col + off < row.length) {
+              v = String(row[col + off] || '').trim();
+              if (v) return v;
+            }
+            if (col - off >= 0) {
+              v = String(row[col - off] || '').trim();
+              if (v) return v;
+            }
+          }
+          return '';
+        }
+        
         for (var r4 = partStartRow; r4 < Math.min(partStartRow + 25, json.length); r4++) {
-          var partName = String(json[r4] ? (json[r4][0] || '') : '').trim();
-          var partModel = String(json[r4] ? (json[r4][modelCol] || '') : '').trim();
-          var partCode = String(json[r4] ? (json[r4][codeCol] || '') : '').trim();
+          var rowData = json[r4] || [];
+          var partName = String(rowData[0] || '').trim();
+          // 如果A列为空，尝试B列（有些模板名称在B列）
+          if (!partName && rowData[1]) {
+            partName = String(rowData[1] || '').trim();
+          }
           if (!partName || partName.indexOf('二、') >= 0 || partName.indexOf('三、') >= 0) break;
+          
+          // 用辅助函数取值，允许1列的偏移容错（处理合并单元格）
+          var partModel = getColVal(rowData, modelCol, 1);
+          var partCode = getColVal(rowData, codeCol, 2);
           
           // 关键词模糊匹配部件类型
           var partKey = null;
@@ -3236,6 +3325,15 @@ configPartsData = {};
             configPartsData[partKey + '_编号'] = partCode;
           }
         }
+        
+        // 如果整梯型号只有前缀（如TKJW），用完整型号更新
+        if (configPartsData['整梯_型号'] && model && configPartsData['整梯_型号'].length < model.length) {
+          configPartsData['整梯_型号'] = model;
+        }
+        // 如果整梯编号为空，用产品编号填充
+        if (!configPartsData['整梯_编号'] && prodNo) {
+          configPartsData['整梯_编号'] = prodNo;
+        }
       }
       
       // === 5. 产品编号唯一性检查（仅新建模式）===
@@ -3252,8 +3350,9 @@ configPartsData = {};
         }
       }
       
-      // 保存文件名到configPartsData
+      // 保存文件名和产品编号到configPartsData
       configPartsData['_fileName'] = file.name;
+      if (prodNo) configPartsData['产品编号'] = prodNo;
       
       // === 6. 自动填充表单（仅新建模式）===
       if (!isReupload) {
@@ -3266,11 +3365,13 @@ configPartsData = {};
       
       // 调试：显示解析到的部件名
       var debugParts = [];
-      for (var r4 = partStartRow; r4 < Math.min(partStartRow + 20, json.length); r4++) {
-        var pn = String(json[r4] ? (json[r4][0] || '') : '').trim();
-        if (!pn || pn.indexOf('二、') >= 0 || pn.indexOf('三、') >= 0) break;
-        var pm = String(json[r4] ? (json[r4][2] || '') : '').trim();
-        debugParts.push(pn + (pm ? '(' + pm + ')' : ''));
+      if (partStartRow > 0) {
+        for (var r4 = partStartRow; r4 < Math.min(partStartRow + 20, json.length); r4++) {
+          var pn = String(json[r4] ? (json[r4][0] || '') : '').trim();
+          if (!pn || pn.indexOf('二、') >= 0 || pn.indexOf('三、') >= 0) break;
+          var pm = String(json[r4] ? (json[r4][modelCol] || '') : '').trim();
+          debugParts.push(pn + (pm ? '(' + pm + ')' : ''));
+        }
       }
       console.log('[配置单] 解析到的部件:', debugParts.join(', '));
       
