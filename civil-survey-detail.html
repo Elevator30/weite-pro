@@ -11,6 +11,7 @@
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%231a3a6b'/%3E%3Ctext x='50' y='42' font-family='Arial' font-size='28' font-weight='900' text-anchor='middle' fill='white'%3EVEITE%3C/text%3E%3Ctext x='50' y='72' font-family='serif' font-size='16' font-weight='800' text-anchor='middle' fill='%23e63946'%3E电梯%3C/text%3E%3C/svg%3E">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
 <style>
 /* ===== 基础重置 ===== */
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -182,6 +183,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
         <div class="menu-dropdown" id="menuDropdown">
           <div class="menu-dropdown-item" onclick="saveData()">💾 保存</div>
           <div class="menu-dropdown-item" onclick="printSurvey()">🖨️ 打印</div>
+          <div class="menu-dropdown-item" onclick="exportExcel()">📊 导出Excel</div>
           <div class="menu-dropdown-divider"></div>
           <div class="menu-dropdown-item" onclick="goBack()">📋 返回列表</div>
         </div>
@@ -282,7 +284,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
               <select id="f_doorType" onchange="updateField('doorType', this.value)">
                 <option value="中分">中分</option>
                 <option value="旁开">旁开</option>
-                <option value="双折">双折</option>
+                <option value="中分双折">中分双折</option>
+                <option value="旁开双折">旁开双折</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label>动力电源</label>
+              <select id="f_powerSupply" onchange="updateShaft('powerSupply', this.value)">
+                <option value="380V">380V</option>
+                <option value="220V">220V</option>
               </select>
             </div>
             <div class="form-row">
@@ -295,11 +305,43 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
             </div>
           </div>
         </div>
+
+        <div class="zone-section-title">📐 轿厢净尺寸</div>
+        <div class="card">
+          <div class="form-grid">
+            <div class="form-row">
+              <label>净宽(mm)</label>
+              <input type="number" id="f_carWidth" placeholder="轿厢净宽" onblur="updateCarSize('width', this.value)">
+            </div>
+            <div class="form-row">
+              <label>净深(mm)</label>
+              <input type="number" id="f_carDepth" placeholder="轿厢净深" onblur="updateCarSize('depth', this.value)">
+            </div>
+            <div class="form-row">
+              <label>净高(mm)</label>
+              <input type="number" id="f_carHeight" placeholder="轿厢净高" onblur="updateCarSize('height', this.value)">
+            </div>
+          </div>
+        </div>
+
+        <div class="zone-section-title">🚪 开门净尺寸</div>
+        <div class="card">
+          <div class="form-grid">
+            <div class="form-row">
+              <label>净宽(mm)</label>
+              <input type="number" id="f_doorClearWidth" placeholder="开门净宽" onblur="updateDoorClear('width', this.value)">
+            </div>
+            <div class="form-row">
+              <label>净高(mm)</label>
+              <input type="number" id="f_doorClearHeight" placeholder="开门净高" onblur="updateDoorClear('height', this.value)">
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Tab2: 井道结构 -->
       <div class="zone-panel" id="panel1">
-        <div class="zone-section-title">🧱 四面墙结构</div>
+        <div class="zone-section-title">🧱 三面墙结构</div>
         
         <div class="accordion active" id="accWall1">
           <div class="accordion-header" onclick="toggleAccordion('accWall1')">
@@ -310,11 +352,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
             <div class="form-grid">
               <div class="form-row">
                 <label>结构类型</label>
-                <select onchange="updateWall('back','type',this.value)">
+                <select onchange="updateWall('back','type',this.value); updateWallRingBeamVisibility('back')">
                   <option value="砖混墙">砖混墙</option>
                   <option value="混凝土墙">混凝土墙</option>
                   <option value="钢架">钢架</option>
-                  <option value="剪力墙">剪力墙</option>
                 </select>
               </div>
               <div class="form-row">
@@ -328,7 +369,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
                   <option value="是">是</option>
                 </select>
               </div>
-              <div class="form-row">
+              <div class="form-row" id="wall_back_ringBeamSwitch_row">
+                <label>是否有圈梁</label>
+                <div class="switch" id="sw_back_ringBeam" onclick="toggleWallRingBeam('back')">
+                  <div class="switch-dot"></div>
+                </div>
+              </div>
+              <div class="form-row" id="wall_back_ringBeam_row" style="display:none;">
                 <label>圈梁间距(mm)</label>
                 <input type="number" id="wall_back_ringBeam" onblur="updateWall('back','ringBeam',this.value)">
               </div>
@@ -349,11 +396,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
             <div class="form-grid">
               <div class="form-row">
                 <label>结构类型</label>
-                <select onchange="updateWall('left','type',this.value)">
+                <select onchange="updateWall('left','type',this.value); updateWallRingBeamVisibility('left')">
                   <option value="砖混墙">砖混墙</option>
                   <option value="混凝土墙">混凝土墙</option>
                   <option value="钢架">钢架</option>
-                  <option value="剪力墙">剪力墙</option>
                 </select>
               </div>
               <div class="form-row">
@@ -367,7 +413,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
                   <option value="是">是</option>
                 </select>
               </div>
-              <div class="form-row">
+              <div class="form-row" id="wall_left_ringBeamSwitch_row">
+                <label>是否有圈梁</label>
+                <div class="switch" id="sw_left_ringBeam" onclick="toggleWallRingBeam('left')">
+                  <div class="switch-dot"></div>
+                </div>
+              </div>
+              <div class="form-row" id="wall_left_ringBeam_row" style="display:none;">
                 <label>圈梁间距(mm)</label>
                 <input type="number" id="wall_left_ringBeam" onblur="updateWall('left','ringBeam',this.value)">
               </div>
@@ -388,11 +440,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
             <div class="form-grid">
               <div class="form-row">
                 <label>结构类型</label>
-                <select onchange="updateWall('right','type',this.value)">
+                <select onchange="updateWall('right','type',this.value); updateWallRingBeamVisibility('right')">
                   <option value="砖混墙">砖混墙</option>
                   <option value="混凝土墙">混凝土墙</option>
                   <option value="钢架">钢架</option>
-                  <option value="剪力墙">剪力墙</option>
                 </select>
               </div>
               <div class="form-row">
@@ -406,52 +457,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
                   <option value="是">是</option>
                 </select>
               </div>
-              <div class="form-row">
+              <div class="form-row" id="wall_right_ringBeamSwitch_row">
+                <label>是否有圈梁</label>
+                <div class="switch" id="sw_right_ringBeam" onclick="toggleWallRingBeam('right')">
+                  <div class="switch-dot"></div>
+                </div>
+              </div>
+              <div class="form-row" id="wall_right_ringBeam_row" style="display:none;">
                 <label>圈梁间距(mm)</label>
                 <input type="number" id="wall_right_ringBeam" onblur="updateWall('right','ringBeam',this.value)">
               </div>
               <div class="form-row full">
                 <label>支架间距(mm)</label>
                 <input type="number" id="wall_right_bracket" onblur="updateWall('right','bracket',this.value)">
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="accordion" id="accWall4">
-          <div class="accordion-header" onclick="toggleAccordion('accWall4')">
-            <div class="acc-left"><span class="acc-icon">◼</span><span class="acc-title">前墙</span></div>
-            <span class="acc-arrow">▼</span>
-          </div>
-          <div class="accordion-body">
-            <div class="form-grid">
-              <div class="form-row">
-                <label>结构类型</label>
-                <select onchange="updateWall('front','type',this.value)">
-                  <option value="砖混墙">砖混墙</option>
-                  <option value="混凝土墙">混凝土墙</option>
-                  <option value="钢架">钢架</option>
-                  <option value="剪力墙">剪力墙</option>
-                </select>
-              </div>
-              <div class="form-row">
-                <label>厚度(mm)</label>
-                <input type="number" id="wall_front_thick" onblur="updateWall('front','thick',this.value)">
-              </div>
-              <div class="form-row">
-                <label>外墙</label>
-                <select onchange="updateWall('front','outer',this.value)">
-                  <option value="否">否</option>
-                  <option value="是">是</option>
-                </select>
-              </div>
-              <div class="form-row">
-                <label>圈梁间距(mm)</label>
-                <input type="number" id="wall_front_ringBeam" onblur="updateWall('front','ringBeam',this.value)">
-              </div>
-              <div class="form-row full">
-                <label>支架间距(mm)</label>
-                <input type="number" id="wall_front_bracket" onblur="updateWall('front','bracket',this.value)">
               </div>
             </div>
           </div>
@@ -473,6 +491,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
                 </select>
               </div>
               <div class="form-row">
+                <label>门过梁长度(mm)</label>
+                <input type="number" id="pier_headerBeamLen" onblur="updatePier('headerBeamLen', this.value)">
+              </div>
+              <div class="form-row">
+                <label>门垛状态</label>
+                <select id="pier_status" onchange="updatePier('status', this.value); updatePierVisibility(); updateFloorPierVisibility()">
+                  <option value="未建">未建</option>
+                  <option value="在建">在建</option>
+                  <option value="已建">已建</option>
+                </select>
+              </div>
+              <div class="form-row pier-detail">
                 <label>门垛结构</label>
                 <select id="pier_structure" onchange="updatePier('structure', this.value)">
                   <option value="混凝土">混凝土</option>
@@ -480,26 +510,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
                   <option value="钢架">钢架</option>
                 </select>
               </div>
-              <div class="form-row">
-                <label>门垛状态</label>
-                <select id="pier_status" onchange="updatePier('status', this.value)">
-                  <option value="未建">未建</option>
-                  <option value="在建">在建</option>
-                  <option value="已建">已建</option>
-                </select>
-              </div>
-              <div class="form-row">
-                <label>是否有门垛</label>
-                <select id="pier_hasPier" onchange="updatePier('hasPier', this.value); updateFloorPierVisibility()">
-                  <option value="有">有</option>
-                  <option value="无">无</option>
-                </select>
-              </div>
-              <div class="form-row">
+              <div class="form-row pier-detail">
                 <label>左门垛宽(mm)</label>
                 <input type="number" id="pier_leftWidth" onblur="updatePier('leftWidth', this.value)">
               </div>
-              <div class="form-row">
+              <div class="form-row pier-detail">
                 <label>右门垛宽(mm)</label>
                 <input type="number" id="pier_rightWidth" onblur="updatePier('rightWidth', this.value)">
               </div>
@@ -508,43 +523,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
         </div>
 
         <div class="zone-section-title">🔧 其他井道参数</div>
-        <div class="card">
-          <div class="form-grid">
-            <div class="form-row">
-              <label>外呼盒形式</label>
-              <select id="shaft_callBoxType" onchange="updateShaft('callBoxType', this.value)">
-                <option value="有底盒">有底盒</option>
-                <option value="无底盒">无底盒</option>
-              </select>
-            </div>
-            <div class="form-row">
-              <label>井道预留牛腿</label>
-              <select id="shaft_hasCorbel" onchange="updateShaft('hasCorbel', this.value)">
-                <option value="无">无</option>
-                <option value="有">有</option>
-              </select>
-            </div>
-            <div class="form-row">
-              <label>贯通</label>
-              <select id="shaft_isThrough" onchange="updateShaft('isThrough', this.value)">
-                <option value="否">否</option>
-                <option value="是">是</option>
-              </select>
-            </div>
-            <div class="form-row">
-              <label>动力电源</label>
-              <select id="shaft_powerSupply" onchange="updateShaft('powerSupply', this.value)">
-                <option value="三相380V">三相380V</option>
-                <option value="单相220V">单相220V</option>
-              </select>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Tab3: 顶层底坑 -->
-      <div class="zone-panel" id="panel2">
-        <div class="zone-section-title">🌅 观光设置</div>
         <div class="card">
           <div class="switch-row">
             <span class="switch-label">是否观光梯</span>
@@ -556,7 +534,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
             <div class="form-grid">
               <div class="form-row">
                 <label>观光类型</label>
-                <select id="tp_sightseeingType" onchange="updateTopPit('sightseeingType', this.value)">
+                <select id="tp_sightseeingType" onchange="updateShaft('sightseeingType', this.value)">
                   <option value="方形">方形</option>
                   <option value="半圆形">半圆形</option>
                   <option value="菱形">菱形</option>
@@ -565,7 +543,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
               </div>
               <div class="form-row">
                 <label>观光面数</label>
-                <select onchange="updateTopPit('sightseeingSides', this.value)">
+                <select id="shaft_sightseeingSides" onchange="updateShaft('sightseeingSides', this.value)">
                   <option value="1面">1面</option>
                   <option value="2面">2面</option>
                   <option value="3面">3面</option>
@@ -573,8 +551,33 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
               </div>
             </div>
           </div>
+          <div class="switch-row" style="border-top:1px solid #edf2f7;">
+            <span class="switch-label">有无牛腿</span>
+            <div class="switch" id="swCorbel" onclick="toggleCorbel()">
+              <div class="switch-dot"></div>
+            </div>
+          </div>
+          <div class="form-grid" style="padding-top:10px;">
+            <div class="form-row">
+              <label>外呼盒形式</label>
+              <select id="shaft_callBoxType" onchange="updateShaft('callBoxType', this.value)">
+                <option value="有底盒">有底盒</option>
+                <option value="无底盒">无底盒</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label>贯通</label>
+              <select id="shaft_isThrough" onchange="updateShaft('isThrough', this.value)">
+                <option value="否">否</option>
+                <option value="是">是</option>
+              </select>
+            </div>
+          </div>
         </div>
+      </div>
 
+      <!-- Tab3: 顶层底坑 -->
+      <div class="zone-panel" id="panel2">
         <div class="zone-section-title">⬇️ 底坑参数</div>
         <div class="card">
           <div class="form-grid">
@@ -638,6 +641,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
         <div class="floor-toolbar">
           <button class="floor-toolbar-btn primary" onclick="addFloor()">+ 添加一层</button>
           <button class="floor-toolbar-btn secondary" onclick="openBatchGen()">批量生成</button>
+          <button class="floor-toolbar-btn secondary" id="sortDirBtn" onclick="toggleSortDir()">⬆️ 从上到下</button>
         </div>
 
         <div class="floor-stats">
@@ -749,6 +753,7 @@ var STORAGE_KEY = 'wtCivilSurveyList';
 var currentTab = 0;
 var isNew = true;
 var data = null;
+var sortDir = 'desc'; // desc=从上到下（高到低），asc=从下到上（低到高）
 
 // ============ 省市区数据（简化版） ============
 var regionData = {
@@ -849,34 +854,35 @@ function createDefaultData(){
     stops: '',
     doorType: '中分',
     doorPosition: '前门',
+    carSize: { width: '', depth: '', height: '' },
+    doorClearSize: { width: '', height: '' },
     createTime: Date.now(),
     updateTime: Date.now(),
     
     shaft: {
       walls: {
-        back: { type: '砖混墙', thick: '', outer: '否', ringBeam: '', bracket: '' },
-        left: { type: '砖混墙', thick: '', outer: '否', ringBeam: '', bracket: '' },
-        right: { type: '砖混墙', thick: '', outer: '否', ringBeam: '', bracket: '' },
-        front: { type: '砖混墙', thick: '', outer: '否', ringBeam: '', bracket: '' }
+        back: { type: '砖混墙', thick: '', outer: '否', hasRingBeam: '否', ringBeam: '', bracket: '' },
+        left: { type: '砖混墙', thick: '', outer: '否', hasRingBeam: '否', ringBeam: '', bracket: '' },
+        right: { type: '砖混墙', thick: '', outer: '否', hasRingBeam: '否', ringBeam: '', bracket: '' }
       },
       headerBeam: '有',
+      headerBeamLen: '',
       pier: {
         structure: '混凝土',
         status: '未建',
         leftWidth: '',
-        rightWidth: '',
-        hasPier: '有'
+        rightWidth: ''
       },
       callBoxType: '有底盒',
       hasCorbel: '无',
       isThrough: '否',
-      powerSupply: '三相380V'
+      powerSupply: '380V',
+      isSightseeing: '否',
+      sightseeingType: '方形',
+      sightseeingSides: '1面'
     },
     
     topPit: {
-      isSightseeing: '否',
-      sightseeingType: '方形',
-      sightseeingSides: '1面',
       pitMeasuredDepth: '',
       pitFinishHeight: '',
       pitDepth: '',
@@ -913,7 +919,7 @@ function loadData(){
       var list = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
       var found = list.find(function(x){ return x.id === id; });
       if(found){
-        data = found;
+        data = migrateData(found);
         isNew = false;
         document.getElementById('headerTitle').textContent = data.projectName || '未命名项目';
       }else{
@@ -922,12 +928,91 @@ function loadData(){
       }
     }catch(e){
       data = createDefaultData();
+      isNew = true;
     }
   }else{
     // 新建模式
     data = createDefaultData();
     isNew = true;
   }
+}
+
+// 数据迁移：兼容旧版本数据格式
+function migrateData(d){
+  if(!d) return createDefaultData();
+  
+  // 确保基本字段存在
+  if(!d.carSize) d.carSize = { width: '', depth: '', height: '' };
+  if(!d.doorClearSize) d.doorClearSize = { width: '', height: '' };
+  
+  // 开门方式：旧版"双折"→默认"中分双折"
+  if(d.doorType === '双折') d.doorType = '中分双折';
+  
+  // 确保shaft存在
+  if(!d.shaft) d.shaft = {};
+  var s = d.shaft;
+  
+  // 墙体：移除front墙，添加hasRingBeam字段
+  if(!s.walls) s.walls = {};
+  var sides = ['back', 'left', 'right'];
+  for(var i = 0; i < sides.length; i++){
+    if(!s.walls[sides[i]]){
+      s.walls[sides[i]] = { type: '砖混墙', thick: '', outer: '否', hasRingBeam: '否', ringBeam: '', bracket: '' };
+    }else{
+      if(s.walls[sides[i]].hasRingBeam === undefined){
+        // 旧数据：如果有圈梁间距值，设为有圈梁
+        s.walls[sides[i]].hasRingBeam = s.walls[sides[i]].ringBeam ? '是' : '否';
+      }
+      // 移除剪力墙类型
+      if(s.walls[sides[i]].type === '剪力墙'){
+        s.walls[sides[i]].type = '混凝土墙';
+      }
+    }
+  }
+  // 移除前墙
+  if(s.walls.front) delete s.walls.front;
+  
+  // 门过梁长度
+  if(s.headerBeamLen === undefined) s.headerBeamLen = '';
+  
+  // 门垛：移除hasPier，用status控制
+  if(!s.pier) s.pier = { structure: '混凝土', status: '未建', leftWidth: '', rightWidth: '' };
+  if(s.pier.hasPier !== undefined){
+    // 旧数据迁移：hasPier为"无"时status设为"未建"
+    if(s.pier.hasPier === '无' && !s.pier.status){
+      s.pier.status = '未建';
+    }else if(s.pier.hasPier === '有' && (!s.pier.status || s.pier.status === '未建')){
+      s.pier.status = '已建';
+    }
+    delete s.pier.hasPier;
+  }
+  if(!s.pier.status) s.pier.status = '未建';
+  
+  // 动力电源：旧值转换
+  if(s.powerSupply === '三相380V') s.powerSupply = '380V';
+  if(s.powerSupply === '单相220V') s.powerSupply = '220V';
+  if(!s.powerSupply) s.powerSupply = '380V';
+  
+  // 观光设置从topPit移到shaft
+  if(s.isSightseeing === undefined){
+    if(d.topPit && d.topPit.isSightseeing){
+      s.isSightseeing = d.topPit.isSightseeing;
+      s.sightseeingType = d.topPit.sightseeingType || '方形';
+      s.sightseeingSides = d.topPit.sightseeingSides || '1面';
+    }else{
+      s.isSightseeing = '否';
+      s.sightseeingType = '方形';
+      s.sightseeingSides = '1面';
+    }
+  }
+  
+  // 确保topPit存在且不含观光字段
+  if(!d.topPit) d.topPit = {};
+  if(d.topPit.isSightseeing !== undefined) delete d.topPit.isSightseeing;
+  if(d.topPit.sightseeingType !== undefined) delete d.topPit.sightseeingType;
+  if(d.topPit.sightseeingSides !== undefined) delete d.topPit.sightseeingSides;
+  
+  return d;
 }
 
 function saveData(){
@@ -995,6 +1080,108 @@ function updateTopPit(key, val){
   if(!data || !data.topPit) return;
   data.topPit[key] = val;
   autoSave();
+}
+
+function updateCarSize(key, val){
+  if(!data || !data.carSize) return;
+  data.carSize[key] = val;
+  autoSave();
+}
+
+function updateDoorClear(key, val){
+  if(!data || !data.doorClearSize) return;
+  data.doorClearSize[key] = val;
+  autoSave();
+}
+
+// 墙体圈梁可见性联动
+function updateWallRingBeamVisibility(side){
+  if(!data || !data.shaft || !data.shaft.walls || !data.shaft.walls[side]) return;
+  var wallType = data.shaft.walls[side].type;
+  var switchRow = document.getElementById('wall_' + side + '_ringBeamSwitch_row');
+  var beamRow = document.getElementById('wall_' + side + '_ringBeam_row');
+  var sw = document.getElementById('sw_' + side + '_ringBeam');
+  
+  if(!switchRow || !beamRow || !sw) return;
+  
+  if(wallType === '混凝土墙'){
+    // 混凝土墙：不显示圈梁相关
+    switchRow.style.display = 'none';
+    beamRow.style.display = 'none';
+    data.shaft.walls[side].hasRingBeam = '否';
+    sw.classList.remove('on');
+  }else{
+    // 其他墙体：显示是否有圈梁开关
+    switchRow.style.display = '';
+    var hasRing = data.shaft.walls[side].hasRingBeam === '是';
+    if(hasRing){
+      sw.classList.add('on');
+      beamRow.style.display = '';
+    }else{
+      sw.classList.remove('on');
+      beamRow.style.display = 'none';
+    }
+  }
+}
+
+function toggleWallRingBeam(side){
+  if(!data || !data.shaft || !data.shaft.walls || !data.shaft.walls[side]) return;
+  var sw = document.getElementById('sw_' + side + '_ringBeam');
+  var beamRow = document.getElementById('wall_' + side + '_ringBeam_row');
+  if(!sw || !beamRow) return;
+  
+  var isOn = !sw.classList.contains('on');
+  if(isOn){
+    sw.classList.add('on');
+    beamRow.style.display = '';
+    data.shaft.walls[side].hasRingBeam = '是';
+  }else{
+    sw.classList.remove('on');
+    beamRow.style.display = 'none';
+    data.shaft.walls[side].hasRingBeam = '否';
+    data.shaft.walls[side].ringBeam = '';
+  }
+  autoSave();
+}
+
+// 门垛状态联动
+function updatePierVisibility(){
+  if(!data || !data.shaft || !data.shaft.pier) return;
+  var status = data.shaft.pier.status;
+  var details = document.querySelectorAll('.pier-detail');
+  for(var i = 0; i < details.length; i++){
+    if(status === '未建'){
+      details[i].style.display = 'none';
+    }else{
+      details[i].style.display = '';
+    }
+  }
+}
+
+// 牛腿开关
+function toggleCorbel(){
+  var sw = document.getElementById('swCorbel');
+  if(!sw) return;
+  var isOn = !sw.classList.contains('on');
+  if(isOn){
+    sw.classList.add('on');
+    updateShaft('hasCorbel', '有');
+  }else{
+    sw.classList.remove('on');
+    updateShaft('hasCorbel', '无');
+  }
+}
+
+// 排序方向切换
+function toggleSortDir(){
+  sortDir = sortDir === 'desc' ? 'asc' : 'desc';
+  var btn = document.getElementById('sortDirBtn');
+  if(btn){
+    btn.textContent = sortDir === 'desc' ? '⬆️ 从上到下' : '⬇️ 从下到上';
+  }
+  if(currentTab === 3){
+    renderFloors();
+  }
 }
 
 // 自动保存（防抖）
@@ -1154,11 +1341,11 @@ function toggleSightseeing(){
   if(isOn){
     sw.classList.add('on');
     opt.style.display = 'block';
-    updateTopPit('isSightseeing', '是');
+    updateShaft('isSightseeing', '是');
   }else{
     sw.classList.remove('on');
     opt.style.display = 'none';
-    updateTopPit('isSightseeing', '否');
+    updateShaft('isSightseeing', '否');
   }
 }
 
@@ -1225,12 +1412,15 @@ function renderFloors(){
     return;
   }
   
-  // 按楼层号排序
+  // 按楼层号排序（sortDir: desc=从上到下/高到低，asc=从下到上/低到高）
   var sorted = data.floorData.slice().sort(function(a, b){
-    return toNum(b.floorNo) - toNum(a.floorNo); // 从高到低
+    var na = toNum(a.floorNo);
+    var nb = toNum(b.floorNo);
+    return sortDir === 'desc' ? (nb - na) : (na - nb);
   });
   
-  var hasPier = data.shaft && data.shaft.pier && data.shaft.pier.hasPier === '有';
+  // 门垛显示条件：已建或在建时显示
+  var showPier = data.shaft && data.shaft.pier && data.shaft.pier.status !== '未建';
   var doorPos = data.doorPosition || '前门';
   var hasBackDoor = doorPos === '后门' || doorPos === '贯通';
   
@@ -1241,29 +1431,44 @@ function renderFloors(){
     
     html += '<div class="floor-card">';
     html += '<div class="floor-card-header">';
-    html += '<div class="floor-no-badge">' + escapeHtml(floor.floorNo || '?') + '层</div>';
+    html += '<div style="display:flex;align-items:center;gap:8px;">';
+    html += '<input type="text" value="' + escapeHtml(floor.floorNo || '') + '" onblur="updateFloor(' + realIdx + ',\'floorNo\',this.value); renderFloors();" style="width:60px;text-align:center;border:1.5px solid #cbd5e0;border-radius:20px;padding:4px 8px;font-size:14px;font-weight:700;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;">';
+    html += '<span style="font-size:14px;font-weight:600;color:#2d3748;">层</span>';
+    html += '</div>';
     html += '<button class="floor-del-btn" onclick="deleteFloor(' + realIdx + ')">×</button>';
     html += '</div>';
     html += '<div class="floor-grid">';
     
+    // 1. 层高
     html += '<div class="floor-field full"><label>层高(mm)</label>';
     html += '<input type="number" value="' + (floor.floorHeight || '') + '" onblur="updateFloor(' + realIdx + ',\'floorHeight\',this.value); updateFloorStats();"></div>';
     
-    html += '<div class="floor-field"><label>前门宽(mm)</label>';
-    html += '<input type="number" value="' + (floor.frontDoorWidth || '') + '" onblur="updateFloor(' + realIdx + ',\'frontDoorWidth\',this.value)"></div>';
-    
-    if(hasBackDoor){
-      html += '<div class="floor-field"><label>后门宽(mm)</label>';
-      html += '<input type="number" value="' + (floor.backDoorWidth || '') + '" onblur="updateFloor(' + realIdx + ',\'backDoorWidth\',this.value)"></div>';
-    }
-    
+    // 2. 井道宽
     html += '<div class="floor-field"><label>井道宽(mm)</label>';
     html += '<input type="number" value="' + (floor.shaftWidth || '') + '" onblur="updateFloor(' + realIdx + ',\'shaftWidth\',this.value)"></div>';
     
+    // 3. 井道深
     html += '<div class="floor-field"><label>井道深(mm)</label>';
     html += '<input type="number" value="' + (floor.shaftDepth || '') + '" onblur="updateFloor(' + realIdx + ',\'shaftDepth\',this.value)"></div>';
     
-    if(hasPier){
+    // 4. 门洞宽（前门宽）
+    html += '<div class="floor-field"><label>门洞宽(mm)</label>';
+    html += '<input type="number" value="' + (floor.frontDoorWidth || '') + '" onblur="updateFloor(' + realIdx + ',\'frontDoorWidth\',this.value)"></div>';
+    
+    // 5. 门洞高
+    html += '<div class="floor-field"><label>门洞高(mm)</label>';
+    html += '<input type="number" value="' + (floor.doorHeight || '') + '" onblur="updateFloor(' + realIdx + ',\'doorHeight\',this.value)"></div>';
+    
+    // 贯通门时显示后门宽
+    if(hasBackDoor){
+      html += '<div class="floor-field"><label>后门宽(mm)</label>';
+      html += '<input type="number" value="' + (floor.backDoorWidth || '') + '" onblur="updateFloor(' + realIdx + ',\'backDoorWidth\',this.value)"></div>';
+      html += '<div class="floor-field"><label>后门高(mm)</label>';
+      html += '<input type="number" value="' + (floor.backDoorHeight || '') + '" onblur="updateFloor(' + realIdx + ',\'backDoorHeight\',this.value)"></div>';
+    }
+    
+    // 6-7. 左/右门垛
+    if(showPier){
       html += '<div class="floor-field"><label>左门垛(mm)</label>';
       html += '<input type="number" value="' + (floor.leftPier || '') + '" onblur="updateFloor(' + realIdx + ',\'leftPier\',this.value)"></div>';
       
@@ -1271,6 +1476,7 @@ function renderFloors(){
       html += '<input type="number" value="' + (floor.rightPier || '') + '" onblur="updateFloor(' + realIdx + ',\'rightPier\',this.value)"></div>';
     }
     
+    // 8. 备注
     html += '<div class="floor-field full"><label>备注</label>';
     html += '<input type="text" value="' + escapeHtml(floor.remark || '') + '" onblur="updateFloor(' + realIdx + ',\'remark\',this.value)" placeholder="选填"></div>';
     
@@ -1297,7 +1503,9 @@ function addFloor(){
     floorNo: String(maxNo + 1),
     floorHeight: '',
     frontDoorWidth: '',
+    doorHeight: '',
     backDoorWidth: '',
+    backDoorHeight: '',
     shaftWidth: '',
     shaftDepth: '',
     leftPier: '',
@@ -1382,7 +1590,9 @@ function doBatchGen(){
         floorNo: String(n),
         floorHeight: '',
         frontDoorWidth: '',
+        doorHeight: '',
         backDoorWidth: '',
+        backDoorHeight: '',
         shaftWidth: '',
         shaftDepth: '',
         leftPier: '',
@@ -1590,6 +1800,165 @@ function printSurvey(){
   }, 500);
 }
 
+// ============ 导出Excel ============
+function exportExcel(){
+  if(!data){ showToast('无数据'); return; }
+  if(typeof XLSX === 'undefined'){
+    showToast('Excel库加载失败，请检查网络');
+    return;
+  }
+  
+  try{
+    var d = data;
+    var loc = d.location || {};
+    var locStr = [loc.province, loc.city, loc.district, loc.detail].filter(Boolean).join(' ');
+    
+    var wb = XLSX.utils.book_new();
+    
+    // Sheet1: 基本信息
+    var basicData = [
+      ['土建勘测数据'],
+      [],
+      ['项目名称', d.projectName || ''],
+      ['项目地点', locStr],
+      ['销售', d.sales || ''],
+      ['联系电话', d.phone || ''],
+      ['电梯型号', d.elevatorModel || ''],
+      ['载重(kg)', d.load || ''],
+      ['速度(m/s)', d.speed || ''],
+      ['层站', (d.floors || '') + '层 / ' + (d.stops || '') + '站'],
+      ['开门方式', d.doorType || ''],
+      ['开门位置', d.doorPosition || ''],
+      ['动力电源', d.shaft ? (d.shaft.powerSupply || '') : ''],
+      [],
+      ['轿厢净尺寸'],
+      ['净宽(mm)', d.carSize ? d.carSize.width || '' : ''],
+      ['净深(mm)', d.carSize ? d.carSize.depth || '' : ''],
+      ['净高(mm)', d.carSize ? d.carSize.height || '' : ''],
+      [],
+      ['开门净尺寸'],
+      ['净宽(mm)', d.doorClearSize ? d.doorClearSize.width || '' : ''],
+      ['净高(mm)', d.doorClearSize ? d.doorClearSize.height || '' : ''],
+    ];
+    var ws1 = XLSX.utils.aoa_to_sheet(basicData);
+    ws1['!cols'] = [{wch:15}, {wch:30}];
+    XLSX.utils.book_append_sheet(wb, ws1, '基本信息');
+    
+    // Sheet2: 井道结构
+    var shaftData = [
+      ['井道结构'],
+      [],
+      ['墙面', '结构类型', '厚度(mm)', '外墙', '有圈梁', '圈梁间距(mm)', '支架间距(mm)'],
+    ];
+    if(d.shaft && d.shaft.walls){
+      var wallNames = { back: '后墙', left: '左墙', right: '右墙' };
+      for(var w in wallNames){
+        var wd = d.shaft.walls[w] || {};
+        shaftData.push([
+          wallNames[w],
+          wd.type || '',
+          wd.thick || '',
+          wd.outer || '',
+          wd.hasRingBeam || '',
+          wd.ringBeam || '',
+          wd.bracket || ''
+        ]);
+      }
+    }
+    shaftData.push([]);
+    shaftData.push(['门过梁与门垛']);
+    if(d.shaft){
+      var p = d.shaft.pier || {};
+      shaftData.push(['门过梁', d.shaft.headerBeam || '']);
+      shaftData.push(['门过梁长度(mm)', d.shaft.headerBeamLen || '']);
+      shaftData.push(['门垛状态', p.status || '']);
+      if(p.status !== '未建'){
+        shaftData.push(['门垛结构', p.structure || '']);
+        shaftData.push(['左门垛宽(mm)', p.leftWidth || '']);
+        shaftData.push(['右门垛宽(mm)', p.rightWidth || '']);
+      }
+    }
+    shaftData.push([]);
+    shaftData.push(['其他参数']);
+    if(d.shaft){
+      shaftData.push(['外呼盒形式', d.shaft.callBoxType || '']);
+      shaftData.push(['有无牛腿', d.shaft.hasCorbel || '']);
+      shaftData.push(['贯通', d.shaft.isThrough || '']);
+      shaftData.push(['是否观光', d.shaft.isSightseeing || '']);
+      if(d.shaft.isSightseeing === '是'){
+        shaftData.push(['观光类型', d.shaft.sightseeingType || '']);
+        shaftData.push(['观光面数', d.shaft.sightseeingSides || '']);
+      }
+    }
+    var ws2 = XLSX.utils.aoa_to_sheet(shaftData);
+    ws2['!cols'] = [{wch:15},{wch:12},{wch:12},{wch:8},{wch:10},{wch:14},{wch:14}];
+    XLSX.utils.book_append_sheet(wb, ws2, '井道结构');
+    
+    // Sheet3: 顶层底坑
+    var tpData = [
+      ['顶层与底坑'],
+      [],
+      ['底坑实测深度(mm)', d.topPit ? d.topPit.pitMeasuredDepth || '' : ''],
+      ['底坑装修高度(mm)', d.topPit ? d.topPit.pitFinishHeight || '' : ''],
+      ['底坑深度(mm)', d.topPit ? d.topPit.pitDepth || '' : ''],
+      [],
+      ['顶层实测高度(mm)', d.topPit ? d.topPit.topMeasuredHeight || '' : ''],
+      ['顶层装修高度(mm)', d.topPit ? d.topPit.topFinishHeight || '' : ''],
+      ['顶层高度(mm)', d.topPit ? d.topPit.topHeight || '' : ''],
+      [],
+      ['提升高度(mm)', d.liftHeight || ''],
+      ['井道总高(mm)', d.wellTotalHeight || ''],
+    ];
+    var ws3 = XLSX.utils.aoa_to_sheet(tpData);
+    ws3['!cols'] = [{wch:20}, {wch:20}];
+    XLSX.utils.book_append_sheet(wb, ws3, '顶层底坑');
+    
+    // Sheet4: 楼层测量
+    if(d.floorData && d.floorData.length){
+      var floorHeader = ['楼层号', '层高(mm)', '井道宽(mm)', '井道深(mm)', '门洞宽(mm)', '门洞高(mm)'];
+      var showPier = d.shaft && d.shaft.pier && d.shaft.pier.status !== '未建';
+      if(showPier){
+        floorHeader.push('左门垛(mm)', '右门垛(mm)');
+      }
+      floorHeader.push('备注');
+      
+      var floorRows = [floorHeader];
+      var sorted = d.floorData.slice().sort(function(a,b){ return toNum(b.floorNo) - toNum(a.floorNo); });
+      for(var i = 0; i < sorted.length; i++){
+        var f = sorted[i];
+        var row = [
+          f.floorNo || '',
+          f.floorHeight || '',
+          f.shaftWidth || '',
+          f.shaftDepth || '',
+          f.frontDoorWidth || '',
+          f.doorHeight || ''
+        ];
+        if(showPier){
+          row.push(f.leftPier || '', f.rightPier || '');
+        }
+        row.push(f.remark || '');
+        floorRows.push(row);
+      }
+      var ws4 = XLSX.utils.aoa_to_sheet(floorRows);
+      var cols = [{wch:8},{wch:10},{wch:10},{wch:10},{wch:10},{wch:10}];
+      if(showPier){ cols.push({wch:10}, {wch:10}); }
+      cols.push({wch:20});
+      ws4['!cols'] = cols;
+      XLSX.utils.book_append_sheet(wb, ws4, '楼层测量');
+    }
+    
+    // 导出
+    var fileName = (d.projectName || '土建勘测') + '_' + new Date().toISOString().slice(0,10) + '.xlsx';
+    XLSX.writeFile(wb, fileName);
+    showToast('导出成功');
+    document.getElementById('menuDropdown').classList.remove('show');
+  }catch(e){
+    console.error(e);
+    showToast('导出失败：' + (e.message || '未知错误'));
+  }
+}
+
 function buildPrintHTML(){
   var d = data;
   var loc = d.location || {};
@@ -1632,14 +2001,34 @@ function buildPrintHTML(){
   html += '<div class="info-item"><span class="info-label">载重/速度：</span><span class="info-value">' + escapeHtml(d.load || '-') + 'kg / ' + escapeHtml(d.speed || '-') + 'm/s</span></div>';
   html += '<div class="info-item"><span class="info-label">层站：</span><span class="info-value">' + escapeHtml(d.floors || '-') + '层' + escapeHtml(d.stops || '-') + '站</span></div>';
   html += '<div class="info-item"><span class="info-label">开门方式：</span><span class="info-value">' + escapeHtml(d.doorType || '-') + ' / ' + escapeHtml(d.doorPosition || '-') + '</span></div>';
-  html += '</div></div>';
+  html += '<div class="info-item"><span class="info-label">动力电源：</span><span class="info-value">' + escapeHtml(d.shaft ? (d.shaft.powerSupply || '-') : '-') + '</span></div>';
+  html += '</div>';
+  
+  // 轿厢净尺寸
+  if(d.carSize){
+    html += '<div style="margin-top:8px;"><strong>轿厢净尺寸：</strong>';
+    html += '净宽 ' + escapeHtml(d.carSize.width || '-') + 'mm × ';
+    html += '净深 ' + escapeHtml(d.carSize.depth || '-') + 'mm × ';
+    html += '净高 ' + escapeHtml(d.carSize.height || '-') + 'mm';
+    html += '</div>';
+  }
+  
+  // 开门净尺寸
+  if(d.doorClearSize){
+    html += '<div style="margin-top:6px;"><strong>开门净尺寸：</strong>';
+    html += '净宽 ' + escapeHtml(d.doorClearSize.width || '-') + 'mm × ';
+    html += '净高 ' + escapeHtml(d.doorClearSize.height || '-') + 'mm';
+    html += '</div>';
+  }
+  
+  html += '</div>';
   
   // 井道结构
   if(d.shaft && d.shaft.walls){
     html += '<div class="section"><div class="sec-title">二、井道结构</div>';
     var walls = d.shaft.walls;
     html += '<table><tr><th>墙面</th><th>结构类型</th><th>厚度(mm)</th><th>外墙</th><th>圈梁间距(mm)</th><th>支架间距(mm)</th></tr>';
-    var wallNames = { back: '后墙', left: '左墙', right: '右墙', front: '前墙' };
+    var wallNames = { back: '后墙', left: '左墙', right: '右墙' };
     for(var w in wallNames){
       var wd = walls[w] || {};
       html += '<tr><td>' + wallNames[w] + '</td><td>' + escapeHtml(wd.type || '-') + '</td><td>' + escapeHtml(wd.thick || '-') + '</td><td>' + escapeHtml(wd.outer || '-') + '</td><td>' + escapeHtml(wd.ringBeam || '-') + '</td><td>' + escapeHtml(wd.bracket || '-') + '</td></tr>';
@@ -1649,14 +2038,31 @@ function buildPrintHTML(){
     if(d.shaft.pier){
       var p = d.shaft.pier;
       html += '<div style="margin-top:10px;"><strong>门过梁与门垛：</strong>';
-      html += '过梁：' + escapeHtml(d.shaft.headerBeam || '-') + '，';
-      html += '结构：' + escapeHtml(p.structure || '-') + '，';
-      html += '状态：' + escapeHtml(p.status || '-') + '，';
-      html += '门垛：' + escapeHtml(p.hasPier || '-') + '，';
-      html += '左垛：' + escapeHtml(p.leftWidth || '-') + 'mm，';
-      html += '右垛：' + escapeHtml(p.rightWidth || '-') + 'mm';
+      html += '过梁：' + escapeHtml(d.shaft.headerBeam || '-');
+      if(d.shaft.headerBeamLen){
+        html += '（长' + escapeHtml(d.shaft.headerBeamLen) + 'mm）';
+      }
+      html += '，';
+      html += '门垛状态：' + escapeHtml(p.status || '-');
+      if(p.status !== '未建'){
+        html += '，结构：' + escapeHtml(p.structure || '-');
+        html += '，左垛：' + escapeHtml(p.leftWidth || '-') + 'mm';
+        html += '，右垛：' + escapeHtml(p.rightWidth || '-') + 'mm';
+      }
       html += '</div>';
     }
+    
+    // 其他参数
+    html += '<div style="margin-top:10px;"><strong>其他参数：</strong>';
+    html += '外呼盒：' + escapeHtml(d.shaft.callBoxType || '-') + '，';
+    html += '牛腿：' + escapeHtml(d.shaft.hasCorbel || '-') + '，';
+    html += '贯通：' + escapeHtml(d.shaft.isThrough || '-') + '，';
+    html += '观光：' + escapeHtml(d.shaft.isSightseeing || '否');
+    if(d.shaft.isSightseeing === '是'){
+      html += '（' + escapeHtml(d.shaft.sightseeingType || '-') + '）';
+    }
+    html += '</div>';
+    
     html += '</div>';
   }
   
@@ -1665,8 +2071,6 @@ function buildPrintHTML(){
     html += '<div class="section"><div class="sec-title">三、顶层与底坑</div>';
     var tp = d.topPit;
     html += '<div class="info-grid">';
-    html += '<div class="info-item"><span class="info-label">观光梯：</span><span class="info-value">' + escapeHtml(tp.isSightseeing || '否') + '</span></div>';
-    html += '<div class="info-item"><span class="info-label">观光类型：</span><span class="info-value">' + escapeHtml(tp.sightseeingType || '-') + '</span></div>';
     html += '<div class="info-item"><span class="info-label">底坑实测深：</span><span class="info-value">' + escapeHtml(tp.pitMeasuredDepth || '-') + 'mm</span></div>';
     html += '<div class="info-item"><span class="info-label">底坑装修高：</span><span class="info-value">' + escapeHtml(tp.pitFinishHeight || '-') + 'mm</span></div>';
     html += '<div class="info-item"><span class="info-label">底坑深度：</span><span class="info-value"><strong>' + escapeHtml(tp.pitDepth || '-') + 'mm</strong></span></div>';
@@ -1679,11 +2083,18 @@ function buildPrintHTML(){
   // 楼层测量
   if(d.floorData && d.floorData.length){
     html += '<div class="section"><div class="sec-title">四、楼层测量</div>';
-    html += '<table><tr><th>楼层</th><th>层高(mm)</th><th>前门宽(mm)</th><th>后门宽(mm)</th><th>井道宽(mm)</th><th>井道深(mm)</th></tr>';
+    var showPier = d.shaft && d.shaft.pier && d.shaft.pier.status !== '未建';
+    var header = '<tr><th>楼层</th><th>层高(mm)</th><th>井道宽(mm)</th><th>井道深(mm)</th><th>门洞宽(mm)</th><th>门洞高(mm)</th>';
+    if(showPier){ header += '<th>左门垛(mm)</th><th>右门垛(mm)</th>'; }
+    header += '<th>备注</th></tr>';
+    html += '<table>' + header;
     var sorted = d.floorData.slice().sort(function(a,b){ return toNum(b.floorNo) - toNum(a.floorNo); });
     for(var i = 0; i < sorted.length; i++){
       var f = sorted[i];
-      html += '<tr><td>' + escapeHtml(f.floorNo || '') + '</td><td>' + escapeHtml(f.floorHeight || '') + '</td><td>' + escapeHtml(f.frontDoorWidth || '') + '</td><td>' + escapeHtml(f.backDoorWidth || '') + '</td><td>' + escapeHtml(f.shaftWidth || '') + '</td><td>' + escapeHtml(f.shaftDepth || '') + '</td></tr>';
+      var row = '<tr><td>' + escapeHtml(f.floorNo || '') + '</td><td>' + escapeHtml(f.floorHeight || '') + '</td><td>' + escapeHtml(f.shaftWidth || '') + '</td><td>' + escapeHtml(f.shaftDepth || '') + '</td><td>' + escapeHtml(f.frontDoorWidth || '') + '</td><td>' + escapeHtml(f.doorHeight || '') + '</td>';
+      if(showPier){ row += '<td>' + escapeHtml(f.leftPier || '') + '</td><td>' + escapeHtml(f.rightPier || '') + '</td>'; }
+      row += '<td>' + escapeHtml(f.remark || '') + '</td></tr>';
+      html += row;
     }
     html += '</table>';
     html += '<div style="margin-top:8px;text-align:right;"><strong>提升高度：' + (d.liftHeight || '-') + 'mm &nbsp;&nbsp; 井道总高：' + (d.wellTotalHeight || '-') + 'mm</strong></div>';
@@ -1750,25 +2161,31 @@ function fillFormData(){
   document.getElementById('f_stops').value = data.stops || '';
   document.getElementById('f_doorType').value = data.doorType || '中分';
   document.getElementById('f_doorPosition').value = data.doorPosition || '前门';
+  document.getElementById('f_powerSupply').value = data.shaft ? (data.shaft.powerSupply || '380V') : '380V';
   
-  // 井道 - 四面墙
+  // 轿厢净尺寸
+  if(data.carSize){
+    document.getElementById('f_carWidth').value = data.carSize.width || '';
+    document.getElementById('f_carDepth').value = data.carSize.depth || '';
+    document.getElementById('f_carHeight').value = data.carSize.height || '';
+  }
+  
+  // 开门净尺寸
+  if(data.doorClearSize){
+    document.getElementById('f_doorClearWidth').value = data.doorClearSize.width || '';
+    document.getElementById('f_doorClearHeight').value = data.doorClearSize.height || '';
+  }
+  
+  // 井道 - 三面墙（只处理有id的input）
   var walls = data.shaft && data.shaft.walls ? data.shaft.walls : {};
-  var sides = ['back','left','right','front'];
-  var fields = ['type','thick','outer','ringBeam','bracket'];
+  var sides = ['back','left','right'];
+  var fields = ['thick','ringBeam','bracket'];
   for(var s = 0; s < sides.length; s++){
     var wd = walls[sides[s]] || {};
     for(var f = 0; f < fields.length; f++){
       var el = document.getElementById('wall_' + sides[s] + '_' + fields[f]);
       if(el){
-        // type 和 outer 是 select，其他是 input
-        var val = wd[fields[f]] || (fields[f] === 'type' ? '砖混墙' : (fields[f] === 'outer' ? '否' : ''));
-        // 找到对应的select
-        var selects = document.querySelectorAll('#panel1 select');
-        // 简化：type和outer通过 select 元素的 onchange 上下文来识别，这里跳过
-        // 实际上我们用 input 的 id 获取
-        if(el.tagName === 'SELECT'){
-          el.value = val;
-        }
+        el.value = wd[fields[f]] || '';
       }
     }
   }
@@ -1777,19 +2194,42 @@ function fillFormData(){
   if(data.shaft && data.shaft.pier){
     var p = data.shaft.pier;
     document.getElementById('pier_headerBeam').value = data.shaft.headerBeam || '有';
+    document.getElementById('pier_headerBeamLen').value = data.shaft.headerBeamLen || '';
     document.getElementById('pier_structure').value = p.structure || '混凝土';
     document.getElementById('pier_status').value = p.status || '未建';
-    document.getElementById('pier_hasPier').value = p.hasPier || '有';
     document.getElementById('pier_leftWidth').value = p.leftWidth || '';
     document.getElementById('pier_rightWidth').value = p.rightWidth || '';
   }
   
-  // 其他井道
+  // 其他井道参数
   if(data.shaft){
     document.getElementById('shaft_callBoxType').value = data.shaft.callBoxType || '有底盒';
-    document.getElementById('shaft_hasCorbel').value = data.shaft.hasCorbel || '无';
     document.getElementById('shaft_isThrough').value = data.shaft.isThrough || '否';
-    document.getElementById('shaft_powerSupply').value = data.shaft.powerSupply || '三相380V';
+    
+    // 牛腿开关
+    var swCorbel = document.getElementById('swCorbel');
+    if(swCorbel){
+      if(data.shaft.hasCorbel === '有'){
+        swCorbel.classList.add('on');
+      }else{
+        swCorbel.classList.remove('on');
+      }
+    }
+    
+    // 观光开关
+    var swSight = document.getElementById('swSightseeing');
+    var sightOpt = document.getElementById('sightseeingOptions');
+    if(swSight && sightOpt){
+      if(data.shaft.isSightseeing === '是'){
+        swSight.classList.add('on');
+        sightOpt.style.display = 'block';
+      }else{
+        swSight.classList.remove('on');
+        sightOpt.style.display = 'none';
+      }
+    }
+    document.getElementById('tp_sightseeingType').value = data.shaft.sightseeingType || '方形';
+    document.getElementById('shaft_sightseeingSides').value = data.shaft.sightseeingSides || '1面';
   }
   
   // 顶层底坑
@@ -1801,12 +2241,6 @@ function fillFormData(){
     document.getElementById('tp_topMeasuredHeight').value = tp.topMeasuredHeight || '';
     document.getElementById('tp_topFinishHeight').value = tp.topFinishHeight || '';
     document.getElementById('tp_topHeight').value = tp.topHeight || '';
-    document.getElementById('tp_sightseeingType').value = tp.sightseeingType || '方形';
-    
-    if(tp.isSightseeing === '是'){
-      document.getElementById('swSightseeing').classList.add('on');
-      document.getElementById('sightseeingOptions').style.display = 'block';
-    }
   }
   
   // 示意图
@@ -1824,14 +2258,14 @@ function fillFormData(){
   }
 }
 
-// 补充：四面墙 select 元素的回填
+// 补充：三面墙 select 元素的回填 & 圈梁开关初始化
 function fillWallSelects(){
   if(!data || !data.shaft || !data.shaft.walls) return;
   var walls = data.shaft.walls;
   
   // 找到 panel1 中所有手风琴里的 select
-  var accIds = ['accWall1', 'accWall2', 'accWall3', 'accWall4'];
-  var sideMap = { 'accWall1': 'back', 'accWall2': 'left', 'accWall3': 'right', 'accWall4': 'front' };
+  var accIds = ['accWall1', 'accWall2', 'accWall3'];
+  var sideMap = { 'accWall1': 'back', 'accWall2': 'left', 'accWall3': 'right' };
   
   for(var i = 0; i < accIds.length; i++){
     var acc = document.getElementById(accIds[i]);
@@ -1844,6 +2278,9 @@ function fillWallSelects(){
     if(selects[0]) selects[0].value = wd.type || '砖混墙';
     // 第二个select: 外墙
     if(selects[1]) selects[1].value = wd.outer || '否';
+    
+    // 初始化圈梁可见性
+    updateWallRingBeamVisibility(side);
   }
 }
 
@@ -1883,8 +2320,15 @@ function init(){
   initRegionSelectors();
   fillFormData();
   fillWallSelects();
+  updatePierVisibility();
   updateSummary();
   initTouchSwipe();
+  
+  // 排序按钮文字初始化
+  var sortBtn = document.getElementById('sortDirBtn');
+  if(sortBtn){
+    sortBtn.textContent = sortDir === 'desc' ? '⬆️ 从上到下' : '⬇️ 从下到上';
+  }
   
   // 打印参数
   var urlParams = new URLSearchParams(window.location.search);
@@ -1934,9 +2378,17 @@ window.clearRoomImg = clearRoomImg;
 window.clearSignature = clearSignature;
 window.saveData = saveData;
 window.printSurvey = printSurvey;
+window.exportExcel = exportExcel;
 window.goBack = goBack;
 window.saveAndReturn = saveAndReturn;
 window.toggleMenu = toggleMenu;
+window.updateCarSize = updateCarSize;
+window.updateDoorClear = updateDoorClear;
+window.updateWallRingBeamVisibility = updateWallRingBeamVisibility;
+window.toggleWallRingBeam = toggleWallRingBeam;
+window.updatePierVisibility = updatePierVisibility;
+window.toggleCorbel = toggleCorbel;
+window.toggleSortDir = toggleSortDir;
 
 })();
 </script>
