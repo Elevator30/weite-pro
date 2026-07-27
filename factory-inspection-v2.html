@@ -3174,27 +3174,19 @@ configPartsData = {};
       }
       
       // === 3. 拼接产品型号 ===
-      // 格式：型号前缀-载重/速度-控制方式，例如 TKJW-800/1.0-集选
+      // 格式：{型号}{载重}/{速度}-JXW-VVVF，例如 TKJW800/1.0-JXW-VVVF
+      // 兼容性：如果读不到载重或速度，退回到只显示型号前缀
       var model = '';
       if (modelPrefix) {
-        model = modelPrefix;
-      }
-      if (loadWeight && model) {
-        model += '-' + loadWeight;
+        if (loadWeight && speed) {
+          model = modelPrefix + loadWeight + '/' + speed + '-JXW-VVVF';
+        } else {
+          model = modelPrefix;
+        }
       } else if (loadWeight) {
         model = loadWeight;
-      }
-      if (speed) {
-        model += '/' + speed;
-      }
-      // 添加控制方式后缀（优先用配置表中的控制方式，没有则用默认的JXW-VVVF）
-      if (controlMode) {
-        model += '-' + controlMode;
-      } else if (model.indexOf('JXW') < 0 && model.indexOf('VVVF') < 0) {
-        model += '-JXW-VVVF';
-      } else if (model && !model.endsWith('-JXW-VVVF') && !model.endsWith('VVVF')) {
-        if (!/-JXW|-VVVF/.test(model)) {
-          model += '-JXW-VVVF';
+        if (speed) {
+          model += '/' + speed;
         }
       }
       
