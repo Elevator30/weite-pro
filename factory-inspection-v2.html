@@ -92,10 +92,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
 .progress-bar{height:4px;background:#e2e8f0;border-radius:2px;overflow:hidden;}
 .progress-fill{height:100%;width:0%;background:linear-gradient(90deg,#667eea,#764ba2);transition:width .3s;}
 /* 配置表信息栏 */
-.config-info-bar{display:flex;justify-content:space-between;align-items:center;padding:6px 0 2px;font-size:12px;}
+.config-info-bar{display:flex;flex-direction:column;padding:6px 0 2px;font-size:12px;}
+.config-info-row{display:flex;justify-content:space-between;align-items:center;}
 .config-info-text{color:#2b6cb0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;margin-right:10px;}
 .config-reupload-btn{padding:4px 10px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:11px;flex-shrink:0;}
 .config-reupload-btn:active{opacity:.8;}
+.config-params-row{display:flex;flex-wrap:wrap;gap:12px;margin-top:6px;padding:4px 8px;background:#f0f4ff;border-radius:6px;}
+.config-param{display:inline-flex;align-items:baseline;gap:2px;font-size:11px;}
+.config-param-label{color:#718096;}
+.config-param-value{color:#2d3748;font-weight:600;}
+.config-param-unit{color:#a0aec0;font-size:10px;}
 /* Task card */
 .task-list{padding:12px;}
 .task-card{background:#fff;border-radius:12px;padding:14px;margin-bottom:10px;border:1.5px solid #e2e8f0;cursor:pointer;position:relative;box-shadow:0 1px 4px rgba(0,0,0,.04);}
@@ -524,9 +530,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
     <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
     <!-- 配置表信息栏（详情页用） -->
     <div class="config-info-bar no-print" id="configInfoBar" style="display:none;">
-      <span class="config-info-text" id="configInfoText">配置表：未上传</span>
-      <button class="config-reupload-btn" id="configReuploadBtn" onclick="document.getElementById('reuploadConfigInput').click()">重新上传配置表</button>
-      <input type="file" id="reuploadConfigInput" accept=".xlsx" style="display:none" onchange="handleReuploadConfig(this)">
+      <div class="config-info-row">
+        <span class="config-info-text" id="configInfoText">配置表：未上传</span>
+        <button class="config-reupload-btn" id="configReuploadBtn" onclick="document.getElementById('reuploadConfigInput').click()">重新上传配置表</button>
+        <input type="file" id="reuploadConfigInput" accept=".xlsx" style="display:none" onchange="handleReuploadConfig(this)">
+      </div>
+      <div class="config-params-row" id="configParamsRow">
+        <span class="config-param"><span class="config-param-label">额定载重</span><span class="config-param-value" id="cfgParamLoad">--</span><span class="config-param-unit">kg</span></span>
+        <span class="config-param"><span class="config-param-label">额定速度</span><span class="config-param-value" id="cfgParamSpeed">--</span><span class="config-param-unit">m/s</span></span>
+        <span class="config-param"><span class="config-param-label">提升高度</span><span class="config-param-value" id="cfgParamHeight">--</span><span class="config-param-unit">m</span></span>
+        <span class="config-param"><span class="config-param-label">层站门</span><span class="config-param-value" id="cfgParamFloors">--</span></span>
+      </div>
     </div>
   </div>
   <div class="zone-tabs no-print" id="zoneTabs"></div>
@@ -2800,6 +2814,7 @@ function openTask(index) {
 function updateConfigInfoBar(task) {
   var bar = document.getElementById('configInfoBar');
   var text = document.getElementById('configInfoText');
+  var paramsRow = document.getElementById('configParamsRow');
   var zoneTabs = document.getElementById('zoneTabs');
   var pageCheck = document.getElementById('page-check');
   
@@ -2810,15 +2825,55 @@ function updateConfigInfoBar(task) {
   if (hasConfig) {
     // 显示配置表信息栏
     bar.style.display = 'flex';
-    var fileName = task.configParts['_fileName'] || '已上传配置表';
-    var prodNo = task.configParts['产品编号'] || '';
+    var cfg = task.configParts;
+    var fileName = cfg['_fileName'] || '已上传配置表';
+    var prodNo = cfg['产品编号'] || '';
     text.textContent = '配置表：' + fileName + (prodNo ? ' (编号:' + prodNo + ')' : '');
-    // 调整zone-tabs位置（配置表信息栏约24px高）
-    if (zoneTabs) zoneTabs.style.top = '132px';
-    if (pageCheck) pageCheck.style.paddingTop = '182px';
+    
+    // 填充基本参数
+    if (paramsRow) {
+      // 额定载重量
+      var loadEl = document.getElementById('cfgParamLoad');
+      var loadVal = cfg['额定载重量'] || '';
+      if (loadEl) loadEl.textContent = loadVal || '--';
+      
+      // 额定速度
+      var speedEl = document.getElementById('cfgParamSpeed');
+      var speedVal = cfg['额定速度'] || '';
+      if (speedEl) speedEl.textContent = speedVal || '--';
+      
+      // 提升高度（智能单位转换：>100视为mm，转m）
+      var heightEl = document.getElementById('cfgParamHeight');
+      var heightVal = cfg['提升高度'] || '';
+      if (heightEl) {
+        if (heightVal) {
+          var hNum = parseFloat(heightVal);
+          if (!isNaN(hNum) && hNum > 100) {
+            // 视为mm，转为米
+            heightEl.textContent = (hNum / 1000).toFixed(2);
+          } else {
+            heightEl.textContent = heightVal;
+          }
+        } else {
+          heightEl.textContent = '--';
+        }
+      }
+      
+      // 层站门
+      var floorsEl = document.getElementById('cfgParamFloors');
+      var floorsVal = cfg['层站门'] || '';
+      if (floorsEl) floorsEl.textContent = floorsVal || '--';
+      
+      paramsRow.style.display = 'flex';
+    }
+    
+    // 调整zone-tabs位置（配置表信息栏约60px高：24px文件名行 + 36px参数行）
+    if (zoneTabs) zoneTabs.style.top = '168px';
+    if (pageCheck) pageCheck.style.paddingTop = '218px';
   } else {
     // 隐藏配置表信息栏
     bar.style.display = 'none';
+    if (paramsRow) paramsRow.style.display = 'none';
     if (zoneTabs) zoneTabs.style.top = '';
     if (pageCheck) pageCheck.style.paddingTop = '';
   }
