@@ -975,7 +975,14 @@ function fillFb2(att2) {
   }
   
   // 底坑空间
+  // 提前计算pitSub（轿厢缓冲距+压缩行程，单位m），供第①③条判定使用
+  var _fbCarBufM = (parseFloat(att2.轿厢缓冲距) || 0) / 1000;
+  var _fbCarCompM = (parseFloat(att2.轿厢压缩行程) || 0) / 1000;
+  var pitSub = _fbCarBufM + _fbCarCompM;
   var pit = att2.底坑空间 || {};
+  // 第①条标准值跟随第③条第1小点水平距离p3h1联动
+  var p3h1ForP1 = parseFloat(pit.p3h1 || pit.p3h) || 0;
+  var p1Std = p3h1ForP1 > 0 ? (p3h1ForP1 <= 0.15 ? 0.1 : 0.5) : 0.5;
   setFb2Text('pit-p1', pit.p1 || '');
   setFb2Text('pit-p2', pit.p2 || '');
   // 第③条两个小点各有水平距离和垂直距离
@@ -1094,7 +1101,7 @@ function fillFb2(att2) {
     var val = parseFloat(pit.p1) || 0;
     if (val <= 0 || pitSub <= 0) return '';
     var result = val - pitSub;
-    return result >= 0.5 ? '符合' : '不符合';
+    return result >= p1Std ? '符合' : '不符合';
   }
   function judgePit_p2() {
     var val = parseFloat(pit.p2) || 0;
