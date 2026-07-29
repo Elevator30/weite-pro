@@ -1265,9 +1265,9 @@ function setRowHidden(id, hidden){
   var el = document.getElementById(id);
   if(!el) return;
   if(hidden){
-    el.classList.add('hide-row');
+    el.style.display = 'none';
   }else{
-    el.classList.remove('hide-row');
+    el.style.display = '';
   }
 }
 
@@ -1652,7 +1652,7 @@ function renderFloors(){
     html += '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">';
     html += '<input type="text" value="' + escapeHtml(floor.floorNo || '') + '" onblur="updateFloor(' + realIdx + ',\'floorNo\',this.value); renderFloors();" style="width:60px;text-align:center;border:2px solid #667eea;border-radius:20px;padding:4px 8px;font-size:14px;font-weight:700;background:#fff;color:#667eea;" placeholder="楼层">';
     html += '<span style="font-size:14px;font-weight:600;color:#2d3748;">层</span>';
-    html += '<select onchange="updateFloor(' + realIdx + ',\'doorPosition\',this.value); setTimeout(function(){ renderFloors(); }, 10);" style="margin-left:8px;padding:3px 8px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;background:#fff;">';
+    html += '<select onchange="updateFloor(' + realIdx + ',\'doorPosition\',this.value); updateFloorDoorVisibility(' + realIdx + ');" style="margin-left:8px;padding:3px 8px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;background:#fff;">';
     html += '<option value="前门"' + (fDoorPos === '前门' ? ' selected' : '') + '>前门</option>';
     html += '<option value="后门"' + (fDoorPos === '后门' ? ' selected' : '') + '>后门</option>';
     html += '<option value="贯通"' + (fDoorPos === '贯通' ? ' selected' : '') + '>贯通</option>';
@@ -1673,9 +1673,10 @@ function renderFloors(){
     html += '<div class="floor-field"><label>井道深(mm)</label>';
     html += '<input type="number" value="' + (floor.shaftDepth || '') + '" onblur="updateFloor(' + realIdx + ',\'shaftDepth\',this.value)"></div>';
     
-    // 前门组（选前门或贯通时渲染）
-    if(fDoorPos !== '后门'){
-      html += '<div style="grid-column:1/-1;margin-top:4px;border:1.5px solid #c3dafe;border-radius:8px;padding:8px 10px 10px;background:#f5f8ff;">';
+    // 前门组（全部渲染，用 display 控制显隐）
+    {
+      var frontDisplay = (fDoorPos !== '后门') ? '' : 'none';
+      html += '<div id="front_group_' + realIdx + '" style="display:' + frontDisplay + ';grid-column:1/-1;margin-top:4px;border:1.5px solid #c3dafe;border-radius:8px;padding:8px 10px 10px;background:#f5f8ff;">';
       html += '<div style="font-size:12px;font-weight:600;color:#667eea;margin-bottom:6px;">🚪 前门</div>';
       html += '<div class="floor-grid" style="gap:6px;">';
       html += '<div class="floor-field"><label>门洞宽(mm)</label>';
@@ -1691,9 +1692,10 @@ function renderFloors(){
       html += '</div></div>';
     }
     
-    // 后门组（选后门或贯通时渲染）
-    if(fDoorPos !== '前门'){
-      html += '<div style="grid-column:1/-1;margin-top:4px;border:1.5px solid #feebc8;border-radius:8px;padding:8px 10px 10px;background:#fffaf0;">';
+    // 后门组（全部渲染，用 display 控制显隐）
+    {
+      var backDisplay = (fDoorPos !== '前门') ? '' : 'none';
+      html += '<div id="back_group_' + realIdx + '" style="display:' + backDisplay + ';grid-column:1/-1;margin-top:4px;border:1.5px solid #feebc8;border-radius:8px;padding:8px 10px 10px;background:#fffaf0;">';
       html += '<div style="font-size:12px;font-weight:600;color:#d69e2e;margin-bottom:6px;">🚪 后门</div>';
       html += '<div class="floor-grid" style="gap:6px;">';
       html += '<div class="floor-field"><label>门洞宽(mm)</label>';
@@ -1723,6 +1725,20 @@ function updateFloor(idx, key, val){
   data.floorData[idx][key] = val;
   updateSummary();
   autoSave();
+}
+
+// 切换楼层开门位置时的显隐控制（直接操作style.display，与门垛实现方式一致）
+function updateFloorDoorVisibility(idx){
+  if(!data || !data.floorData || !data.floorData[idx]) return;
+  var pos = data.floorData[idx].doorPosition || '前门';
+  var frontGroup = document.getElementById('front_group_' + idx);
+  var backGroup = document.getElementById('back_group_' + idx);
+  if(frontGroup){
+    frontGroup.style.display = (pos !== '后门') ? '' : 'none';
+  }
+  if(backGroup){
+    backGroup.style.display = (pos !== '前门') ? '' : 'none';
+  }
 }
 
 function addFloor(){
