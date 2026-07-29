@@ -65,6 +65,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
 .form-row input[readonly]{background:#f0f4ff;color:#667eea;font-weight:600;}
 .form-row textarea{min-height:70px;resize:vertical;}
 .form-hint{font-size:11px;color:#a0aec0;margin-top:4px;}
+.hide-row{display:none !important;}
 
 /* ===== 开关样式 ===== */
 .switch-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;}
@@ -621,7 +622,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
                 <option value="有">有</option>
               </select>
             </div>
-            <div class="form-row" id="mr_raiseHeight_row" style="display:none;">
+            <div class="form-row hide-row" id="mr_raiseHeight_row">
               <label>抬高高度(mm)</label>
               <input type="number" id="mr_raiseHeight" onblur="updateMachineRoom('raiseHeight', this.value)">
             </div>
@@ -638,7 +639,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
               <input type="number" id="mr_height" onblur="updateMachineRoom('height', this.value)">
             </div>
           </div>
-          <div class="form-grid" id="mr_controlCabinet_row" style="padding-top:10px;border-top:1px solid #edf2f7;display:none;">
+          <div class="form-grid hide-row" id="mr_controlCabinet_row" style="padding-top:10px;border-top:1px solid #edf2f7;">
             <div class="form-row full">
               <label>无机房控制柜位置</label>
               <select id="shaft_controlCabinetPos" onchange="updateShaft('controlCabinetPos', this.value); updateControlCabinetCustomVisibility()">
@@ -646,7 +647,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
                 <option value="非标位置">非标位置</option>
               </select>
             </div>
-            <div class="form-row full" id="controlCabinetCustom_row" style="display:none;">
+            <div class="form-row full hide-row" id="controlCabinetCustom_row">
               <label>非标位置说明</label>
               <input type="text" id="shaft_controlCabinetCustom" onblur="updateShaft('controlCabinetCustom', this.value)" placeholder="请描述具体位置">
             </div>
@@ -1254,6 +1255,16 @@ function updateMachineRoom(key, val){
   autoSave();
 }
 
+function setRowHidden(id, hidden){
+  var el = document.getElementById(id);
+  if(!el) return;
+  if(hidden){
+    el.classList.add('hide-row');
+  }else{
+    el.classList.remove('hide-row');
+  }
+}
+
 function updateMachineRoomVisibility(){
   if(!data || !data.shaft) return;
   if(!data.shaft.machineRoom){
@@ -1264,28 +1275,28 @@ function updateMachineRoomVisibility(){
   var isHasRoom = !isNoRoom;
 
   // 机房尺寸：大机房/小机房显示，无机房隐藏
-  document.getElementById('mr_width_row').style.display = isHasRoom ? '' : 'none';
-  document.getElementById('mr_depth_row').style.display = isHasRoom ? '' : 'none';
-  document.getElementById('mr_height_row').style.display = isHasRoom ? '' : 'none';
-  document.getElementById('mr_raise_row').style.display = isHasRoom ? '' : 'none';
-  document.getElementById('mr_raiseHeight_row').style.display = (isHasRoom && data.shaft.machineRoom.localRaise === '有') ? '' : 'none';
+  setRowHidden('mr_width_row', !isHasRoom);
+  setRowHidden('mr_depth_row', !isHasRoom);
+  setRowHidden('mr_height_row', !isHasRoom);
+  setRowHidden('mr_raise_row', !isHasRoom);
+  setRowHidden('mr_raiseHeight_row', !(isHasRoom && data.shaft.machineRoom.localRaise === '有'));
 
   // 控制柜：无机房显示
-  document.getElementById('mr_controlCabinet_row').style.display = isNoRoom ? '' : 'none';
+  setRowHidden('mr_controlCabinet_row', !isNoRoom);
   if(isNoRoom){
     var isCustom = data.shaft.controlCabinetPos === '非标位置';
-    document.getElementById('controlCabinetCustom_row').style.display = isCustom ? '' : 'none';
+    setRowHidden('controlCabinetCustom_row', !isCustom);
   }
 }
 
 function updateRaiseHeightVisibility(){
   var has = data.shaft && data.shaft.machineRoom && data.shaft.machineRoom.localRaise === '有';
-  document.getElementById('mr_raiseHeight_row').style.display = has ? '' : 'none';
+  setRowHidden('mr_raiseHeight_row', !has);
 }
 
 function updateControlCabinetCustomVisibility(){
   var isCustom = data.shaft && data.shaft.controlCabinetPos === '非标位置';
-  document.getElementById('controlCabinetCustom_row').style.display = isCustom ? '' : 'none';
+  setRowHidden('controlCabinetCustom_row', !isCustom);
 }
 
 function updateDoorClear(key, val){
@@ -1656,41 +1667,41 @@ function renderFloors(){
     html += '<div class="floor-field"><label>井道深(mm)</label>';
     html += '<input type="number" value="' + (floor.shaftDepth || '') + '" onblur="updateFloor(' + realIdx + ',\'shaftDepth\',this.value)"></div>';
     
-    // 前门组（选前门或贯通时显示）
-    var showFront = fDoorPos !== '后门';
-    var frontDisplay = showFront ? '' : 'none';
-    html += '<div style="display:' + frontDisplay + ';grid-column:1/-1;margin-top:4px;">';
-    html += '<div style="font-size:12px;font-weight:600;color:#667eea;margin-bottom:6px;padding-left:2px;">🚪 前门</div>';
-    html += '<div class="floor-grid" style="gap:6px;">';
-    html += '<div class="floor-field"><label>门洞宽(mm)</label>';
-    html += '<input type="number" value="' + (floor.frontDoorWidth || '') + '" onblur="updateFloor(' + realIdx + ',\'frontDoorWidth\',this.value)"></div>';
-    html += '<div class="floor-field"><label>门洞高(mm)</label>';
-    html += '<input type="number" value="' + (floor.doorHeight || '') + '" onblur="updateFloor(' + realIdx + ',\'doorHeight\',this.value)"></div>';
-    if(showPier){
-      html += '<div class="floor-field"><label>左门垛(mm)</label>';
-      html += '<input type="number" value="' + (floor.frontLeftPier || floor.leftPier || '') + '" onblur="updateFloor(' + realIdx + ',\'frontLeftPier\',this.value)"></div>';
-      html += '<div class="floor-field"><label>右门垛(mm)</label>';
-      html += '<input type="number" value="' + (floor.frontRightPier || floor.rightPier || '') + '" onblur="updateFloor(' + realIdx + ',\'frontRightPier\',this.value)"></div>';
+    // 前门组（选前门或贯通时渲染）
+    if(fDoorPos !== '后门'){
+      html += '<div style="grid-column:1/-1;margin-top:4px;border:1.5px solid #c3dafe;border-radius:8px;padding:8px 10px 10px;background:#f5f8ff;">';
+      html += '<div style="font-size:12px;font-weight:600;color:#667eea;margin-bottom:6px;">🚪 前门</div>';
+      html += '<div class="floor-grid" style="gap:6px;">';
+      html += '<div class="floor-field"><label>门洞宽(mm)</label>';
+      html += '<input type="number" value="' + (floor.frontDoorWidth || '') + '" onblur="updateFloor(' + realIdx + ',\'frontDoorWidth\',this.value)"></div>';
+      html += '<div class="floor-field"><label>门洞高(mm)</label>';
+      html += '<input type="number" value="' + (floor.doorHeight || '') + '" onblur="updateFloor(' + realIdx + ',\'doorHeight\',this.value)"></div>';
+      if(showPier){
+        html += '<div class="floor-field"><label>左门垛(mm)</label>';
+        html += '<input type="number" value="' + (floor.frontLeftPier || floor.leftPier || '') + '" onblur="updateFloor(' + realIdx + ',\'frontLeftPier\',this.value)"></div>';
+        html += '<div class="floor-field"><label>右门垛(mm)</label>';
+        html += '<input type="number" value="' + (floor.frontRightPier || floor.rightPier || '') + '" onblur="updateFloor(' + realIdx + ',\'frontRightPier\',this.value)"></div>';
+      }
+      html += '</div></div>';
     }
-    html += '</div></div>';
     
-    // 后门组（选后门或贯通时显示）
-    var showBack = fDoorPos !== '前门';
-    var backDisplay = showBack ? '' : 'none';
-    html += '<div style="display:' + backDisplay + ';grid-column:1/-1;margin-top:4px;">';
-    html += '<div style="font-size:12px;font-weight:600;color:#f6ad55;margin-bottom:6px;padding-left:2px;">🚪 后门</div>';
-    html += '<div class="floor-grid" style="gap:6px;">';
-    html += '<div class="floor-field"><label>门洞宽(mm)</label>';
-    html += '<input type="number" value="' + (floor.backDoorWidth || '') + '" onblur="updateFloor(' + realIdx + ',\'backDoorWidth\',this.value)"></div>';
-    html += '<div class="floor-field"><label>门洞高(mm)</label>';
-    html += '<input type="number" value="' + (floor.backDoorHeight || '') + '" onblur="updateFloor(' + realIdx + ',\'backDoorHeight\',this.value)"></div>';
-    if(showPier){
-      html += '<div class="floor-field"><label>左门垛(mm)</label>';
-      html += '<input type="number" value="' + (floor.backLeftPier || '') + '" onblur="updateFloor(' + realIdx + ',\'backLeftPier\',this.value)"></div>';
-      html += '<div class="floor-field"><label>右门垛(mm)</label>';
-      html += '<input type="number" value="' + (floor.backRightPier || '') + '" onblur="updateFloor(' + realIdx + ',\'backRightPier\',this.value)"></div>';
+    // 后门组（选后门或贯通时渲染）
+    if(fDoorPos !== '前门'){
+      html += '<div style="grid-column:1/-1;margin-top:4px;border:1.5px solid #feebc8;border-radius:8px;padding:8px 10px 10px;background:#fffaf0;">';
+      html += '<div style="font-size:12px;font-weight:600;color:#d69e2e;margin-bottom:6px;">🚪 后门</div>';
+      html += '<div class="floor-grid" style="gap:6px;">';
+      html += '<div class="floor-field"><label>门洞宽(mm)</label>';
+      html += '<input type="number" value="' + (floor.backDoorWidth || '') + '" onblur="updateFloor(' + realIdx + ',\'backDoorWidth\',this.value)"></div>';
+      html += '<div class="floor-field"><label>门洞高(mm)</label>';
+      html += '<input type="number" value="' + (floor.backDoorHeight || '') + '" onblur="updateFloor(' + realIdx + ',\'backDoorHeight\',this.value)"></div>';
+      if(showPier){
+        html += '<div class="floor-field"><label>左门垛(mm)</label>';
+        html += '<input type="number" value="' + (floor.backLeftPier || '') + '" onblur="updateFloor(' + realIdx + ',\'backLeftPier\',this.value)"></div>';
+        html += '<div class="floor-field"><label>右门垛(mm)</label>';
+        html += '<input type="number" value="' + (floor.backRightPier || '') + '" onblur="updateFloor(' + realIdx + ',\'backRightPier\',this.value)"></div>';
+      }
+      html += '</div></div>';
     }
-    html += '</div></div>';
     
     // 备注
     html += '<div class="floor-field full"><label>备注</label>';
