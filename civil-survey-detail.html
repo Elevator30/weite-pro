@@ -108,6 +108,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
   font-weight:700;padding:4px 14px;border-radius:20px;min-width:50px;text-align:center;}
 .floor-del-btn{background:none;border:none;color:#e53e3e;cursor:pointer;font-size:20px;
   padding:2px 8px;line-height:1;-webkit-tap-highlight-color:transparent;}
+.floor-card-header{cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.floor-card.collapsed .floor-grid{display:none;}
+.floor-card.collapsed .floor-grid + .floor-grid{display:none;}
+.floor-card-arrow{font-size:12px;color:#94a3b8;transition:transform .2s;margin-left:6px;}
+.floor-card.collapsed .floor-card-arrow{transform:rotate(-90deg);}
+.floor-card-summary{font-size:11px;color:#94a3b8;margin-left:8px;}
 .floor-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
 .floor-field{min-width:0;}
 .floor-field label{display:block;font-size:11px;color:#718096;margin-bottom:3px;font-weight:500;}
@@ -843,6 +849,7 @@ var currentTab = 0;
 var isNew = true;
 var data = null;
 var sortDir = 'desc'; // desc=从上到下（高到低），asc=从下到上（低到高）
+var expandedFloorIdx = undefined; // 当前展开的楼层索引，undefined表示全部展开
 
 // ============ 省市区数据（简化版） ============
 var regionData = {
@@ -1680,20 +1687,30 @@ function renderFloors(){
     var isThrough = fDoorPos === '贯通';
     var frontLabel = (fDoorPos === '后门') ? '后门' : '前门';
     
-    html += '<div class="floor-card">';
-    html += '<div class="floor-card-header">';
-    html += '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">';
-    html += '<input type="text" value="' + escapeHtml(floor.floorNo || '') + '" onblur="updateFloor(' + realIdx + ',\'floorNo\',this.value); renderFloors();" style="width:60px;text-align:center;border:2px solid #667eea;border-radius:20px;padding:4px 8px;font-size:14px;font-weight:700;background:#fff;color:#667eea;" placeholder="楼层">';
+    var isCollapsed = (expandedFloorIdx !== undefined && expandedFloorIdx !== realIdx);
+    html += '<div class="floor-card' + (isCollapsed ? ' collapsed' : '') + '">';
+    html += '<div class="floor-card-header" onclick="toggleFloorExpand(' + realIdx + ', event)">';
+    html += '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex:1;">';
+    html += '<input type="text" value="' + escapeHtml(floor.floorNo || '') + '" onclick="event.stopPropagation()" onblur="updateFloor(' + realIdx + ',\'floorNo\',this.value); renderFloors();" style="width:60px;text-align:center;border:2px solid #667eea;border-radius:20px;padding:4px 8px;font-size:14px;font-weight:700;background:#fff;color:#667eea;" placeholder="楼层">';
     html += '<span style="font-size:14px;font-weight:600;color:#2d3748;">层</span>';
-    html += '<div style="display:flex;gap:4px;margin-left:8px;">';
-    html += '<div class="door-tab' + (fDoorPos === '前门' ? ' active' : '') + '" onclick="switchFloorDoor(' + realIdx + ',\'前门\')">前门</div>';
-    html += '<div class="door-tab' + (fDoorPos === '后门' ? ' active' : '') + '" onclick="switchFloorDoor(' + realIdx + ',\'后门\')">后门</div>';
-    html += '<div class="door-tab' + (fDoorPos === '贯通' ? ' active' : '') + '" onclick="switchFloorDoor(' + realIdx + ',\'贯通\')">贯通</div>';
+    // 收起状态下显示开门方式+层高摘要
+    if(isCollapsed){
+      var summary = fDoorPos;
+      if(floor.floorHeight) summary += ' · 层高' + floor.floorHeight + 'mm';
+      html += '<span class="floor-card-summary">' + summary + '</span>';
+    }
+    html += '<span class="floor-card-arrow">▼</span>';
     html += '</div>';
+    html += '<button class="floor-del-btn" onclick="event.stopPropagation(); deleteFloor(' + realIdx + ')">×</button>';
     html += '</div>';
-    html += '<button class="floor-del-btn" onclick="deleteFloor(' + realIdx + ')">×</button>';
-    html += '</div>';
-    html += '<div style="font-size:11px;color:#a0aec0;margin:4px 0 8px;">💡 楼层号可点击修改</div>';
+    // 展开时才显示开门方式tab和详细内容
+    if(!isCollapsed){
+      html += '<div style="display:flex;gap:4px;margin:6px 0 10px;padding:0 2px;">';
+      html += '<div class="door-tab' + (fDoorPos === '前门' ? ' active' : '') + '" onclick="switchFloorDoor(' + realIdx + ',\'前门\')">前门</div>';
+      html += '<div class="door-tab' + (fDoorPos === '后门' ? ' active' : '') + '" onclick="switchFloorDoor(' + realIdx + ',\'后门\')">后门</div>';
+      html += '<div class="door-tab' + (fDoorPos === '贯通' ? ' active' : '') + '" onclick="switchFloorDoor(' + realIdx + ',\'贯通\')">贯通</div>';
+      html += '</div>';
+    }
     html += '<div class="floor-grid">';
     
     // 公共区：层高 + 井道宽/深
@@ -1762,6 +1779,19 @@ function updateFloor(idx, key, val){
 
 // 切换楼层开门位置时的显隐控制（直接操作style.display，与门垛实现方式一致）
 // 楼层开门位置切换（点击tab，onclick方式）
+// 楼层卡片展开/收起（手风琴模式：展开当前，收起其他）
+function toggleFloorExpand(idx, e){
+  if(e) e.stopPropagation();
+  if(expandedFloorIdx === idx){
+    // 已经展开，点击则收起 → 全部展开
+    expandedFloorIdx = undefined;
+  }else{
+    // 展开当前，收起其他
+    expandedFloorIdx = idx;
+  }
+  renderFloors();
+}
+
 function switchFloorDoor(idx, pos){
   try{
     if(!data || !data.floorData || !data.floorData[idx]) return;
@@ -1839,6 +1869,7 @@ function addFloor(){
     remark: ''
   };
   data.floorData.push(newFloor);
+  expandedFloorIdx = data.floorData.length - 1; // 新增楼层自动展开
   renderFloors();
   updateFloorStats();
   autoSave();
@@ -1936,6 +1967,10 @@ function doBatchGen(){
   }
   
   hideBatchGen();
+  // 批量生成后展开最后一层
+  if(data.floorData && data.floorData.length > 0){
+    expandedFloorIdx = data.floorData.length - 1;
+  }
   renderFloors();
   updateFloorStats();
   autoSave();
@@ -2807,6 +2842,7 @@ window.toggleWallRingBeam = toggleWallRingBeam;
 window.updatePierVisibility = updatePierVisibility;
 window.toggleCorbel = toggleCorbel;
 window.toggleSortDir = toggleSortDir;
+window.toggleFloorExpand = toggleFloorExpand;
 window.switchMachineRoom = switchMachineRoom;
 window.switchFloorDoor = switchFloorDoor;
 window.updateFloorDoorVisibility = updateFloorDoorVisibility;
