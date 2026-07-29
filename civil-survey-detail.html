@@ -219,35 +219,27 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
               <label>项目名称 *</label>
               <input type="text" id="f_projectName" placeholder="请输入项目名称" onblur="updateField('projectName', this.value)">
             </div>
-            <div class="form-row">
-              <label>楼号</label>
-              <input type="text" id="f_buildingNo" placeholder="请输入楼号" onblur="updateField('buildingNo', this.value)">
+            <div class="form-row full">
+              <label>楼号 / 单元号 / 梯号</label>
+              <div style="display:flex;gap:8px;">
+                <input type="text" id="f_buildingNo" placeholder="楼号" onblur="updateField('buildingNo', this.value)" style="flex:1;">
+                <input type="text" id="f_unitNo" placeholder="单元号" onblur="updateField('unitNo', this.value)" style="flex:1;">
+                <input type="text" id="f_elevatorNo" placeholder="梯号" onblur="updateField('elevatorNo', this.value)" style="flex:1;">
+              </div>
             </div>
-            <div class="form-row">
-              <label>单元号</label>
-              <input type="text" id="f_unitNo" placeholder="请输入单元号" onblur="updateField('unitNo', this.value)">
-            </div>
-            <div class="form-row">
-              <label>梯号</label>
-              <input type="text" id="f_elevatorNo" placeholder="请输入梯号" onblur="updateField('elevatorNo', this.value)">
-            </div>
-            <div class="form-row">
-              <label>省份</label>
-              <select id="f_province" onchange="onProvinceChange()">
-                <option value="">请选择</option>
-              </select>
-            </div>
-            <div class="form-row">
-              <label>城市</label>
-              <select id="f_city" onchange="onCityChange()">
-                <option value="">请选择</option>
-              </select>
-            </div>
-            <div class="form-row">
-              <label>区县</label>
-              <select id="f_district" onchange="onDistrictChange()">
-                <option value="">请选择</option>
-              </select>
+            <div class="form-row full">
+              <label>省 / 市 / 区县</label>
+              <div style="display:flex;gap:8px;">
+                <select id="f_province" onchange="onProvinceChange()" style="flex:1;">
+                  <option value="">请选择</option>
+                </select>
+                <select id="f_city" onchange="onCityChange()" style="flex:1;">
+                  <option value="">请选择</option>
+                </select>
+                <select id="f_district" onchange="onDistrictChange()" style="flex:1;">
+                  <option value="">请选择</option>
+                </select>
+              </div>
             </div>
             <div class="form-row full">
               <label>详细地址</label>
@@ -268,7 +260,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
                 <option value="复勘">复勘</option>
               </select>
             </div>
-            <div class="form-row">
+            <div class="form-row" style="display:none;">
               <label>井道状态</label>
               <select id="f_shaftStatus" onchange="updateField('shaftStatus', this.value)">
                 <option value="未建">未建</option>
@@ -1263,19 +1255,34 @@ function updateMachineRoom(key, val){
 }
 
 function updateMachineRoomVisibility(){
-  var type = (data.shaft && data.shaft.machineRoom) ? data.shaft.machineRoom.type : '大机房';
+  if(!data || !data.shaft) return;
+  if(!data.shaft.machineRoom){
+    data.shaft.machineRoom = { type: '大机房', width: '', depth: '', height: '', localRaise: '无', raiseHeight: '' };
+  }
+  var type = data.shaft.machineRoom.type || '大机房';
   var isNoRoom = type === '无机房';
-  // 尺寸和抬高：有机房时显示
-  document.getElementById('mr_width').parentElement.style.display = isNoRoom ? 'none' : '';
-  document.getElementById('mr_depth').parentElement.style.display = isNoRoom ? 'none' : '';
-  document.getElementById('mr_height').parentElement.style.display = isNoRoom ? 'none' : '';
-  document.getElementById('mr_raise_row').style.display = isNoRoom ? 'none' : '';
-  document.getElementById('mr_raiseHeight_row').style.display = (isNoRoom || (data.shaft.machineRoom.localRaise !== '有')) ? 'none' : '';
-  // 控制柜：无机房时显示
-  document.getElementById('mr_controlCabinet_row').style.display = isNoRoom ? '' : 'none';
-  if(isNoRoom){
+  var isHasRoom = !isNoRoom;
+
+  // 机房尺寸：大机房/小机房显示，无机房隐藏
+  var wRow = document.getElementById('mr_width');
+  var dRow = document.getElementById('mr_depth');
+  var hRow = document.getElementById('mr_height');
+  var raiseRow = document.getElementById('mr_raise_row');
+  var raiseHRow = document.getElementById('mr_raiseHeight_row');
+  var cabinetRow = document.getElementById('mr_controlCabinet_row');
+  var customRow = document.getElementById('controlCabinetCustom_row');
+
+  if(wRow) wRow.closest('.form-row').style.display = isHasRoom ? '' : 'none';
+  if(dRow) dRow.closest('.form-row').style.display = isHasRoom ? '' : 'none';
+  if(hRow) hRow.closest('.form-row').style.display = isHasRoom ? '' : 'none';
+  if(raiseRow) raiseRow.style.display = isHasRoom ? '' : 'none';
+  if(raiseHRow) raiseHRow.style.display = (isHasRoom && data.shaft.machineRoom.localRaise === '有') ? '' : 'none';
+
+  // 控制柜：无机房显示
+  if(cabinetRow) cabinetRow.style.display = isNoRoom ? '' : 'none';
+  if(isNoRoom && customRow){
     var isCustom = data.shaft.controlCabinetPos === '非标位置';
-    document.getElementById('controlCabinetCustom_row').style.display = isCustom ? '' : 'none';
+    customRow.style.display = isCustom ? '' : 'none';
   }
 }
 
