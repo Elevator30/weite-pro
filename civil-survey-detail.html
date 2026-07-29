@@ -626,7 +626,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
                 <option value="有">有</option>
               </select>
             </div>
-            <div class="form-row hide-row" id="mr_raiseHeight_row">
+            <div class="form-row" id="mr_raiseHeight_row">
               <label>抬高高度(mm)</label>
               <input type="number" id="mr_raiseHeight" onblur="updateMachineRoom('raiseHeight', this.value)">
             </div>
@@ -643,7 +643,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
               <input type="number" id="mr_height" onblur="updateMachineRoom('height', this.value)">
             </div>
           </div>
-          <div class="form-grid hide-row" id="mr_controlCabinet_row" style="padding-top:10px;border-top:1px solid #edf2f7;">
+          <div class="form-grid" id="mr_controlCabinet_row" style="padding-top:10px;border-top:1px solid #edf2f7;">
             <div class="form-row full">
               <label>无机房控制柜位置</label>
               <select id="shaft_controlCabinetPos" onchange="updateShaft('controlCabinetPos', this.value); updateControlCabinetCustomVisibility()">
@@ -651,7 +651,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
                 <option value="非标位置">非标位置</option>
               </select>
             </div>
-            <div class="form-row full hide-row" id="controlCabinetCustom_row">
+            <div class="form-row full" id="controlCabinetCustom_row">
               <label>非标位置说明</label>
               <input type="text" id="shaft_controlCabinetCustom" onblur="updateShaft('controlCabinetCustom', this.value)" placeholder="请描述具体位置">
             </div>
