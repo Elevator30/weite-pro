@@ -727,7 +727,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
 
       <!-- Tab4: 楼层测量 -->
       <div class="zone-panel" id="panel3">
-        <div class="floor-toolbar">
+        <div style="position:-webkit-sticky;position:sticky;top:0;z-index:20;background:#f5f7fa;padding-bottom:8px;margin:-12px -12px 0;padding:12px 12px 8px;box-shadow:0 2px 8px rgba(0,0,0,.06);">
+          <div class="floor-toolbar">
           <button class="floor-toolbar-btn primary" onclick="addFloor()">+ 添加一层</button>
           <button class="floor-toolbar-btn secondary" onclick="openBatchGen()">批量生成</button>
           <button class="floor-toolbar-btn secondary" id="sortDirBtn" onclick="toggleSortDir()">⬆️ 从上到下</button>
@@ -746,6 +747,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
             <div class="stat-val" id="floorStatAvg">-</div>
             <div class="stat-lab">平均层高(mm)</div>
           </div>
+        </div>
+        <div style="height:10px;"></div>
         </div>
 
         <div class="floor-cards" id="floorCards"></div>
