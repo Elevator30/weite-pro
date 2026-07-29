@@ -1277,21 +1277,31 @@ function setRowHidden(id, hidden){
 
 // 机房形式切换（点击tab，与观光梯toggle同样的onclick方式）
 function switchMachineRoom(type){
-  updateMachineRoom('type', type);
-  // 更新tab激活状态
-  var tabs = ['大机房', '小机房', '无机房'];
-  var tabIds = ['mr_tab_big', 'mr_tab_small', 'mr_tab_none'];
-  for(var i = 0; i < tabs.length; i++){
-    var tab = document.getElementById(tabIds[i]);
-    if(tab){
-      if(tabs[i] === type){
-        tab.classList.add('active');
-      }else{
-        tab.classList.remove('active');
+  try{
+    updateMachineRoom('type', type);
+    // 更新tab激活状态（直接改style，不用classList，跟门垛一样）
+    var tabIds = ['mr_tab_big', 'mr_tab_small', 'mr_tab_none'];
+    var tabVals = ['大机房', '小机房', '无机房'];
+    for(var i = 0; i < tabIds.length; i++){
+      var tab = document.getElementById(tabIds[i]);
+      if(tab){
+        if(tabVals[i] === type){
+          tab.style.backgroundColor = '#667eea';
+          tab.style.color = '#fff';
+          tab.style.borderColor = '#667eea';
+          tab.style.fontWeight = '600';
+        }else{
+          tab.style.backgroundColor = '#fff';
+          tab.style.color = '#64748b';
+          tab.style.borderColor = '#e2e8f0';
+          tab.style.fontWeight = 'normal';
+        }
       }
     }
+    updateMachineRoomVisibility();
+  }catch(e){
+    alert('切换机房出错: ' + e.message);
   }
-  updateMachineRoomVisibility();
 }
 
 function updateMachineRoomVisibility(){
@@ -1753,26 +1763,40 @@ function updateFloor(idx, key, val){
 // 切换楼层开门位置时的显隐控制（直接操作style.display，与门垛实现方式一致）
 // 楼层开门位置切换（点击tab，onclick方式）
 function switchFloorDoor(idx, pos){
-  if(!data || !data.floorData || !data.floorData[idx]) return;
-  data.floorData[idx].doorPosition = pos;
-  updateSummary();
-  autoSave();
-  // 更新tab激活状态
-  var frontTab = document.querySelector('#front_group_' + idx + ' ~ div .door-tab') || null; // 不行，结构不对
-  // 直接找到这层的三个door-tab
-  var floorCard = document.getElementById('front_group_' + idx)?.closest('.floor-card');
-  if(floorCard){
+  try{
+    if(!data || !data.floorData || !data.floorData[idx]) return;
+    data.floorData[idx].doorPosition = pos;
+    updateSummary();
+    autoSave();
+    // 直接通过id找前后门组的父容器，再找door-tab
+    var frontGroup = document.getElementById('front_group_' + idx);
+    if(!frontGroup) return;
+    // 向上找到floor-card
+    var floorCard = frontGroup.parentElement;
+    while(floorCard && !floorCard.classList.contains('floor-card')){
+      floorCard = floorCard.parentElement;
+    }
+    if(!floorCard) return;
+    // 更新tab激活状态（直接改style）
     var tabs = floorCard.querySelectorAll('.door-tab');
     var labels = ['前门', '后门', '贯通'];
     for(var ti = 0; ti < tabs.length && ti < labels.length; ti++){
       if(labels[ti] === pos){
-        tabs[ti].classList.add('active');
+        tabs[ti].style.backgroundColor = '#667eea';
+        tabs[ti].style.color = '#fff';
+        tabs[ti].style.borderColor = '#667eea';
+        tabs[ti].style.fontWeight = '600';
       }else{
-        tabs[ti].classList.remove('active');
+        tabs[ti].style.backgroundColor = '#fff';
+        tabs[ti].style.color = '#64748b';
+        tabs[ti].style.borderColor = '#e2e8f0';
+        tabs[ti].style.fontWeight = 'normal';
       }
     }
+    updateFloorDoorVisibility(idx);
+  }catch(e){
+    alert('切换开门位置出错: ' + e.message);
   }
-  updateFloorDoorVisibility(idx);
 }
 
 function updateFloorDoorVisibility(idx){
@@ -2590,17 +2614,23 @@ function fillFormData(){
   // 机房参数
   if(data.shaft && data.shaft.machineRoom){
     var mr = data.shaft.machineRoom;
-    // 初始化机房形式tab状态
+    // 初始化机房形式tab状态（直接改style，与切换时一致）
     var mrType = mr.type || '大机房';
-    var tabMap = { '大机房': 'mr_tab_big', '小机房': 'mr_tab_small', '无机房': 'mr_tab_none' };
     var allTabs = ['mr_tab_big', 'mr_tab_small', 'mr_tab_none'];
+    var allVals = ['大机房', '小机房', '无机房'];
     for(var ti = 0; ti < allTabs.length; ti++){
       var tabEl = document.getElementById(allTabs[ti]);
       if(tabEl){
-        if(tabMap[mrType] === allTabs[ti]){
-          tabEl.classList.add('active');
+        if(allVals[ti] === mrType){
+          tabEl.style.backgroundColor = '#667eea';
+          tabEl.style.color = '#fff';
+          tabEl.style.borderColor = '#667eea';
+          tabEl.style.fontWeight = '600';
         }else{
-          tabEl.classList.remove('active');
+          tabEl.style.backgroundColor = '#fff';
+          tabEl.style.color = '#64748b';
+          tabEl.style.borderColor = '#e2e8f0';
+          tabEl.style.fontWeight = 'normal';
         }
       }
     }
