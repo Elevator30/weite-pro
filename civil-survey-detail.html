@@ -211,20 +211,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
         <div class="zone-section-title">📋 项目基本信息</div>
         <div class="card">
           <div class="form-grid">
-            <div class="form-row">
+            <div class="form-row" style="display:none;">
               <label>编号</label>
-              <input type="text" id="f_surveyNo" readonly style="background:#f7fafc;color:#718096;">
-            </div>
-            <div class="form-row">
-              <label>楼号/梯号</label>
-              <div style="display:flex;gap:6px;">
-                <input type="text" id="f_buildingNo" placeholder="楼号" onblur="updateField('buildingNo', this.value)" style="flex:1;">
-                <input type="text" id="f_elevatorNo" placeholder="梯号" onblur="updateField('elevatorNo', this.value)" style="flex:1;">
-              </div>
+              <input type="text" id="f_surveyNo" readonly>
             </div>
             <div class="form-row full">
               <label>项目名称 *</label>
               <input type="text" id="f_projectName" placeholder="请输入项目名称" onblur="updateField('projectName', this.value)">
+            </div>
+            <div class="form-row">
+              <label>楼号</label>
+              <input type="text" id="f_buildingNo" placeholder="请输入楼号" onblur="updateField('buildingNo', this.value)">
+            </div>
+            <div class="form-row">
+              <label>单元号</label>
+              <input type="text" id="f_unitNo" placeholder="请输入单元号" onblur="updateField('unitNo', this.value)">
+            </div>
+            <div class="form-row">
+              <label>梯号</label>
+              <input type="text" id="f_elevatorNo" placeholder="请输入梯号" onblur="updateField('elevatorNo', this.value)">
             </div>
             <div class="form-row">
               <label>省份</label>
@@ -323,7 +328,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
                 <option value="群控">群控</option>
               </select>
             </div>
-            <div class="form-row">
+            <div class="form-row" style="display:none;">
               <label>并联/群控梯号</label>
               <input type="text" id="f_parallelNo" placeholder="如：1#、2#" onblur="updateField('parallelNo', this.value)">
             </div>
@@ -932,6 +937,7 @@ function createDefaultData(){
     id: genId(),
     surveyNo: '',
     buildingNo: '',
+    unitNo: '',
     elevatorNo: '',
     projectName: '',
     location: { province: '', city: '', district: '', detail: '' },
@@ -1125,6 +1131,7 @@ function migrateData(d){
   // 新字段：编号、楼号、勘测信息等
   if(!d.surveyNo) d.surveyNo = generateSurveyNo();
   if(d.buildingNo === undefined) d.buildingNo = '';
+  if(d.unitNo === undefined) d.unitNo = '';
   if(d.elevatorNo === undefined) d.elevatorNo = '';
   if(d.surveyType === undefined) d.surveyType = '首勘';
   if(d.surveyCount === undefined) d.surveyCount = 1;
@@ -1247,7 +1254,10 @@ function updateCarSize(key, val){
 }
 
 function updateMachineRoom(key, val){
-  if(!data || !data.shaft || !data.shaft.machineRoom) return;
+  if(!data || !data.shaft) return;
+  if(!data.shaft.machineRoom){
+    data.shaft.machineRoom = { type: '大机房', width: '', depth: '', height: '', localRaise: '无', raiseHeight: '' };
+  }
   data.shaft.machineRoom[key] = val;
   autoSave();
 }
@@ -2053,6 +2063,9 @@ function exportExcel(){
       ['土建勘测数据'],
       [],
       ['项目名称', d.projectName || ''],
+      ['楼号', d.buildingNo || ''],
+      ['单元号', d.unitNo || ''],
+      ['梯号', d.elevatorNo || ''],
       ['项目地点', locStr],
       ['销售', d.sales || ''],
       ['联系电话', d.phone || ''],
@@ -2254,7 +2267,7 @@ function buildPrintHTML(){
   html += '</style></head><body>';
 
   html += '<div class="main-title">垂直电梯土建图出图申请表</div>';
-  html += '<div class="sub-header"><span>楼号：' + escapeHtml(d.buildingNo||'') + '　梯号：' + escapeHtml(d.elevatorNo||'') + '</span><span>项目所在地：' + escapeHtml(locStr||'') + '</span><span>NO：' + escapeHtml(d.surveyNo||'') + '</span></div>';
+  html += '<div class="sub-header"><span>楼号：' + escapeHtml(d.buildingNo||'') + '　单元号：' + escapeHtml(d.unitNo||'') + '　梯号：' + escapeHtml(d.elevatorNo||'') + '</span><span>项目所在地：' + escapeHtml(locStr||'') + '</span><span>NO：' + escapeHtml(d.surveyNo||'') + '</span></div>';
 
   html += '<table>';
   html += '<col style="width:12%;"><col style="width:28%;"><col style="width:10%;"><col style="width:16%;"><col style="width:8%;"><col style="width:9%;"><col style="width:12%;"><col style="width:5%;">';
@@ -2417,6 +2430,7 @@ function fillFormData(){
   // 基本参数
   document.getElementById('f_surveyNo').value = data.surveyNo || '';
   document.getElementById('f_buildingNo').value = data.buildingNo || '';
+  document.getElementById('f_unitNo').value = data.unitNo || '';
   document.getElementById('f_elevatorNo').value = data.elevatorNo || '';
   document.getElementById('f_projectName').value = data.projectName || '';
   document.getElementById('f_sales').value = data.sales || '';
