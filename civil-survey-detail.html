@@ -1882,9 +1882,19 @@ function addFloor(){
   updateFloorStats();
   autoSave();
   
-  // 滚动到底部
+  // 滚动到新楼层位置（贴在吸顶栏下面）
   var panel = document.getElementById('panel3');
-  if(panel) setTimeout(function(){ panel.scrollTop = panel.scrollHeight; }, 100);
+  if(panel){
+    setTimeout(function(){
+      var firstCard = panel.querySelector('.floor-card');
+      if(firstCard){
+        // 吸顶栏大概高度120px，留一点余量
+        var stickyH = 120;
+        var cardTop = firstCard.offsetTop;
+        panel.scrollTop = Math.max(0, cardTop - stickyH);
+      }
+    }, 50);
+  }
 }
 
 function deleteFloor(idx){
