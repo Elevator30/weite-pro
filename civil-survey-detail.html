@@ -66,6 +66,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
 .form-row textarea{min-height:70px;resize:vertical;}
 .form-hint{font-size:11px;color:#a0aec0;margin-top:4px;}
 .hide-row{display:none !important;visibility:hidden !important;height:0 !important;padding:0 !important;margin:0 !important;overflow:hidden !important;}
+.mr-tab{flex:1;padding:8px 12px;text-align:center;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;color:#64748b;background:#fff;cursor:pointer;transition:all .2s;}
+.mr-tab.active{border-color:#667eea;background:#667eea;color:#fff;font-weight:600;}
+.door-tab{padding:4px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;color:#64748b;background:#fff;cursor:pointer;}
+.door-tab.active{border-color:#667eea;background:#667eea;color:#fff;font-weight:600;}
 
 /* ===== 开关样式 ===== */
 .switch-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;}
@@ -607,13 +611,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
         <div class="zone-section-title">🏢 机房参数</div>
         <div class="card">
           <div class="form-grid">
-            <div class="form-row">
+            <div class="form-row full">
               <label>机房形式</label>
-              <select id="mr_type" onchange="updateMachineRoom('type', this.value); setTimeout(function(){ updateMachineRoomVisibility(); }, 10);">
-                <option value="大机房">大机房</option>
-                <option value="小机房">小机房</option>
-                <option value="无机房">无机房</option>
-              </select>
+              <div style="display:flex;gap:8px;margin-top:4px;">
+                <div id="mr_tab_big" class="mr-tab active" onclick="switchMachineRoom('大机房')">大机房</div>
+                <div id="mr_tab_small" class="mr-tab" onclick="switchMachineRoom('小机房')">小机房</div>
+                <div id="mr_tab_none" class="mr-tab" onclick="switchMachineRoom('无机房')">无机房</div>
+              </div>
             </div>
             <div class="form-row" id="mr_raise_row">
               <label>局部抬高</label>
@@ -1271,6 +1275,25 @@ function setRowHidden(id, hidden){
   }
 }
 
+// 机房形式切换（点击tab，与观光梯toggle同样的onclick方式）
+function switchMachineRoom(type){
+  updateMachineRoom('type', type);
+  // 更新tab激活状态
+  var tabs = ['大机房', '小机房', '无机房'];
+  var tabIds = ['mr_tab_big', 'mr_tab_small', 'mr_tab_none'];
+  for(var i = 0; i < tabs.length; i++){
+    var tab = document.getElementById(tabIds[i]);
+    if(tab){
+      if(tabs[i] === type){
+        tab.classList.add('active');
+      }else{
+        tab.classList.remove('active');
+      }
+    }
+  }
+  updateMachineRoomVisibility();
+}
+
 function updateMachineRoomVisibility(){
   if(!data || !data.shaft) return;
   if(!data.shaft.machineRoom){
@@ -1652,11 +1675,11 @@ function renderFloors(){
     html += '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">';
     html += '<input type="text" value="' + escapeHtml(floor.floorNo || '') + '" onblur="updateFloor(' + realIdx + ',\'floorNo\',this.value); renderFloors();" style="width:60px;text-align:center;border:2px solid #667eea;border-radius:20px;padding:4px 8px;font-size:14px;font-weight:700;background:#fff;color:#667eea;" placeholder="楼层">';
     html += '<span style="font-size:14px;font-weight:600;color:#2d3748;">层</span>';
-    html += '<select onchange="updateFloor(' + realIdx + ',\'doorPosition\',this.value); updateFloorDoorVisibility(' + realIdx + ');" style="margin-left:8px;padding:3px 8px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;background:#fff;">';
-    html += '<option value="前门"' + (fDoorPos === '前门' ? ' selected' : '') + '>前门</option>';
-    html += '<option value="后门"' + (fDoorPos === '后门' ? ' selected' : '') + '>后门</option>';
-    html += '<option value="贯通"' + (fDoorPos === '贯通' ? ' selected' : '') + '>贯通</option>';
-    html += '</select>';
+    html += '<div style="display:flex;gap:4px;margin-left:8px;">';
+    html += '<div class="door-tab' + (fDoorPos === '前门' ? ' active' : '') + '" onclick="switchFloorDoor(' + realIdx + ',\'前门\')">前门</div>';
+    html += '<div class="door-tab' + (fDoorPos === '后门' ? ' active' : '') + '" onclick="switchFloorDoor(' + realIdx + ',\'后门\')">后门</div>';
+    html += '<div class="door-tab' + (fDoorPos === '贯通' ? ' active' : '') + '" onclick="switchFloorDoor(' + realIdx + ',\'贯通\')">贯通</div>';
+    html += '</div>';
     html += '</div>';
     html += '<button class="floor-del-btn" onclick="deleteFloor(' + realIdx + ')">×</button>';
     html += '</div>';
@@ -1728,6 +1751,30 @@ function updateFloor(idx, key, val){
 }
 
 // 切换楼层开门位置时的显隐控制（直接操作style.display，与门垛实现方式一致）
+// 楼层开门位置切换（点击tab，onclick方式）
+function switchFloorDoor(idx, pos){
+  if(!data || !data.floorData || !data.floorData[idx]) return;
+  data.floorData[idx].doorPosition = pos;
+  updateSummary();
+  autoSave();
+  // 更新tab激活状态
+  var frontTab = document.querySelector('#front_group_' + idx + ' ~ div .door-tab') || null; // 不行，结构不对
+  // 直接找到这层的三个door-tab
+  var floorCard = document.getElementById('front_group_' + idx)?.closest('.floor-card');
+  if(floorCard){
+    var tabs = floorCard.querySelectorAll('.door-tab');
+    var labels = ['前门', '后门', '贯通'];
+    for(var ti = 0; ti < tabs.length && ti < labels.length; ti++){
+      if(labels[ti] === pos){
+        tabs[ti].classList.add('active');
+      }else{
+        tabs[ti].classList.remove('active');
+      }
+    }
+  }
+  updateFloorDoorVisibility(idx);
+}
+
 function updateFloorDoorVisibility(idx){
   if(!data || !data.floorData || !data.floorData[idx]) return;
   var pos = data.floorData[idx].doorPosition || '前门';
@@ -2543,7 +2590,20 @@ function fillFormData(){
   // 机房参数
   if(data.shaft && data.shaft.machineRoom){
     var mr = data.shaft.machineRoom;
-    document.getElementById('mr_type').value = mr.type || '大机房';
+    // 初始化机房形式tab状态
+    var mrType = mr.type || '大机房';
+    var tabMap = { '大机房': 'mr_tab_big', '小机房': 'mr_tab_small', '无机房': 'mr_tab_none' };
+    var allTabs = ['mr_tab_big', 'mr_tab_small', 'mr_tab_none'];
+    for(var ti = 0; ti < allTabs.length; ti++){
+      var tabEl = document.getElementById(allTabs[ti]);
+      if(tabEl){
+        if(tabMap[mrType] === allTabs[ti]){
+          tabEl.classList.add('active');
+        }else{
+          tabEl.classList.remove('active');
+        }
+      }
+    }
     document.getElementById('mr_localRaise').value = mr.localRaise || '无';
     document.getElementById('mr_raiseHeight').value = mr.raiseHeight || '';
     document.getElementById('mr_width').value = mr.width || '';
