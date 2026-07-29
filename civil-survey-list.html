@@ -34,24 +34,47 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
 .list-count{font-size:12px;color:#a0aec0;font-weight:400;}
 
 /* 项目卡片 */
-.project-card{background:#fff;border-radius:14px;padding:16px;margin-bottom:12px;border:1.5px solid #e2e8f0;box-shadow:0 2px 8px rgba(0,0,0,.04);position:relative;transition:all .2s ease;}
-.project-card:active{transform:scale(.99);box-shadow:0 1px 4px rgba(0,0,0,.06);}
+.project-card{background:#fff;border-radius:14px;margin-bottom:12px;border:1.5px solid #e2e8f0;box-shadow:0 2px 8px rgba(0,0,0,.04);position:relative;transition:all .2s ease;overflow:hidden;}
+.project-card:active{transform:scale(.995);}
+.project-card-header{padding:16px;cursor:pointer;-webkit-tap-highlight-color:transparent;position:relative;}
+.project-card-header:active{background:#f7fafc;}
 .card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
 .card-project{font-size:16px;font-weight:700;color:#2d3748;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-right:8px;line-height:1.3;}
-.card-date-tag{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;font-size:10px;padding:3px 10px;border-radius:12px;font-weight:600;flex-shrink:0;}
-.card-meta{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;margin-bottom:12px;}
+.card-edit-btn{background:none;border:none;color:#667eea;font-size:18px;cursor:pointer;padding:2px 8px;-webkit-tap-highlight-color:transparent;flex-shrink:0;}
+.card-meta{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;margin-bottom:10px;}
 .meta-item{font-size:12px;color:#4a5568;display:flex;align-items:center;gap:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .meta-label{color:#a0aec0;flex-shrink:0;}
 .meta-value{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.card-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;}
+.card-bottom{display:flex;justify-content:space-between;align-items:center;}
+.card-tags{display:flex;flex-wrap:wrap;gap:6px;}
 .tag{font-size:11px;padding:3px 10px;border-radius:8px;background:#edf2f7;color:#718096;font-weight:500;}
 .tag-signed{background:#e6fffa;color:#234e52;}
 .tag-type{background:#fefcbf;color:#744210;}
-.card-btns{display:flex;gap:8px;padding-top:12px;border-top:1px solid #edf2f7;}
-.card-btn{flex:1;padding:9px 0;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;-webkit-tap-highlight-color:transparent;}
-.btn-view{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;}
-.btn-print{background:linear-gradient(135deg,#27ae60,#2ecc71);color:#fff;}
-.btn-delete{background:#fff5f5;color:#c53030;border:1px solid #fed7d7;}
+.tag-count{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;}
+.card-expand-arrow{font-size:14px;color:#a0aec0;transition:transform .25s ease;flex-shrink:0;}
+.project-card.expanded .card-expand-arrow{transform:rotate(180deg);color:#667eea;}
+
+/* 测量记录展开区 */
+.measurements-section{max-height:0;overflow:hidden;transition:max-height .3s ease;background:#f8fafc;border-top:1px solid #edf2f7;}
+.project-card.expanded .measurements-section{max-height:2000px;}
+.measurements-inner{padding:12px 16px 16px;}
+.meas-list{display:flex;flex-direction:column;gap:10px;}
+.meas-card{background:#fff;border-radius:10px;padding:12px 14px;border:1.5px solid #e2e8f0;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .15s;position:relative;}
+.meas-card:active{transform:scale(.99);background:#f8f9ff;border-color:#667eea;}
+.meas-card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.meas-title{font-size:14px;font-weight:700;color:#2d3748;}
+.meas-type-tag{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600;}
+.meas-type-straight{background:#ebf8ff;color:#2b6cb0;}
+.meas-type-escalator{background:#fefcbf;color:#744210;}
+.meas-meta{display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;font-size:12px;color:#718096;}
+.meas-meta-item{display:flex;align-items:center;gap:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.meas-meta-label{color:#a0aec0;flex-shrink:0;font-size:11px;}
+.meas-meta-value{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.meas-signed-badge{position:absolute;top:12px;right:14px;font-size:10px;background:#c6f6d5;color:#22543d;padding:2px 8px;border-radius:10px;font-weight:600;}
+
+/* 新建测量按钮 */
+.new-meas-btn{width:100%;padding:10px;border:1.5px dashed #cbd5e0;border-radius:10px;background:#fff;color:#718096;font-size:13px;font-weight:600;cursor:pointer;-webkit-tap-highlight-color:transparent;display:flex;align-items:center;justify-content:center;gap:6px;margin-top:10px;transition:all .15s;}
+.new-meas-btn:active{background:#f0f4ff;border-color:#667eea;color:#667eea;}
 
 /* 空状态 */
 .empty-state{text-align:center;padding:80px 20px;color:#a0aec0;}
@@ -84,6 +107,46 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
 .menu-dropdown-item.danger{color:#e53e3e;}
 .menu-dropdown-divider{height:1px;background:#edf2f7;}
 
+/* ===== 弹窗通用样式 ===== */
+.modal-mask{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:9998;align-items:center;justify-content:center;padding:20px;}
+.modal-mask.show{display:flex;}
+.modal-box{background:#fff;border-radius:16px;max-width:400px;width:100%;max-height:85vh;overflow:hidden;display:flex;flex-direction:column;}
+.modal-header{padding:18px 20px 14px;border-bottom:1px solid #edf2f7;display:flex;align-items:center;justify-content:space-between;}
+.modal-title{font-size:17px;font-weight:700;color:#2d3748;}
+.modal-close{background:none;border:none;font-size:24px;color:#a0aec0;cursor:pointer;line-height:1;padding:0 4px;-webkit-tap-highlight-color:transparent;}
+.modal-body{padding:18px 20px;overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;}
+.modal-footer{padding:14px 20px;border-top:1px solid #edf2f7;display:flex;gap:10px;}
+.modal-btn{flex:1;padding:12px;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;border:none;-webkit-tap-highlight-color:transparent;}
+.modal-btn-cancel{background:#f7fafc;color:#718096;border:1px solid #e2e8f0;}
+.modal-btn-confirm{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;}
+.modal-btn-confirm:disabled{opacity:.5;cursor:not-allowed;}
+
+/* 表单 - 弹窗内 */
+.modal-form-row{margin-bottom:14px;}
+.modal-form-row label{display:block;font-size:13px;color:#4a5568;margin-bottom:6px;font-weight:500;}
+.modal-form-row label .req{color:#e53e3e;margin-left:2px;}
+.modal-form-row input,.modal-form-row select{
+  width:100%;border:1.5px solid #e2e8f0;border-radius:8px;padding:10px 12px;
+  font-size:14px;background:#fafafa;transition:all .15s;font-family:inherit;
+}
+.modal-form-row input:focus,.modal-form-row select:focus{
+  border-color:#667eea;background:#fff;outline:none;
+}
+.modal-form-row .region-row{display:flex;gap:8px;}
+.modal-form-row .region-row select{flex:1;}
+
+/* Tab选择器（勘测类型/电梯类型） */
+.tab-selector{display:flex;gap:8px;margin-bottom:14px;}
+.tab-selector-item{flex:1;padding:10px;text-align:center;border:1.5px solid #e2e8f0;border-radius:10px;font-size:14px;color:#718096;background:#fff;cursor:pointer;transition:all .15s;font-weight:500;-webkit-tap-highlight-color:transparent;}
+.tab-selector-item.active{border-color:#667eea;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;font-weight:600;}
+
+/* 测量记录卡片底部按钮 */
+.meas-card-actions{display:flex;gap:6px;margin-top:8px;padding-top:8px;border-top:1px dashed #edf2f7;}
+.meas-action-btn{flex:1;padding:6px 0;border:none;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.meas-action-view{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;}
+.meas-action-print{background:linear-gradient(135deg,#27ae60,#2ecc71);color:#fff;}
+.meas-action-delete{background:#fff5f5;color:#c53030;border:1px solid #fed7d7;}
+
 @media(max-width:360px){
   .card-project{font-size:15px;}
   .stat-num{font-size:20px;}
@@ -103,7 +166,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
       <div class="menu-dropdown" id="menuDropdown">
         <div class="menu-dropdown-item" onclick="goHome()">🏠 首页</div>
         <div class="menu-dropdown-divider"></div>
-        <div class="menu-dropdown-item" onclick="migrateOldData()">📦 数据迁移</div>
         <div class="menu-dropdown-item" onclick="exportData()">📤 导出数据</div>
         <div class="menu-dropdown-item" onclick="importData()">📥 导入数据</div>
         <input type="file" id="importFileInput" accept=".json" style="display:none;">
@@ -116,12 +178,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
 <!-- 统计卡片 -->
 <div class="stats-bar">
   <div class="stat-item">
-    <div class="stat-num" id="statTotal">0</div>
+    <div class="stat-num" id="statProjects">0</div>
     <div class="stat-label">总项目</div>
   </div>
   <div class="stat-item">
-    <div class="stat-num" id="statMonth">0</div>
-    <div class="stat-label">本月新增</div>
+    <div class="stat-num" id="statMeasurements">0</div>
+    <div class="stat-label">总测量</div>
   </div>
   <div class="stat-item">
     <div class="stat-num" id="statSigned">0</div>
@@ -133,13 +195,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
 <div class="list-section">
   <div class="list-section-title">
     <span>勘测项目</span>
-    <span class="list-count" id="listCount">共 0 条</span>
+    <span class="list-count" id="listCount">共 0 个项目</span>
   </div>
   <div id="projectList"></div>
 </div>
 
 <!-- 悬浮新建按钮 -->
-<div class="fab" onclick="goNew()">+</div>
+<div class="fab" onclick="openNewProjectModal()">+</div>
 
 <div class="toast" id="toast"></div>
 
@@ -147,10 +209,150 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
 <div class="confirm-mask" id="confirmMask">
   <div class="confirm-box">
     <h3 id="confirmTitle">确认删除</h3>
-    <p id="confirmMsg">确定要删除这条勘测记录吗？删除后无法恢复。</p>
+    <p id="confirmMsg">确定要删除吗？删除后无法恢复。</p>
     <div class="confirm-btns">
       <button class="confirm-cancel" onclick="hideConfirm()">取消</button>
       <button class="confirm-ok" onclick="doDelete()">删除</button>
+    </div>
+  </div>
+</div>
+
+<!-- 新建项目弹窗 -->
+<div class="modal-mask" id="newProjectModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title">新建项目</div>
+      <button class="modal-close" onclick="closeNewProjectModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-form-row">
+        <label>项目名称<span class="req">*</span></label>
+        <input type="text" id="np_projectName" placeholder="请输入项目名称">
+      </div>
+      <div class="modal-form-row">
+        <label>勘测类型</label>
+        <div class="tab-selector">
+          <div class="tab-selector-item active" onclick="setSurveyType('首勘')" id="np_surveyType_first">首勘</div>
+          <div class="tab-selector-item" onclick="setSurveyType('复勘')" id="np_surveyType_second">复勘</div>
+        </div>
+      </div>
+      <div class="modal-form-row">
+        <label>省 / 市 / 区县</label>
+        <div class="region-row">
+          <select id="np_province" onchange="npOnProvinceChange()">
+            <option value="">请选择</option>
+          </select>
+          <select id="np_city" onchange="npOnCityChange()">
+            <option value="">请选择</option>
+          </select>
+          <select id="np_district">
+            <option value="">请选择</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-form-row">
+        <label>详细地址</label>
+        <input type="text" id="np_address" placeholder="请输入详细地址">
+      </div>
+      <div class="modal-form-row">
+        <label>销售人员</label>
+        <input type="text" id="np_sales" placeholder="请输入销售姓名">
+      </div>
+      <div class="modal-form-row">
+        <label>联系电话</label>
+        <input type="tel" id="np_phone" placeholder="请输入联系电话">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-btn modal-btn-cancel" onclick="closeNewProjectModal()">取消</button>
+      <button class="modal-btn modal-btn-confirm" onclick="submitNewProject()">创建项目</button>
+    </div>
+  </div>
+</div>
+
+<!-- 编辑项目弹窗 -->
+<div class="modal-mask" id="editProjectModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title">编辑项目信息</div>
+      <button class="modal-close" onclick="closeEditProjectModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-form-row">
+        <label>项目名称<span class="req">*</span></label>
+        <input type="text" id="ep_projectName" placeholder="请输入项目名称">
+      </div>
+      <div class="modal-form-row">
+        <label>勘测类型</label>
+        <div class="tab-selector">
+          <div class="tab-selector-item active" onclick="setEditSurveyType('首勘')" id="ep_surveyType_first">首勘</div>
+          <div class="tab-selector-item" onclick="setEditSurveyType('复勘')" id="ep_surveyType_second">复勘</div>
+        </div>
+      </div>
+      <div class="modal-form-row">
+        <label>省 / 市 / 区县</label>
+        <div class="region-row">
+          <select id="ep_province" onchange="epOnProvinceChange()">
+            <option value="">请选择</option>
+          </select>
+          <select id="ep_city" onchange="epOnCityChange()">
+            <option value="">请选择</option>
+          </select>
+          <select id="ep_district">
+            <option value="">请选择</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-form-row">
+        <label>详细地址</label>
+        <input type="text" id="ep_address" placeholder="请输入详细地址">
+      </div>
+      <div class="modal-form-row">
+        <label>销售人员</label>
+        <input type="text" id="ep_sales" placeholder="请输入销售姓名">
+      </div>
+      <div class="modal-form-row">
+        <label>联系电话</label>
+        <input type="tel" id="ep_phone" placeholder="请输入联系电话">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-btn modal-btn-cancel" onclick="closeEditProjectModal()">取消</button>
+      <button class="modal-btn modal-btn-confirm" onclick="submitEditProject()">保存修改</button>
+    </div>
+  </div>
+</div>
+
+<!-- 新建测量弹窗 -->
+<div class="modal-mask" id="newMeasurementModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title">新建测量记录</div>
+      <button class="modal-close" onclick="closeNewMeasurementModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-form-row">
+        <label>电梯类型</label>
+        <div class="tab-selector">
+          <div class="tab-selector-item active" onclick="setElevatorType('直梯')" id="nm_elevType_straight">直梯</div>
+          <div class="tab-selector-item" onclick="setElevatorType('扶梯')" id="nm_elevType_escalator">扶梯</div>
+        </div>
+      </div>
+      <div class="modal-form-row">
+        <label>楼号 / 单元号 / 梯号</label>
+        <div class="region-row">
+          <input type="text" id="nm_buildingNo" placeholder="楼号" style="flex:1;">
+          <input type="text" id="nm_unitNo" placeholder="单元号" style="flex:1;">
+          <input type="text" id="nm_elevatorNo" placeholder="梯号" style="flex:1;">
+        </div>
+      </div>
+      <div style="font-size:12px;color:#a0aec0;margin-top:-8px;line-height:1.5;">
+        点击确定后进入测量详情页填写井道、楼层等参数
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-btn modal-btn-cancel" onclick="closeNewMeasurementModal()">取消</button>
+      <button class="modal-btn modal-btn-confirm" onclick="submitNewMeasurement()">确定并填写</button>
     </div>
   </div>
 </div>
@@ -159,9 +361,75 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
 (function(){
 'use strict';
 
-var STORAGE_KEY = 'wtCivilSurveyList';
-var list = [];
-var pendingDeleteId = null;
+var STORAGE_KEY = 'wtCivilSurveyProjects';
+var OLD_STORAGE_KEY = 'wtCivilSurveyList';
+var projects = [];
+var pendingDelete = null; // {type:'project'|'measurement', projectId, measurementId}
+var currentNewProjectSurveyType = '首勘';
+var currentEditProjectSurveyType = '首勘';
+var currentNewMeasurementElevType = '直梯';
+var currentNewMeasurementProjectId = null;
+var currentEditProjectId = null;
+var expandedProjectId = null;
+
+// ============ 省市区数据（简化版） ============
+var regionData = {
+  "北京市": { "北京市": ["东城区","西城区","朝阳区","海淀区","丰台区","石景山区","通州区","昌平区","大兴区","顺义区","房山区","门头沟区","怀柔区","平谷区","密云区","延庆区"] },
+  "上海市": { "上海市": ["黄浦区","徐汇区","长宁区","静安区","普陀区","虹口区","杨浦区","闵行区","宝山区","嘉定区","浦东新区","金山区","松江区","青浦区","奉贤区","崇明区"] },
+  "广东省": {
+    "广州市": ["天河区","越秀区","海珠区","荔湾区","白云区","黄埔区","番禺区","花都区","南沙区","从化区","增城区"],
+    "深圳市": ["福田区","罗湖区","南山区","宝安区","龙岗区","盐田区","龙华区","坪山区","光明区"],
+    "佛山市": ["禅城区","南海区","顺德区","三水区","高明区"],
+    "东莞市": ["东城街道","南城街道","万江街道","莞城街道","虎门镇","长安镇"]
+  },
+  "江苏省": {
+    "南京市": ["玄武区","秦淮区","建邺区","鼓楼区","浦口区","栖霞区","雨花台区","江宁区","六合区","溧水区","高淳区"],
+    "苏州市": ["姑苏区","虎丘区","吴中区","相城区","吴江区","昆山市","常熟市","张家港市","太仓市"],
+    "无锡市": ["梁溪区","锡山区","惠山区","滨湖区","新吴区","江阴市","宜兴市"]
+  },
+  "浙江省": {
+    "杭州市": ["上城区","下城区","江干区","拱墅区","西湖区","滨江区","萧山区","余杭区","富阳区","临安区"],
+    "宁波市": ["海曙区","江北区","北仑区","镇海区","鄞州区","奉化区","余姚市","慈溪市"],
+    "温州市": ["鹿城区","龙湾区","瓯海区","洞头区","瑞安市","乐清市"]
+  },
+  "四川省": {
+    "成都市": ["锦江区","青羊区","金牛区","武侯区","成华区","龙泉驿区","青白江区","新都区","温江区","双流区","郫都区"],
+    "绵阳市": ["涪城区","游仙区","安州区","江油市"]
+  },
+  "山东省": {
+    "济南市": ["历下区","市中区","槐荫区","天桥区","历城区","长清区","章丘区","济阳区"],
+    "青岛市": ["市南区","市北区","李沧区","崂山区","城阳区","黄岛区","即墨区","胶州市","平度市","莱西市"]
+  },
+  "湖北省": {
+    "武汉市": ["江岸区","江汉区","硚口区","汉阳区","武昌区","青山区","洪山区","东西湖区","汉南区","蔡甸区","江夏区","黄陂区","新洲区"]
+  },
+  "陕西省": {
+    "西安市": ["新城区","碑林区","莲湖区","灞桥区","未央区","雁塔区","阎良区","临潼区","长安区","高陵区","鄠邑区"]
+  },
+  "河南省": {
+    "郑州市": ["中原区","二七区","管城回族区","金水区","上街区","惠济区","中牟县","巩义市","荥阳市","新密市","新郑市","登封市"]
+  },
+  "重庆市": { "重庆市": ["渝中区","江北区","南岸区","九龙坡区","沙坪坝区","大渡口区","渝北区","巴南区","北碚区","两江新区"] },
+  "天津市": { "天津市": ["和平区","河东区","河西区","南开区","河北区","红桥区","东丽区","西青区","津南区","北辰区","武清区","宝坻区","滨海新区"] },
+  "福建省": {
+    "福州市": ["鼓楼区","台江区","仓山区","马尾区","晋安区","长乐区","福清市"],
+    "厦门市": ["思明区","海沧区","湖里区","集美区","同安区","翔安区"]
+  },
+  "安徽省": {
+    "合肥市": ["瑶海区","庐阳区","蜀山区","包河区","长丰县","肥东县","肥西县","庐江县","巢湖市"]
+  },
+  "湖南省": {
+    "长沙市": ["芙蓉区","天心区","岳麓区","开福区","雨花区","望城区","长沙县","浏阳市","宁乡市"]
+  },
+  "河北省": {
+    "石家庄市": ["长安区","桥西区","新华区","井陉矿区","裕华区","鹿泉区","栾城区"],
+    "唐山市": ["路南区","路北区","古冶区","开平区","丰南区","丰润区","曹妃甸区"]
+  },
+  "辽宁省": {
+    "沈阳市": ["和平区","沈河区","大东区","皇姑区","铁西区","苏家屯区","浑南区","沈北新区","于洪区"],
+    "大连市": ["中山区","西岗区","沙河口区","甘井子区","旅顺口区","金州区","普兰店区"]
+  }
+};
 
 // ============ 工具函数 ============
 function showToast(msg, dur){
@@ -188,89 +456,241 @@ function formatDate(ts){
   return y + '-' + m + '-' + day;
 }
 
-function genId(){
-  return 'cs_' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
+function genProjId(){
+  return 'proj_' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
+}
+
+function genMeasId(){
+  return 'meas_' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
 }
 
 // ============ 数据加载保存 ============
-function loadList(){
+function loadProjects(){
   try{
     var raw = localStorage.getItem(STORAGE_KEY);
-    list = raw ? JSON.parse(raw) : [];
+    projects = raw ? JSON.parse(raw) : [];
   }catch(e){
-    list = [];
+    projects = [];
     console.error('加载失败', e);
   }
   // 按更新时间倒序
-  list.sort(function(a,b){ return (b.updateTime||0) - (a.updateTime||0); });
+  projects.sort(function(a,b){ return (b.updateTime||0) - (a.updateTime||0); });
 }
 
-function saveList(){
+function saveProjects(){
   try{
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
   }catch(e){
     showToast('保存失败：' + (e.message||'未知错误'));
   }
+}
+
+// ============ 旧数据迁移 ============
+function migrateOldData(){
+  try{
+    var oldRaw = localStorage.getItem(OLD_STORAGE_KEY);
+    if(!oldRaw) return 0;
+    var oldList = JSON.parse(oldRaw);
+    if(!Array.isArray(oldList) || oldList.length === 0) return 0;
+    
+    var migrated = 0;
+    for(var i = 0; i < oldList.length; i++){
+      var oldItem = oldList[i];
+      // 为每条旧记录创建一个项目 + 一条测量记录
+      var projId = genProjId();
+      var measId = genMeasId();
+      
+      var loc = oldItem.location || {};
+      
+      // 测量记录数据：保留原记录所有字段，补充默认值
+      var measurement = {};
+      for(var key in oldItem){
+        if(oldItem.hasOwnProperty(key)){
+          measurement[key] = oldItem[key];
+        }
+      }
+      measurement.id = measId;
+      measurement.buildingNo = oldItem.buildingNo || '';
+      measurement.unitNo = oldItem.unitNo || '';
+      measurement.elevatorNo = oldItem.elevatorNo || '';
+      measurement.elevatorType = oldItem.elevatorType || '直梯';
+      measurement.createTime = oldItem.createTime || Date.now();
+      measurement.updateTime = oldItem.updateTime || Date.now();
+      
+      // 项目数据
+      var project = {
+        id: projId,
+        projectName: oldItem.projectName || '未命名项目',
+        location: {
+          province: loc.province || '',
+          city: loc.city || '',
+          district: loc.district || '',
+          detail: loc.detail || ''
+        },
+        sales: oldItem.sales || '',
+        phone: oldItem.phone || '',
+        surveyType: oldItem.surveyType || '首勘',
+        createTime: oldItem.createTime || Date.now(),
+        updateTime: oldItem.updateTime || Date.now(),
+        measurements: [measurement]
+      };
+      
+      projects.push(project);
+      migrated++;
+    }
+    
+    saveProjects();
+    // 迁移后清除旧数据（保留备份）
+    localStorage.setItem(OLD_STORAGE_KEY + '_backup', oldRaw);
+    localStorage.removeItem(OLD_STORAGE_KEY);
+    
+    return migrated;
+  }catch(e){
+    console.error('迁移失败', e);
+    return 0;
+  }
+}
+
+// ============ 统计 ============
+function getTotalMeasurements(){
+  var count = 0;
+  for(var i = 0; i < projects.length; i++){
+    if(projects[i].measurements){
+      count += projects[i].measurements.length;
+    }
+  }
+  return count;
+}
+
+function getSignedCount(){
+  var count = 0;
+  for(var i = 0; i < projects.length; i++){
+    var meas = projects[i].measurements || [];
+    for(var j = 0; j < meas.length; j++){
+      if(meas[j].signatures && meas[j].signatures.surveyor){
+        count++;
+      }
+    }
+  }
+  return count;
 }
 
 // ============ 渲染列表 ============
 function renderList(){
   var container = document.getElementById('projectList');
   var countEl = document.getElementById('listCount');
-  var statTotal = document.getElementById('statTotal');
-  var statMonth = document.getElementById('statMonth');
+  var statProjects = document.getElementById('statProjects');
+  var statMeas = document.getElementById('statMeasurements');
   var statSigned = document.getElementById('statSigned');
   
-  countEl.textContent = '共 ' + list.length + ' 条';
-  statTotal.textContent = list.length;
+  var totalMeas = getTotalMeasurements();
+  var signedCount = getSignedCount();
   
-  // 本月新增
-  var now = new Date();
-  var monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
-  var monthCount = list.filter(function(item){ return (item.createTime||0) >= monthStart; }).length;
-  statMonth.textContent = monthCount;
-  
-  // 已签字
-  var signedCount = list.filter(function(item){ return item.signatures && item.signatures.surveyor; }).length;
+  countEl.textContent = '共 ' + projects.length + ' 个项目';
+  statProjects.textContent = projects.length;
+  statMeas.textContent = totalMeas;
   statSigned.textContent = signedCount;
   
-  if(!list.length){
+  if(!projects.length){
     container.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">暂无勘测项目</div><div class="empty-desc">点击右下角 + 按钮<br>创建第一个土建勘测项目</div></div>';
     return;
   }
   
   var html = '';
-  for(var i=0;i<list.length;i++){
-    var item = list[i];
-    var loc = item.location || {};
+  for(var i = 0; i < projects.length; i++){
+    var proj = projects[i];
+    var loc = proj.location || {};
     var locStr = [loc.province, loc.city, loc.district].filter(Boolean).join(' ') || '未设置';
-    var hasSigned = item.signatures && item.signatures.surveyor;
-    var typeTag = item.elevatorModel || item.elevatorType || '客梯';
+    var measList = proj.measurements || [];
+    var isExpanded = expandedProjectId === proj.id;
     
-    html += '<div class="project-card">';
+    html += '<div class="project-card' + (isExpanded ? ' expanded' : '') + '" id="projCard_' + proj.id + '">';
+    
+    // 项目卡片头部
+    html += '<div class="project-card-header" onclick="toggleProjectExpand(\'' + proj.id + '\')">';
     html += '<div class="card-top">';
-    html += '<div class="card-project">' + escapeHtml(item.projectName || '未命名项目') + '</div>';
-    html += '<div class="card-date-tag">' + formatDate(item.createTime) + '</div>';
+    html += '<div class="card-project" title="' + escapeHtml(proj.projectName || '未命名项目') + '">' + escapeHtml(proj.projectName || '未命名项目') + '</div>';
+    html += '<button class="card-edit-btn" onclick="event.stopPropagation(); openEditProjectModal(\'' + proj.id + '\')">✎</button>';
     html += '</div>';
     html += '<div class="card-meta">';
     html += '<div class="meta-item"><span class="meta-label">📍</span><span class="meta-value" title="' + escapeHtml(locStr) + '">' + escapeHtml(locStr) + '</span></div>';
-    html += '<div class="meta-item"><span class="meta-label">👤</span><span class="meta-value">' + escapeHtml(item.sales || '未设置') + '</span></div>';
-    html += '<div class="meta-item"><span class="meta-label">📞</span><span class="meta-value">' + escapeHtml(item.phone || '-') + '</span></div>';
-    html += '<div class="meta-item"><span class="meta-label">🛗</span><span class="meta-value">' + escapeHtml(item.load||'') + 'kg / ' + escapeHtml(item.speed||'') + 'm/s</span></div>';
+    html += '<div class="meta-item"><span class="meta-label">👤</span><span class="meta-value">' + escapeHtml(proj.sales || '未设置') + '</span></div>';
     html += '</div>';
+    html += '<div class="card-bottom">';
     html += '<div class="card-tags">';
-    html += '<span class="tag tag-type">' + escapeHtml(typeTag) + '</span>';
-    if(hasSigned){ html += '<span class="tag tag-signed">✓ 已签字</span>'; }
-    if(item.floorData && item.floorData.length){ html += '<span class="tag">' + item.floorData.length + '层</span>'; }
+    html += '<span class="tag tag-type">' + escapeHtml(proj.surveyType || '首勘') + '</span>';
+    html += '<span class="tag tag-count">' + measList.length + ' 台电梯</span>';
     html += '</div>';
-    html += '<div class="card-btns">';
-    html += '<button class="card-btn btn-view" onclick="goDetail(\'' + item.id + '\')">查看/编辑</button>';
-    html += '<button class="card-btn btn-print" onclick="printItem(\'' + item.id + '\')">打印</button>';
-    html += '<button class="card-btn btn-delete" onclick="confirmDelete(\'' + item.id + '\')">删除</button>';
+    html += '<span class="card-expand-arrow">▼</span>';
+    html += '</div>';
+    html += '</div>';
+    
+    // 测量记录展开区
+    html += '<div class="measurements-section">';
+    html += '<div class="measurements-inner">';
+    
+    if(measList.length > 0){
+      html += '<div class="meas-list">';
+      for(var j = 0; j < measList.length; j++){
+        var m = measList[j];
+        var titleParts = [m.buildingNo, m.unitNo, m.elevatorNo].filter(Boolean);
+        var title = titleParts.length > 0 ? titleParts.join('-') : '未命名';
+        var hasSigned = m.signatures && m.signatures.surveyor;
+        var elevType = m.elevatorType || '直梯';
+        var typeClass = elevType === '扶梯' ? 'meas-type-escalator' : 'meas-type-straight';
+        
+        html += '<div class="meas-card" onclick="goToDetail(\'' + proj.id + '\',\'' + m.id + '\')">';
+        html += '<div class="meas-card-top">';
+        html += '<div class="meas-title">' + escapeHtml(title) + '</div>';
+        html += '<span class="meas-type-tag ' + typeClass + '">' + escapeHtml(elevType) + '</span>';
+        html += '</div>';
+        html += '<div class="meas-meta">';
+        html += '<div class="meas-meta-item"><span class="meas-meta-label">载重：</span><span class="meas-meta-value">' + escapeHtml(m.load || '-') + 'kg</span></div>';
+        html += '<div class="meas-meta-item"><span class="meas-meta-label">速度：</span><span class="meas-meta-value">' + escapeHtml(m.speed || '-') + 'm/s</span></div>';
+        var floorCount = (m.floorData && m.floorData.length) ? m.floorData.length : (m.floors || 0);
+        html += '<div class="meas-meta-item"><span class="meas-meta-label">楼层：</span><span class="meas-meta-value">' + floorCount + '层</span></div>';
+        html += '<div class="meas-meta-item"><span class="meas-meta-label">型号：</span><span class="meas-meta-value">' + escapeHtml(m.elevatorModel || '-') + '</span></div>';
+        html += '</div>';
+        if(hasSigned){
+          html += '<span class="meas-signed-badge">✓ 已签字</span>';
+        }
+        html += '<div class="meas-card-actions" onclick="event.stopPropagation();">';
+        html += '<button class="meas-action-btn meas-action-view" onclick="goToDetail(\'' + proj.id + '\',\'' + m.id + '\')">查看</button>';
+        html += '<button class="meas-action-btn meas-action-print" onclick="printMeasurement(\'' + proj.id + '\',\'' + m.id + '\')">打印</button>';
+        html += '<button class="meas-action-btn meas-action-delete" onclick="confirmDeleteMeasurement(\'' + proj.id + '\',\'' + m.id + '\')">删除</button>';
+        html += '</div>';
+        html += '</div>';
+      }
+      html += '</div>';
+    }
+    
+    html += '<button class="new-meas-btn" onclick="event.stopPropagation(); openNewMeasurementModal(\'' + proj.id + '\')">';
+    html += '<span style="font-size:18px;">+</span> 新建测量记录';
+    html += '</button>';
+    
+    html += '</div>';
     html += '</div>';
     html += '</div>';
   }
   container.innerHTML = html;
+}
+
+// ============ 项目展开/收起 ============
+function toggleProjectExpand(projId){
+  if(expandedProjectId === projId){
+    expandedProjectId = null;
+  }else{
+    expandedProjectId = projId;
+  }
+  // 局部更新，不重新渲染全部
+  var allCards = document.querySelectorAll('.project-card');
+  for(var i = 0; i < allCards.length; i++){
+    allCards[i].classList.remove('expanded');
+  }
+  if(expandedProjectId){
+    var card = document.getElementById('projCard_' + expandedProjectId);
+    if(card) card.classList.add('expanded');
+  }
 }
 
 // ============ 跳转 ============
@@ -278,37 +698,408 @@ function goHome(){
   window.location.href = 'index.html';
 }
 
-function goNew(){
-  window.location.href = 'civil-survey-detail.html';
+function goToDetail(projectId, measurementId){
+  window.location.href = 'civil-survey-detail.html?projectId=' + projectId + '&measurementId=' + measurementId;
 }
 
-function goDetail(id){
-  window.location.href = 'civil-survey-detail.html?id=' + id;
+function printMeasurement(projectId, measurementId){
+  window.location.href = 'civil-survey-detail.html?projectId=' + projectId + '&measurementId=' + measurementId + '&print=1';
 }
 
-function printItem(id){
-  window.location.href = 'civil-survey-detail.html?id=' + id + '&print=1';
+// ============ 新建项目弹窗 ============
+function openNewProjectModal(){
+  initNewProjectRegions();
+  currentNewProjectSurveyType = '首勘';
+  document.getElementById('np_projectName').value = '';
+  document.getElementById('np_address').value = '';
+  document.getElementById('np_sales').value = '';
+  document.getElementById('np_phone').value = '';
+  setSurveyTypeUI('首勘', 'np');
+  document.getElementById('newProjectModal').classList.add('show');
+}
+
+function closeNewProjectModal(){
+  document.getElementById('newProjectModal').classList.remove('show');
+}
+
+function setSurveyType(type){
+  currentNewProjectSurveyType = type;
+  setSurveyTypeUI(type, 'np');
+}
+
+function setSurveyTypeUI(type, prefix){
+  var firstEl = document.getElementById(prefix + '_surveyType_first');
+  var secondEl = document.getElementById(prefix + '_surveyType_second');
+  if(firstEl && secondEl){
+    if(type === '首勘'){
+      firstEl.classList.add('active');
+      secondEl.classList.remove('active');
+    }else{
+      firstEl.classList.remove('active');
+      secondEl.classList.add('active');
+    }
+  }
+}
+
+function initNewProjectRegions(){
+  var provSel = document.getElementById('np_province');
+  var html = '<option value="">请选择</option>';
+  for(var p in regionData){
+    html += '<option value="' + p + '">' + p + '</option>';
+  }
+  provSel.innerHTML = html;
+  document.getElementById('np_city').innerHTML = '<option value="">请选择</option>';
+  document.getElementById('np_district').innerHTML = '<option value="">请选择</option>';
+}
+
+function npOnProvinceChange(){
+  var prov = document.getElementById('np_province').value;
+  var citySel = document.getElementById('np_city');
+  var distSel = document.getElementById('np_district');
+  distSel.innerHTML = '<option value="">请选择</option>';
+  if(!prov || !regionData[prov]){
+    citySel.innerHTML = '<option value="">请选择</option>';
+    return;
+  }
+  var html = '<option value="">请选择</option>';
+  for(var c in regionData[prov]){
+    html += '<option value="' + c + '">' + c + '</option>';
+  }
+  citySel.innerHTML = html;
+}
+
+function npOnCityChange(){
+  var prov = document.getElementById('np_province').value;
+  var city = document.getElementById('np_city').value;
+  var distSel = document.getElementById('np_district');
+  if(!prov || !city || !regionData[prov] || !regionData[prov][city]){
+    distSel.innerHTML = '<option value="">请选择</option>';
+    return;
+  }
+  var html = '<option value="">请选择</option>';
+  var districts = regionData[prov][city];
+  for(var i = 0; i < districts.length; i++){
+    html += '<option value="' + districts[i] + '">' + districts[i] + '</option>';
+  }
+  distSel.innerHTML = html;
+}
+
+function submitNewProject(){
+  var name = document.getElementById('np_projectName').value.trim();
+  if(!name){
+    showToast('请输入项目名称');
+    return;
+  }
+  
+  var now = Date.now();
+  var newProject = {
+    id: genProjId(),
+    projectName: name,
+    location: {
+      province: document.getElementById('np_province').value,
+      city: document.getElementById('np_city').value,
+      district: document.getElementById('np_district').value,
+      detail: document.getElementById('np_address').value.trim()
+    },
+    sales: document.getElementById('np_sales').value.trim(),
+    phone: document.getElementById('np_phone').value.trim(),
+    surveyType: currentNewProjectSurveyType,
+    createTime: now,
+    updateTime: now,
+    measurements: []
+  };
+  
+  projects.unshift(newProject);
+  saveProjects();
+  closeNewProjectModal();
+  expandedProjectId = newProject.id;
+  renderList();
+  showToast('项目创建成功');
+}
+
+// ============ 编辑项目弹窗 ============
+function openEditProjectModal(projId){
+  var proj = projects.find(function(p){ return p.id === projId; });
+  if(!proj) return;
+  
+  currentEditProjectId = projId;
+  currentEditProjectSurveyType = proj.surveyType || '首勘';
+  
+  document.getElementById('ep_projectName').value = proj.projectName || '';
+  document.getElementById('ep_address').value = (proj.location && proj.location.detail) || '';
+  document.getElementById('ep_sales').value = proj.sales || '';
+  document.getElementById('ep_phone').value = proj.phone || '';
+  
+  // 初始化省市区
+  initEditProjectRegions(proj);
+  setSurveyTypeUI(currentEditProjectSurveyType, 'ep');
+  
+  document.getElementById('editProjectModal').classList.add('show');
+}
+
+function closeEditProjectModal(){
+  document.getElementById('editProjectModal').classList.remove('show');
+  currentEditProjectId = null;
+}
+
+function setEditSurveyType(type){
+  currentEditProjectSurveyType = type;
+  setSurveyTypeUI(type, 'ep');
+}
+
+function initEditProjectRegions(proj){
+  var provSel = document.getElementById('ep_province');
+  var html = '<option value="">请选择</option>';
+  for(var p in regionData){
+    html += '<option value="' + p + '">' + p + '</option>';
+  }
+  provSel.innerHTML = html;
+  
+  var loc = proj.location || {};
+  if(loc.province){
+    provSel.value = loc.province;
+    epOnProvinceChange();
+    if(loc.city){
+      document.getElementById('ep_city').value = loc.city;
+      epOnCityChange();
+      if(loc.district){
+        document.getElementById('ep_district').value = loc.district;
+      }
+    }
+  }else{
+    document.getElementById('ep_city').innerHTML = '<option value="">请选择</option>';
+    document.getElementById('ep_district').innerHTML = '<option value="">请选择</option>';
+  }
+}
+
+function epOnProvinceChange(){
+  var prov = document.getElementById('ep_province').value;
+  var citySel = document.getElementById('ep_city');
+  var distSel = document.getElementById('ep_district');
+  distSel.innerHTML = '<option value="">请选择</option>';
+  if(!prov || !regionData[prov]){
+    citySel.innerHTML = '<option value="">请选择</option>';
+    return;
+  }
+  var html = '<option value="">请选择</option>';
+  for(var c in regionData[prov]){
+    html += '<option value="' + c + '">' + c + '</option>';
+  }
+  citySel.innerHTML = html;
+}
+
+function epOnCityChange(){
+  var prov = document.getElementById('ep_province').value;
+  var city = document.getElementById('ep_city').value;
+  var distSel = document.getElementById('ep_district');
+  if(!prov || !city || !regionData[prov] || !regionData[prov][city]){
+    distSel.innerHTML = '<option value="">请选择</option>';
+    return;
+  }
+  var html = '<option value="">请选择</option>';
+  var districts = regionData[prov][city];
+  for(var i = 0; i < districts.length; i++){
+    html += '<option value="' + districts[i] + '">' + districts[i] + '</option>';
+  }
+  distSel.innerHTML = html;
+}
+
+function submitEditProject(){
+  if(!currentEditProjectId) return;
+  
+  var name = document.getElementById('ep_projectName').value.trim();
+  if(!name){
+    showToast('请输入项目名称');
+    return;
+  }
+  
+  var proj = projects.find(function(p){ return p.id === currentEditProjectId; });
+  if(!proj) return;
+  
+  proj.projectName = name;
+  proj.location = {
+    province: document.getElementById('ep_province').value,
+    city: document.getElementById('ep_city').value,
+    district: document.getElementById('ep_district').value,
+    detail: document.getElementById('ep_address').value.trim()
+  };
+  proj.sales = document.getElementById('ep_sales').value.trim();
+  proj.phone = document.getElementById('ep_phone').value.trim();
+  proj.surveyType = currentEditProjectSurveyType;
+  proj.updateTime = Date.now();
+  
+  saveProjects();
+  closeEditProjectModal();
+  renderList();
+  showToast('已保存修改');
+}
+
+// ============ 新建测量弹窗 ============
+function openNewMeasurementModal(projId){
+  currentNewMeasurementProjectId = projId;
+  currentNewMeasurementElevType = '直梯';
+  document.getElementById('nm_buildingNo').value = '';
+  document.getElementById('nm_unitNo').value = '';
+  document.getElementById('nm_elevatorNo').value = '';
+  setElevatorTypeUI('直梯');
+  document.getElementById('newMeasurementModal').classList.add('show');
+}
+
+function closeNewMeasurementModal(){
+  document.getElementById('newMeasurementModal').classList.remove('show');
+  currentNewMeasurementProjectId = null;
+}
+
+function setElevatorType(type){
+  currentNewMeasurementElevType = type;
+  setElevatorTypeUI(type);
+}
+
+function setElevatorTypeUI(type){
+  var straightEl = document.getElementById('nm_elevType_straight');
+  var escalatorEl = document.getElementById('nm_elevType_escalator');
+  if(straightEl && escalatorEl){
+    if(type === '直梯'){
+      straightEl.classList.add('active');
+      escalatorEl.classList.remove('active');
+    }else{
+      straightEl.classList.remove('active');
+      escalatorEl.classList.add('active');
+    }
+  }
+}
+
+function submitNewMeasurement(){
+  if(!currentNewMeasurementProjectId) return;
+  
+  var proj = projects.find(function(p){ return p.id === currentNewMeasurementProjectId; });
+  if(!proj) return;
+  
+  var buildingNo = document.getElementById('nm_buildingNo').value.trim();
+  var unitNo = document.getElementById('nm_unitNo').value.trim();
+  var elevatorNo = document.getElementById('nm_elevatorNo').value.trim();
+  
+  var newMeas = createDefaultMeasurement();
+  newMeas.buildingNo = buildingNo;
+  newMeas.unitNo = unitNo;
+  newMeas.elevatorNo = elevatorNo;
+  newMeas.elevatorType = currentNewMeasurementElevType;
+  
+  if(!proj.measurements) proj.measurements = [];
+  proj.measurements.unshift(newMeas);
+  proj.updateTime = Date.now();
+  
+  saveProjects();
+  closeNewMeasurementModal();
+  
+  // 跳转到详情页
+  window.location.href = 'civil-survey-detail.html?projectId=' + proj.id + '&measurementId=' + newMeas.id;
+}
+
+function createDefaultMeasurement(){
+  return {
+    id: genMeasId(),
+    buildingNo: '',
+    unitNo: '',
+    elevatorNo: '',
+    elevatorType: '直梯',
+    elevatorModel: '客梯',
+    load: '',
+    speed: '',
+    floors: '',
+    stops: '',
+    doorType: '中分',
+    doorPosition: '前门',
+    carSize: { width: '', depth: '', height: '' },
+    doorClearSize: { width: '', height: '' },
+    controlType: '单控',
+    parallelNo: '',
+    createTime: Date.now(),
+    updateTime: Date.now(),
+    shaft: {
+      walls: {
+        back: { type: '砖混墙', thick: '', outer: '否', hasRingBeam: '否', ringBeam: '', bracket: '' },
+        left: { type: '砖混墙', thick: '', outer: '否', hasRingBeam: '否', ringBeam: '', bracket: '' },
+        right: { type: '砖混墙', thick: '', outer: '否', hasRingBeam: '否', ringBeam: '', bracket: '' }
+      },
+      headerBeam: '有',
+      headerBeamLen: '',
+      pier: {
+        structure: '混凝土',
+        status: '未建',
+        leftWidth: '',
+        rightWidth: ''
+      },
+      callBoxType: '有底盒',
+      hasCorbel: '无',
+      isThrough: '否',
+      powerSupply: '380V',
+      isSightseeing: '否',
+      sightseeingType: '方形',
+      sightseeingSides: '1面',
+      machineRoom: {
+        type: '大机房',
+        width: '',
+        depth: '',
+        height: '',
+        localRaise: '无',
+        raiseHeight: ''
+      },
+      controlCabinetPos: '标准位置',
+      controlCabinetCustom: ''
+    },
+    topPit: {
+      pitMeasuredDepth: '',
+      pitFinishHeight: '',
+      pitDepth: '',
+      topMeasuredHeight: '',
+      topFinishHeight: '',
+      topHeight: ''
+    },
+    floorData: [],
+    liftHeight: '',
+    wellTotalHeight: '',
+    sketches: {
+      shaftDiagram: '',
+      machineRoomDiagram: ''
+    },
+    signatures: {
+      surveyor: '',
+      reviewer: '',
+      draftsman: '',
+      surveyorDate: '',
+      reviewerDate: '',
+      draftsmanDate: ''
+    },
+    specialNotes: ''
+  };
 }
 
 // ============ 删除 ============
-function confirmDelete(id){
-  pendingDeleteId = id;
-  var item = list.find(function(x){ return x.id === id; });
-  if(item){
-    document.getElementById('confirmMsg').innerHTML = '确定要删除项目 <strong>' + escapeHtml(item.projectName||'未命名') + '</strong> 吗？<br>所有勘测数据将被删除，且无法恢复。';
-  }
+function confirmDeleteMeasurement(projId, measId){
+  pendingDelete = { type: 'measurement', projectId: projId, measurementId: measId };
+  document.getElementById('confirmTitle').textContent = '确认删除';
+  document.getElementById('confirmMsg').textContent = '确定要删除这条测量记录吗？删除后无法恢复。';
   document.getElementById('confirmMask').classList.add('show');
 }
 
 function hideConfirm(){
   document.getElementById('confirmMask').classList.remove('show');
-  pendingDeleteId = null;
+  pendingDelete = null;
 }
 
 function doDelete(){
-  if(!pendingDeleteId) return;
-  list = list.filter(function(x){ return x.id !== pendingDeleteId; });
-  saveList();
+  if(!pendingDelete) return;
+  
+  if(pendingDelete.type === 'measurement'){
+    var proj = projects.find(function(p){ return p.id === pendingDelete.projectId; });
+    if(proj && proj.measurements){
+      proj.measurements = proj.measurements.filter(function(m){ return m.id !== pendingDelete.measurementId; });
+      proj.updateTime = Date.now();
+    }
+  }
+  
+  saveProjects();
   renderList();
   hideConfirm();
   showToast('已删除');
@@ -328,8 +1119,8 @@ document.addEventListener('click', function(){
 
 // ============ 导出导入 ============
 function exportData(){
-  if(!list.length){ showToast('暂无数据可导出'); return; }
-  var blob = new Blob([JSON.stringify(list, null, 2)], {type:'application/json'});
+  if(!projects.length){ showToast('暂无数据可导出'); return; }
+  var blob = new Blob([JSON.stringify(projects, null, 2)], {type:'application/json'});
   var url = URL.createObjectURL(blob);
   var a = document.createElement('a');
   a.href = url;
@@ -338,7 +1129,7 @@ function exportData(){
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
-  showToast('已导出 ' + list.length + ' 条记录');
+  showToast('已导出 ' + projects.length + ' 个项目');
   document.getElementById('menuDropdown').classList.remove('show');
 }
 
@@ -357,14 +1148,14 @@ document.getElementById('importFileInput').addEventListener('change', function(e
       if(!Array.isArray(data)) throw new Error('格式错误');
       var added = 0;
       data.forEach(function(item){
-        if(item && item.id && !list.some(function(x){ return x.id === item.id; })){
-          list.push(item);
+        if(item && item.id && !projects.some(function(x){ return x.id === item.id; })){
+          projects.push(item);
           added++;
         }
       });
-      saveList();
+      saveProjects();
       renderList();
-      showToast('导入成功，新增 ' + added + ' 条');
+      showToast('导入成功，新增 ' + added + ' 个项目');
     }catch(err){
       showToast('导入失败：' + (err.message||'格式错误'));
     }
@@ -373,189 +1164,53 @@ document.getElementById('importFileInput').addEventListener('change', function(e
   e.target.value = '';
 });
 
-// ============ 旧数据迁移 ============
-function migrateOldData(){
-  document.getElementById('menuDropdown').classList.remove('show');
-  
-  // 尝试从旧版 civil-survey.html 用的 IndexedDB 或 localStorage 读取
-  var migrated = 0;
-  
-  // 先检查 localStorage 中是否有旧格式数据
-  var oldKeys = Object.keys(localStorage).filter(function(k){
-    return k.indexOf('wtCivil') === 0 || k.indexOf('civil_') === 0 || k.indexOf('cs_') === 0;
-  });
-  
-  // 检查 IndexedDB (旧版用的 WeiteKV)
-  if(typeof indexedDB !== 'undefined'){
-    try{
-      var req = indexedDB.open('WeiteKV', 1);
-      req.onsuccess = function(){
-        var db = req.result;
-        try{
-          var tx = db.transaction('kv', 'readonly');
-          var store = tx.objectStore('kv');
-          var cursorReq = store.openCursor();
-          cursorReq.onsuccess = function(){
-            var cursor = cursorReq.result;
-            if(cursor){
-              var key = cursor.key;
-              // 判断是否土建勘测旧数据
-              if(typeof key === 'string' && (
-                key.indexOf('proj_') === 0 || key.indexOf('civil') >= 0 || key.indexOf('survey') >= 0
-              )){
-                var val = cursor.value;
-                try{
-                  var obj = JSON.parse(val);
-                  if(obj && obj.name && obj.buildings){
-                    // 旧版项目-楼栋-电梯结构，展平为单条勘测记录
-                    migrated += migrateOldProject(obj);
-                  }
-                }catch(e){}
-              }
-              cursor.continue();
-            }else{
-              if(migrated > 0){
-                saveList();
-                loadList();
-                renderList();
-                showToast('迁移完成，新增 ' + migrated + ' 条');
-              }else{
-                showToast('未发现可迁移的旧数据');
-              }
-            }
-          };
-        }catch(e){
-          showToast('迁移失败');
-        }
-      };
-      req.onerror = function(){
-        showToast('未发现可迁移的旧数据');
-      };
-    }catch(e){
-      showToast('迁移失败');
-    }
-  }else{
-    showToast('当前环境不支持数据迁移');
-  }
-}
-
-function migrateOldProject(proj){
-  var count = 0;
-  if(!proj.buildings) return 0;
-  for(var i=0;i<proj.buildings.length;i++){
-    var b = proj.buildings[i];
-    if(!b.elevators) continue;
-    for(var j=0;j<b.elevators.length;j++){
-      var e = b.elevators[j];
-      // 转换为新格式
-      var newItem = convertOldElevatorToNew(proj, b, e);
-      if(!list.some(function(x){ return x.id === newItem.id; })){
-        list.push(newItem);
-        count++;
-      }
-    }
-  }
-  return count;
-}
-
-function convertOldElevatorToNew(proj, bldg, elev){
-  var newId = 'mig_' + (elev.id || genId());
-  // 避免重复
-  if(list.some(function(x){ return x.id === newId; })){
-    newId = genId();
-  }
-  
-  var location = {};
-  if(proj.location){
-    // 简单解析旧地址
-    location.detail = proj.location;
-  }
-  
-  return {
-    id: newId,
-    projectName: proj.name + (bldg.name ? ' - ' + bldg.name : '') + (elev.elevatorNo ? ' - ' + elev.elevatorNo : ''),
-    location: location,
-    sales: proj.sales || '',
-    phone: proj.phone || '',
-    elevatorModel: elev.elevatorType || '',
-    load: elev.load || '',
-    speed: elev.speed || '',
-    floors: elev.floors || '',
-    stops: elev.stops || '',
-    doorType: elev.doorType || '中分',
-    doorPosition: elev.isThrough === '是' ? '贯通' : '前门',
-    createTime: proj.createTime || proj.updateTime || Date.now(),
-    updateTime: proj.updateTime || Date.now(),
-    migrated: true,
-    
-    // 井道结构
-    shaft: {
-      walls: {
-        back: { type: elev.backWallType || '砖混墙', thick: elev.backWallThick || '', outer: elev.backWallOuter || '否', ringBeam: elev.backRingBeam || '', bracket: elev.backBracket || '' },
-        left: { type: elev.leftWallType || '砖混墙', thick: elev.leftWallThick || '', outer: elev.leftWallOuter || '否', ringBeam: elev.leftRingBeam || '', bracket: elev.leftBracket || '' },
-        right: { type: elev.rightWallType || '砖混墙', thick: elev.rightWallThick || '', outer: elev.rightWallOuter || '否', ringBeam: elev.rightRingBeam || '', bracket: elev.rightBracket || '' },
-        front: { type: elev.frontWallType || '砖混墙', thick: elev.frontWallThick || '', outer: elev.frontWallOuter || '否', ringBeam: elev.frontRingBeam || '', bracket: elev.frontBracket || '' }
-      },
-      headerBeam: elev.hasHeaderBeam || '有',
-      pier: {
-        structure: elev.pierStructure || '混凝土',
-        status: elev.pierStatus || '未建',
-        leftWidth: elev.pierLeftWidth || '',
-        rightWidth: elev.pierRightWidth || '',
-        hasPier: '有'
-      },
-      callBoxType: elev.callBoxType || '有底盒',
-      hasCorbel: elev.hasCorbel || '无',
-      isThrough: elev.isThrough || '否',
-      powerSupply: elev.powerSupply || '三相380V'
-    },
-    
-    // 顶层底坑
-    topPit: {
-      isSightseeing: elev.sightseeingType ? '是' : '否',
-      sightseeingType: elev.sightseeingType || '方形',
-      pitMeasuredDepth: elev.pitDepth || '',
-      pitFinishHeight: '',
-      pitDepth: elev.pitDepth || '',
-      topMeasuredHeight: elev.topHeight || '',
-      topFinishHeight: '',
-      topHeight: elev.topHeight || ''
-    },
-    
-    // 楼层
-    floorData: elev.floorData || [],
-    
-    liftHeight: elev.liftHeight || '',
-    wellTotalHeight: elev.wellTotalHeight || '',
-    
-    // 示意图
-    sketches: elev.sketches ? { shaftDiagram: elev.sketches[0] || '', machineRoomDiagram: elev.sketches[1] || '' } : {},
-    
-    // 签字
-    signatures: {
-      surveyor: (elev.signatures && elev.signatures.surveyor) || ''
-    },
-    
-    specialNotes: elev.specialNotes || ''
-  };
-}
-
 // ============ 初始化 ============
-loadList();
-renderList();
+function init(){
+  loadProjects();
+  // 自动迁移旧数据
+  var migrated = migrateOldData();
+  if(migrated > 0){
+    loadProjects();
+    showToast('已自动迁移 ' + migrated + ' 条旧数据');
+  }
+  renderList();
+}
+
+init();
 
 // 暴露全局函数
 window.goHome = goHome;
-window.goNew = goNew;
-window.goDetail = goDetail;
-window.printItem = printItem;
-window.confirmDelete = confirmDelete;
+window.toggleProjectExpand = toggleProjectExpand;
+window.goToDetail = goToDetail;
+window.printMeasurement = printMeasurement;
+window.confirmDeleteMeasurement = confirmDeleteMeasurement;
 window.hideConfirm = hideConfirm;
 window.doDelete = doDelete;
 window.toggleMenu = toggleMenu;
 window.exportData = exportData;
 window.importData = importData;
-window.migrateOldData = migrateOldData;
+
+// 新建项目
+window.openNewProjectModal = openNewProjectModal;
+window.closeNewProjectModal = closeNewProjectModal;
+window.setSurveyType = setSurveyType;
+window.npOnProvinceChange = npOnProvinceChange;
+window.npOnCityChange = npOnCityChange;
+window.submitNewProject = submitNewProject;
+
+// 编辑项目
+window.openEditProjectModal = openEditProjectModal;
+window.closeEditProjectModal = closeEditProjectModal;
+window.setEditSurveyType = setEditSurveyType;
+window.epOnProvinceChange = epOnProvinceChange;
+window.epOnCityChange = epOnCityChange;
+window.submitEditProject = submitEditProject;
+
+// 新建测量
+window.openNewMeasurementModal = openNewMeasurementModal;
+window.closeNewMeasurementModal = closeNewMeasurementModal;
+window.setElevatorType = setElevatorType;
+window.submitNewMeasurement = submitNewMeasurement;
 
 })();
 </script>

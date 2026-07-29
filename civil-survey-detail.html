@@ -221,14 +221,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
       <div class="zone-panel" id="panel0">
         <div class="zone-section-title">📋 项目基本信息</div>
         <div class="card">
+          <div style="font-size:11px;color:#a0aec0;margin-bottom:10px;padding:6px 10px;background:#f7fafc;border-radius:6px;">
+            💡 项目信息请在列表页点击项目卡片右上角的 ✎ 按钮修改
+          </div>
           <div class="form-grid">
             <div class="form-row" style="display:none;">
               <label>编号</label>
               <input type="text" id="f_surveyNo" readonly>
             </div>
             <div class="form-row full">
-              <label>项目名称 *</label>
-              <input type="text" id="f_projectName" placeholder="请输入项目名称" onblur="updateField('projectName', this.value)">
+              <label>项目名称</label>
+              <input type="text" id="f_projectName" readonly style="background:#f0f4ff;color:#667eea;font-weight:600;">
             </div>
             <div class="form-row full">
               <label>楼号 / 单元号 / 梯号</label>
@@ -241,32 +244,32 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
             <div class="form-row full">
               <label>省 / 市 / 区县</label>
               <div style="display:flex;gap:8px;">
-                <select id="f_province" onchange="onProvinceChange()" style="flex:1;">
+                <select id="f_province" disabled style="flex:1;opacity:.8;background:#f0f4ff;color:#667eea;font-weight:600;">
                   <option value="">请选择</option>
                 </select>
-                <select id="f_city" onchange="onCityChange()" style="flex:1;">
+                <select id="f_city" disabled style="flex:1;opacity:.8;background:#f0f4ff;color:#667eea;font-weight:600;">
                   <option value="">请选择</option>
                 </select>
-                <select id="f_district" onchange="onDistrictChange()" style="flex:1;">
+                <select id="f_district" disabled style="flex:1;opacity:.8;background:#f0f4ff;color:#667eea;font-weight:600;">
                   <option value="">请选择</option>
                 </select>
               </div>
             </div>
             <div class="form-row full">
               <label>详细地址</label>
-              <input type="text" id="f_address" placeholder="请输入详细地址" onblur="updateLocation('detail', this.value)">
+              <input type="text" id="f_address" readonly style="background:#f0f4ff;color:#667eea;font-weight:600;">
             </div>
             <div class="form-row">
               <label>销售</label>
-              <input type="text" id="f_sales" placeholder="销售姓名" onblur="updateField('sales', this.value)">
+              <input type="text" id="f_sales" readonly style="background:#f0f4ff;color:#667eea;font-weight:600;">
             </div>
             <div class="form-row">
               <label>联系电话</label>
-              <input type="tel" id="f_phone" placeholder="联系电话" onblur="updateField('phone', this.value)">
+              <input type="tel" id="f_phone" readonly style="background:#f0f4ff;color:#667eea;font-weight:600;">
             </div>
             <div class="form-row">
               <label>勘测类型</label>
-              <select id="f_surveyType" onchange="updateField('surveyType', this.value)">
+              <select id="f_surveyType" disabled style="background:#f0f4ff;color:#667eea;font-weight:600;">
                 <option value="首勘">首勘</option>
                 <option value="复勘">复勘</option>
               </select>
@@ -847,10 +850,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
 'use strict';
 
 // ============ 全局状态 ============
-var STORAGE_KEY = 'wtCivilSurveyList';
+var STORAGE_KEY = 'wtCivilSurveyProjects';
+var OLD_STORAGE_KEY = 'wtCivilSurveyList';
 var currentTab = 0;
 var isNew = true;
-var data = null;
+var data = null; // measurement data
+var currentProject = null; // project data
+var projectId = null;
 var sortDir = 'desc'; // desc=从上到下（高到低），asc=从下到上（低到高）
 var expandedFloorIdx = undefined; // 当前展开的楼层索引，undefined表示全部展开
 
@@ -946,6 +952,7 @@ function createDefaultData(){
     buildingNo: '',
     unitNo: '',
     elevatorNo: '',
+    elevatorType: '直梯',
     projectName: '',
     location: { province: '', city: '', district: '', detail: '' },
     sales: '',
@@ -1034,30 +1041,142 @@ function createDefaultData(){
 // ============ 数据加载保存 ============
 function loadData(){
   var urlParams = new URLSearchParams(window.location.search);
-  var id = urlParams.get('id');
+  var projId = urlParams.get('projectId');
+  var measId = urlParams.get('measurementId');
+  var oldId = urlParams.get('id');
   
-  if(id){
-    // 编辑模式
+  // 兼容旧URL：id参数
+  if(oldId && !projId && !measId){
+    // 尝试从旧格式或新格式中找到对应数据
+    tryMigrateOldId(oldId);
+    return;
+  }
+  
+  if(projId && measId){
+    // 编辑模式：从项目中找到测量记录
     try{
-      var list = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-      var found = list.find(function(x){ return x.id === id; });
-      if(found){
-        data = migrateData(found);
-        isNew = false;
-        document.getElementById('headerTitle').textContent = data.projectName || '未命名项目';
-      }else{
-        data = createDefaultData();
-        isNew = true;
+      var allProjects = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      var proj = allProjects.find(function(p){ return p.id === projId; });
+      if(proj && proj.measurements){
+        var meas = proj.measurements.find(function(m){ return m.id === measId; });
+        if(meas){
+          currentProject = proj;
+          projectId = projId;
+          data = migrateData(meas);
+          // 同步项目级字段到data（保持print/export兼容）
+          syncProjectFieldsToData();
+          isNew = false;
+          document.getElementById('headerTitle').textContent = proj.projectName || '未命名项目';
+          return;
+        }
       }
     }catch(e){
-      data = createDefaultData();
-      isNew = true;
+      console.error('加载失败', e);
     }
-  }else{
-    // 新建模式
-    data = createDefaultData();
-    isNew = true;
+    // 没找到，走新建逻辑
+    createNewFromProject(projId);
+    return;
   }
+  
+  // 没有有效参数，返回列表页
+  window.location.href = 'civil-survey-list.html';
+}
+
+function tryMigrateOldId(oldId){
+  // 先尝试在新格式中找（可能measurement id就是旧id）
+  try{
+    var allProjects = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    for(var i = 0; i < allProjects.length; i++){
+      var proj = allProjects[i];
+      if(proj.measurements){
+        for(var j = 0; j < proj.measurements.length; j++){
+          if(proj.measurements[j].id === oldId){
+            // 找到，重定向到新URL
+            window.location.href = 'civil-survey-detail.html?projectId=' + proj.id + '&measurementId=' + proj.measurements[j].id;
+            return;
+          }
+        }
+      }
+    }
+  }catch(e){}
+  
+  // 再尝试从旧格式找
+  try{
+    var oldList = JSON.parse(localStorage.getItem(OLD_STORAGE_KEY) || '[]');
+    var found = oldList.find(function(x){ return x.id === oldId; });
+    if(found){
+      // 迁移单条到新格式
+      var newProjId = 'proj_' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
+      var newMeasId = 'meas_' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
+      
+      var loc = found.location || {};
+      var newProj = {
+        id: newProjId,
+        projectName: found.projectName || '未命名项目',
+        location: { province: loc.province || '', city: loc.city || '', district: loc.district || '', detail: loc.detail || '' },
+        sales: found.sales || '',
+        phone: found.phone || '',
+        surveyType: found.surveyType || '首勘',
+        createTime: found.createTime || Date.now(),
+        updateTime: found.updateTime || Date.now(),
+        measurements: []
+      };
+      
+      var newMeas = {};
+      for(var k in found){
+        if(found.hasOwnProperty(k)){
+          newMeas[k] = found[k];
+        }
+      }
+      newMeas.id = newMeasId;
+      newMeas.elevatorType = newMeas.elevatorType || '直梯';
+      
+      newProj.measurements.push(newMeas);
+      
+      // 保存到新项目列表
+      var allProj = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      allProj.push(newProj);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(allProj));
+      
+      // 重定向到新URL
+      window.location.href = 'civil-survey-detail.html?projectId=' + newProjId + '&measurementId=' + newMeasId;
+      return;
+    }
+  }catch(e){}
+  
+  // 都找不到，返回列表
+  window.location.href = 'civil-survey-list.html';
+}
+
+function createNewFromProject(projId){
+  try{
+    var allProjects = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    var proj = allProjects.find(function(p){ return p.id === projId; });
+    if(proj){
+      currentProject = proj;
+      projectId = projId;
+      data = createDefaultData();
+      // 同步项目级字段
+      syncProjectFieldsToData();
+      isNew = true;
+      document.getElementById('headerTitle').textContent = proj.projectName || '未命名项目';
+      return;
+    }
+  }catch(e){}
+  window.location.href = 'civil-survey-list.html';
+}
+
+function syncProjectFieldsToData(){
+  if(!data || !currentProject) return;
+  data.projectName = currentProject.projectName || '';
+  if(!data.location) data.location = {};
+  data.location.province = (currentProject.location && currentProject.location.province) || '';
+  data.location.city = (currentProject.location && currentProject.location.city) || '';
+  data.location.district = (currentProject.location && currentProject.location.district) || '';
+  data.location.detail = (currentProject.location && currentProject.location.detail) || '';
+  data.sales = currentProject.sales || '';
+  data.phone = currentProject.phone || '';
+  data.surveyType = currentProject.surveyType || '首勘';
 }
 
 // 数据迁移：兼容旧版本数据格式
@@ -1065,6 +1184,7 @@ function migrateData(d){
   if(!d) return createDefaultData();
   
   // 确保基本字段存在
+  if(!d.elevatorType) d.elevatorType = '直梯';
   if(!d.carSize) d.carSize = { width: '', depth: '', height: '' };
   if(!d.doorClearSize) d.doorClearSize = { width: '', height: '' };
   
@@ -1181,24 +1301,45 @@ function generateSurveyNo(){
 }
 
 function saveData(){
-  if(!data) return;
+  if(!data || !projectId) return;
   data.updateTime = Date.now();
   
   // 更新标题
-  if(data.projectName){
-    document.getElementById('headerTitle').textContent = data.projectName;
+  if(currentProject && currentProject.projectName){
+    document.getElementById('headerTitle').textContent = currentProject.projectName;
   }
   
   try{
-    var list = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-    var idx = list.findIndex(function(x){ return x.id === data.id; });
-    if(idx >= 0){
-      list[idx] = data;
+    var allProjects = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    var projIdx = allProjects.findIndex(function(p){ return p.id === projectId; });
+    if(projIdx < 0){
+      showToast('保存失败：项目不存在');
+      return false;
+    }
+    
+    var proj = allProjects[projIdx];
+    if(!proj.measurements) proj.measurements = [];
+    
+    var measIdx = proj.measurements.findIndex(function(m){ return m.id === data.id; });
+    if(measIdx >= 0){
+      proj.measurements[measIdx] = data;
     }else{
-      list.unshift(data);
+      proj.measurements.unshift(data);
       isNew = false;
     }
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+    
+    proj.updateTime = Date.now();
+    // 同步项目级字段（以防data中有变更，虽然UI上只读）
+    if(currentProject){
+      proj.projectName = currentProject.projectName;
+      proj.location = currentProject.location;
+      proj.sales = currentProject.sales;
+      proj.phone = currentProject.phone;
+      proj.surveyType = currentProject.surveyType;
+    }
+    
+    allProjects[projIdx] = proj;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(allProjects));
     showToast('已保存');
     return true;
   }catch(e){
@@ -1454,17 +1595,23 @@ function autoSave(){
 }
 
 function saveDataSilent(){
-  if(!data) return;
+  if(!data || !projectId) return;
   data.updateTime = Date.now();
   try{
-    var list = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-    var idx = list.findIndex(function(x){ return x.id === data.id; });
-    if(idx >= 0){
-      list[idx] = data;
+    var allProjects = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    var projIdx = allProjects.findIndex(function(p){ return p.id === projectId; });
+    if(projIdx < 0) return;
+    var proj = allProjects[projIdx];
+    if(!proj.measurements) proj.measurements = [];
+    var measIdx = proj.measurements.findIndex(function(m){ return m.id === data.id; });
+    if(measIdx >= 0){
+      proj.measurements[measIdx] = data;
     }else{
-      list.unshift(data);
+      proj.measurements.unshift(data);
     }
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+    proj.updateTime = Date.now();
+    allProjects[projIdx] = proj;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(allProjects));
   }catch(e){}
 }
 
@@ -1523,21 +1670,24 @@ function initRegionSelectors(){
   }
   provSel.innerHTML = html;
   
-  // 设置已有值
-  if(data && data.location){
-    if(data.location.province){
-      provSel.value = data.location.province;
+  // 设置已有值（从项目数据读取）
+  var loc = (currentProject && currentProject.location) ? currentProject.location : (data ? data.location : null);
+  if(loc){
+    if(loc.province){
+      provSel.value = loc.province;
       onProvinceChange();
-      if(data.location.city){
-        document.getElementById('f_city').value = data.location.city;
+      if(loc.city){
+        var citySel = document.getElementById('f_city');
+        if(citySel) citySel.value = loc.city;
         onCityChange();
-        if(data.location.district){
-          document.getElementById('f_district').value = data.location.district;
+        if(loc.district){
+          var distSel = document.getElementById('f_district');
+          if(distSel) distSel.value = loc.district;
         }
       }
     }
-    if(data.location.detail){
-      document.getElementById('f_address').value = data.location.detail;
+    if(loc.detail){
+      document.getElementById('f_address').value = loc.detail;
     }
   }
 }
@@ -2178,19 +2328,88 @@ document.addEventListener('click', function(){
   if(m) m.classList.remove('show');
 });
 
-// ============ 打印 ============
+// ============ 打印（生成PDF下载） ============
+var _printing = false;
 function printSurvey(){
+  if(_printing) return;
   saveDataSilent();
   
-  // 构建打印HTML
-  var html = buildPrintHTML();
-  var printWin = window.open('', '_blank');
-  printWin.document.write(html);
-  printWin.document.close();
+  if(typeof jspdf === 'undefined' || typeof jspdf.jsPDF === 'undefined'){
+    showToast('PDF库加载中，请稍候再试');
+    return;
+  }
+  if(typeof html2canvas === 'undefined'){
+    showToast('截图库加载中，请稍候再试');
+    return;
+  }
   
+  _printing = true;
+  showToast('正在生成PDF...');
+  
+  // 构建打印HTML并插入隐藏容器
+  var html = buildPrintHTML();
+  var container = document.getElementById('printPdfContainer');
+  if(!container){
+    container = document.createElement('div');
+    container.id = 'printPdfContainer';
+    container.style.cssText = 'position:fixed;left:-9999px;top:0;width:210mm;z-index:-1;';
+    document.body.appendChild(container);
+  }
+  container.innerHTML = html;
+  
+  // 等样式渲染
   setTimeout(function(){
-    printWin.print();
-  }, 500);
+    var printBody = container.querySelector('body') || container;
+    html2canvas(printBody, {
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      backgroundColor: '#ffffff'
+    }).then(function(canvas){
+      try{
+        var imgData = canvas.toDataURL('image/jpeg', 0.95);
+        var pdf = new jspdf.jsPDF('p', 'mm', 'a4');
+        var pageWidth = pdf.internal.pageSize.getWidth();
+        var pageHeight = pdf.internal.pageSize.getHeight();
+        
+        // 按比例缩放填满A4
+        var imgRatio = canvas.width / canvas.height;
+        var pageRatio = pageWidth / pageHeight;
+        var w, h, x, y;
+        if(imgRatio > pageRatio){
+          w = pageWidth;
+          h = pageWidth / imgRatio;
+          x = 0;
+          y = (pageHeight - h) / 2;
+        }else{
+          h = pageHeight;
+          w = pageHeight * imgRatio;
+          x = (pageWidth - w) / 2;
+          y = 0;
+        }
+        pdf.addImage(imgData, 'JPEG', x, y, w, h);
+        
+        // 文件名
+        var d = data || {};
+        var fname = (d.projectName || '土建勘测') + '_' + (d.buildingNo||'') + (d.unitNo||'') + (d.elevatorNo||'') + '.pdf';
+        fname = fname.replace(/[\\/:*?"<>|]/g, '_');
+        pdf.save(fname);
+        
+        showToast('PDF已生成');
+      }catch(err){
+        console.error('PDF生成失败', err);
+        showToast('PDF生成失败：' + (err.message||'未知错误'));
+      }
+      _printing = false;
+      // 清理
+      container.innerHTML = '';
+    }).catch(function(err){
+      console.error('截图失败', err);
+      showToast('生成失败：' + (err.message||'未知错误'));
+      _printing = false;
+      container.innerHTML = '';
+    });
+  }, 300);
 }
 
 // ============ 导出Excel ============
@@ -2562,8 +2781,8 @@ function goBack(){
 }
 
 function saveAndReturn(){
-  if(!data.projectName){
-    showToast('请先填写项目名称');
+  if(!projectId || !currentProject){
+    showToast('项目信息不完整');
     switchTab(0);
     return;
   }
@@ -2577,15 +2796,21 @@ function saveAndReturn(){
 function fillFormData(){
   if(!data) return;
   
-  // 基本参数
+  // 项目级字段（从currentProject读取，只读显示）
+  if(currentProject){
+    document.getElementById('f_projectName').value = currentProject.projectName || '';
+    document.getElementById('f_sales').value = currentProject.sales || '';
+    document.getElementById('f_phone').value = currentProject.phone || '';
+    document.getElementById('f_surveyType').value = currentProject.surveyType || '首勘';
+    var pLoc = currentProject.location || {};
+    document.getElementById('f_address').value = pLoc.detail || '';
+  }
+  
+  // 测量记录级字段
   document.getElementById('f_surveyNo').value = data.surveyNo || '';
   document.getElementById('f_buildingNo').value = data.buildingNo || '';
   document.getElementById('f_unitNo').value = data.unitNo || '';
   document.getElementById('f_elevatorNo').value = data.elevatorNo || '';
-  document.getElementById('f_projectName').value = data.projectName || '';
-  document.getElementById('f_sales').value = data.sales || '';
-  document.getElementById('f_phone').value = data.phone || '';
-  document.getElementById('f_surveyType').value = data.surveyType || '首勘';
   document.getElementById('f_shaftStatus').value = data.shaftStatus || '未建';
   document.getElementById('f_elevatorModel').value = data.elevatorModel || '客梯';
   document.getElementById('f_load').value = data.load || '';
@@ -2857,6 +3082,7 @@ window.clearShaftImg = clearShaftImg;
 window.onRoomUpload = onRoomUpload;
 window.clearRoomImg = clearRoomImg;
 window.clearSignature = clearSignature;
+window.onSignDateChange = onSignDateChange;
 window.saveData = saveData;
 window.printSurvey = printSurvey;
 window.exportExcel = exportExcel;
