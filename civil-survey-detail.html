@@ -211,6 +211,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
         <div class="zone-section-title">📋 项目基本信息</div>
         <div class="card">
           <div class="form-grid">
+            <div class="form-row">
+              <label>编号</label>
+              <input type="text" id="f_surveyNo" readonly style="background:#f7fafc;color:#718096;">
+            </div>
+            <div class="form-row">
+              <label>楼号/梯号</label>
+              <div style="display:flex;gap:6px;">
+                <input type="text" id="f_buildingNo" placeholder="楼号" onblur="updateField('buildingNo', this.value)" style="flex:1;">
+                <input type="text" id="f_elevatorNo" placeholder="梯号" onblur="updateField('elevatorNo', this.value)" style="flex:1;">
+              </div>
+            </div>
             <div class="form-row full">
               <label>项目名称 *</label>
               <input type="text" id="f_projectName" placeholder="请输入项目名称" onblur="updateField('projectName', this.value)">
@@ -244,6 +255,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
             <div class="form-row">
               <label>联系电话</label>
               <input type="tel" id="f_phone" placeholder="联系电话" onblur="updateField('phone', this.value)">
+            </div>
+            <div class="form-row">
+              <label>勘测类型</label>
+              <select id="f_surveyType" onchange="updateField('surveyType', this.value)">
+                <option value="首勘">首勘</option>
+                <option value="复勘">复勘</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label>井道状态</label>
+              <select id="f_shaftStatus" onchange="updateField('shaftStatus', this.value)">
+                <option value="未建">未建</option>
+                <option value="在建">在建</option>
+                <option value="已建">已建</option>
+              </select>
             </div>
           </div>
         </div>
@@ -283,10 +309,23 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
               <label>开门方式</label>
               <select id="f_doorType" onchange="updateField('doorType', this.value)">
                 <option value="中分">中分</option>
-                <option value="旁开">旁开</option>
+                <option value="手拉">手拉</option>
                 <option value="中分双折">中分双折</option>
-                <option value="旁开双折">旁开双折</option>
+                <option value="旁开双折-左开">旁开双折-左开</option>
+                <option value="旁开双折-右开">旁开双折-右开</option>
               </select>
+            </div>
+            <div class="form-row">
+              <label>控制方式</label>
+              <select id="f_controlType" onchange="updateField('controlType', this.value)">
+                <option value="单控">单控</option>
+                <option value="并联">并联</option>
+                <option value="群控">群控</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label>并联/群控梯号</label>
+              <input type="text" id="f_parallelNo" placeholder="如：1#、2#" onblur="updateField('parallelNo', this.value)">
             </div>
             <div class="form-row">
               <label>动力电源</label>
@@ -566,6 +605,56 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
             </div>
           </div>
         </div>
+
+        <div class="zone-section-title">🏢 机房参数</div>
+        <div class="card">
+          <div class="form-grid">
+            <div class="form-row">
+              <label>机房形式</label>
+              <select id="mr_type" onchange="updateMachineRoom('type', this.value); updateMachineRoomVisibility()">
+                <option value="大机房">大机房</option>
+                <option value="小机房">小机房</option>
+                <option value="无机房">无机房</option>
+              </select>
+            </div>
+            <div class="form-row" id="mr_raise_row">
+              <label>局部抬高</label>
+              <select id="mr_localRaise" onchange="updateMachineRoom('localRaise', this.value); updateRaiseHeightVisibility()">
+                <option value="无">无</option>
+                <option value="有">有</option>
+              </select>
+            </div>
+            <div class="form-row" id="mr_raiseHeight_row" style="display:none;">
+              <label>抬高高度(mm)</label>
+              <input type="number" id="mr_raiseHeight" onblur="updateMachineRoom('raiseHeight', this.value)">
+            </div>
+            <div class="form-row">
+              <label>机房宽(mm)</label>
+              <input type="number" id="mr_width" onblur="updateMachineRoom('width', this.value)">
+            </div>
+            <div class="form-row">
+              <label>机房深(mm)</label>
+              <input type="number" id="mr_depth" onblur="updateMachineRoom('depth', this.value)">
+            </div>
+            <div class="form-row">
+              <label>机房高(mm)</label>
+              <input type="number" id="mr_height" onblur="updateMachineRoom('height', this.value)">
+            </div>
+          </div>
+          <div class="form-grid" id="mr_controlCabinet_row" style="padding-top:10px;border-top:1px solid #edf2f7;display:none;">
+            <div class="form-row full">
+              <label>无机房控制柜位置</label>
+              <select id="shaft_controlCabinetPos" onchange="updateShaft('controlCabinetPos', this.value); updateControlCabinetCustomVisibility()">
+                <option value="标准位置">标准位置（顶层厅门门垛位置）</option>
+                <option value="非标位置">非标位置</option>
+              </select>
+            </div>
+            <div class="form-row full" id="controlCabinetCustom_row" style="display:none;">
+              <label>非标位置说明</label>
+              <input type="text" id="shaft_controlCabinetCustom" onblur="updateShaft('controlCabinetCustom', this.value)" placeholder="请描述具体位置">
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Tab3: 顶层底坑 -->
@@ -696,6 +785,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
             <button class="sign-clear-btn" onclick="clearSignature()">清除</button>
           </div>
           <div class="form-hint" style="margin-top:8px;text-align:center;">请在上方区域手写签字</div>
+        </div>
+        <div style="padding:10px 20px;">
+          <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px;">
+            <span style="font-size:13px;color:#4a5568;white-space:nowrap;">签字日期：</span>
+            <input type="date" id="signDate" onchange="onSignDateChange()" style="flex:1;padding:8px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;">
+          </div>
         </div>
 
         <div style="padding:20px 10px;text-align:center;">
@@ -835,6 +930,9 @@ function toNum(v){
 function createDefaultData(){
   return {
     id: genId(),
+    surveyNo: '',
+    buildingNo: '',
+    elevatorNo: '',
     projectName: '',
     location: { province: '', city: '', district: '', detail: '' },
     sales: '',
@@ -848,6 +946,11 @@ function createDefaultData(){
     doorPosition: '前门',
     carSize: { width: '', depth: '', height: '' },
     doorClearSize: { width: '', height: '' },
+    surveyType: '首勘',
+    surveyCount: 1,
+    shaftStatus: '未建',
+    controlType: '单控',
+    parallelNo: '',
     createTime: Date.now(),
     updateTime: Date.now(),
     
@@ -871,7 +974,17 @@ function createDefaultData(){
       powerSupply: '380V',
       isSightseeing: '否',
       sightseeingType: '方形',
-      sightseeingSides: '1面'
+      sightseeingSides: '1面',
+      machineRoom: {
+        type: '大机房',
+        width: '',
+        depth: '',
+        height: '',
+        localRaise: '无',
+        raiseHeight: ''
+      },
+      controlCabinetPos: '标准位置',
+      controlCabinetCustom: ''
     },
     
     topPit: {
@@ -893,7 +1006,12 @@ function createDefaultData(){
     },
     
     signatures: {
-      surveyor: ''
+      surveyor: '',
+      reviewer: '',
+      draftsman: '',
+      surveyorDate: '',
+      reviewerDate: '',
+      draftsmanDate: ''
     },
     
     specialNotes: ''
@@ -1004,7 +1122,48 @@ function migrateData(d){
   if(d.topPit.sightseeingType !== undefined) delete d.topPit.sightseeingType;
   if(d.topPit.sightseeingSides !== undefined) delete d.topPit.sightseeingSides;
   
+  // 新字段：编号、楼号、勘测信息等
+  if(!d.surveyNo) d.surveyNo = generateSurveyNo();
+  if(d.buildingNo === undefined) d.buildingNo = '';
+  if(d.elevatorNo === undefined) d.elevatorNo = '';
+  if(d.surveyType === undefined) d.surveyType = '首勘';
+  if(d.surveyCount === undefined) d.surveyCount = 1;
+  if(d.shaftStatus === undefined) d.shaftStatus = '未建';
+  if(d.controlType === undefined) d.controlType = '单控';
+  if(d.parallelNo === undefined) d.parallelNo = '';
+  
+  // 机房参数
+  if(!s.machineRoom) s.machineRoom = { type: '大机房', width: '', depth: '', height: '', localRaise: '无', raiseHeight: '' };
+  if(s.controlCabinetPos === undefined) s.controlCabinetPos = '标准位置';
+  if(s.controlCabinetCustom === undefined) s.controlCabinetCustom = '';
+  
+  // 签字扩展
+  if(!d.signatures) d.signatures = { surveyor: '' };
+  if(d.signatures.surveyorDate === undefined) d.signatures.surveyorDate = '';
+  if(d.signatures.reviewer === undefined) d.signatures.reviewer = '';
+  if(d.signatures.reviewerDate === undefined) d.signatures.reviewerDate = '';
+  if(d.signatures.draftsman === undefined) d.signatures.draftsman = '';
+  if(d.signatures.draftsmanDate === undefined) d.signatures.draftsmanDate = '';
+  
+  // 楼层：加floorDisplay和每层doorPosition
+  if(d.floorData && d.floorData.length){
+    for(var fi = 0; fi < d.floorData.length; fi++){
+      var ff = d.floorData[fi];
+      if(ff.floorDisplay === undefined) ff.floorDisplay = ff.floorNo + 'F';
+      if(ff.doorPosition === undefined) ff.doorPosition = '前门';
+    }
+  }
+  
   return d;
+}
+
+function generateSurveyNo(){
+  var d = new Date();
+  var y = d.getFullYear();
+  var m = String(d.getMonth() + 1).padStart(2, '0');
+  var day = String(d.getDate()).padStart(2, '0');
+  var rand = Math.random().toString(36).slice(2, 6).toUpperCase();
+  return 'WTTJ-' + y + m + day + '-' + rand;
 }
 
 function saveData(){
@@ -1085,6 +1244,39 @@ function updateCarSize(key, val){
   if(!data || !data.carSize) return;
   data.carSize[key] = val;
   autoSave();
+}
+
+function updateMachineRoom(key, val){
+  if(!data || !data.shaft || !data.shaft.machineRoom) return;
+  data.shaft.machineRoom[key] = val;
+  autoSave();
+}
+
+function updateMachineRoomVisibility(){
+  var type = (data.shaft && data.shaft.machineRoom) ? data.shaft.machineRoom.type : '大机房';
+  var isNoRoom = type === '无机房';
+  // 尺寸和抬高：有机房时显示
+  document.getElementById('mr_width').parentElement.style.display = isNoRoom ? 'none' : '';
+  document.getElementById('mr_depth').parentElement.style.display = isNoRoom ? 'none' : '';
+  document.getElementById('mr_height').parentElement.style.display = isNoRoom ? 'none' : '';
+  document.getElementById('mr_raise_row').style.display = isNoRoom ? 'none' : '';
+  document.getElementById('mr_raiseHeight_row').style.display = (isNoRoom || (data.shaft.machineRoom.localRaise !== '有')) ? 'none' : '';
+  // 控制柜：无机房时显示
+  document.getElementById('mr_controlCabinet_row').style.display = isNoRoom ? '' : 'none';
+  if(isNoRoom){
+    var isCustom = data.shaft.controlCabinetPos === '非标位置';
+    document.getElementById('controlCabinetCustom_row').style.display = isCustom ? '' : 'none';
+  }
+}
+
+function updateRaiseHeightVisibility(){
+  var has = data.shaft && data.shaft.machineRoom && data.shaft.machineRoom.localRaise === '有';
+  document.getElementById('mr_raiseHeight_row').style.display = has ? '' : 'none';
+}
+
+function updateControlCabinetCustomVisibility(){
+  var isCustom = data.shaft && data.shaft.controlCabinetPos === '非标位置';
+  document.getElementById('controlCabinetCustom_row').style.display = isCustom ? '' : 'none';
 }
 
 function updateDoorClear(key, val){
@@ -1524,6 +1716,7 @@ function addFloor(){
   }
   var newFloor = {
     floorNo: String(maxNo + 1),
+    floorDisplay: String(maxNo + 1) + 'F',
     doorPosition: '前门',
     floorHeight: '',
     frontDoorWidth: '',
@@ -1616,6 +1809,7 @@ function doBatchGen(){
     if(!exists){
       data.floorData.push({
         floorNo: String(n),
+        floorDisplay: String(n) + 'F',
         doorPosition: '前门',
         floorHeight: '',
         frontDoorWidth: '',
@@ -1803,6 +1997,12 @@ function clearSignature(){
   if(data && data.signatures){
     data.signatures.surveyor = '';
   }
+  autoSave();
+}
+
+function onSignDateChange(){
+  if(!data || !data.signatures) return;
+  data.signatures.surveyorDate = document.getElementById('signDate').value;
   autoSave();
 }
 
@@ -2003,167 +2203,191 @@ function buildPrintHTML(){
   var d = data;
   var loc = d.location || {};
   var locStr = [loc.province, loc.city, loc.district, loc.detail].filter(Boolean).join(' ');
-  
-  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>土建勘测报告</title>';
+  var s = d.shaft || {};
+  var walls = s.walls || {};
+  var mr = s.machineRoom || {};
+  var pier = s.pier || {};
+  var tp = d.topPit || {};
+  var sig = d.signatures || {};
+
+  var surveyStr = d.surveyType === '复勘' ? '复勘 ' + (d.surveyCount || 1) + ' 次' : '首勘';
+  var floorList = (d.floorData || []).slice().sort(function(a,b){ return toNum(b.floorNo) - toNum(a.floorNo); });
+  var shaftW = '', shaftD = '';
+  if(floorList.length > 0){ shaftW = floorList[0].shaftWidth || ''; shaftD = floorList[0].shaftDepth || ''; }
+
+  function wallText(side, name){
+    var w = walls[side] || {};
+    var t = w.type || '砖混墙';
+    var typeHtml = '砖混墙' + (t==='砖混墙'?'√':'□') + ' 混凝土墙' + (t==='混凝土墙'?'√':'□') + ' 钢架' + (t==='钢架'?'√':'□');
+    return '<div style="font-size:9pt;line-height:1.6;">' + name + '：' + typeHtml +
+           '<br>厚度：' + escapeHtml(w.thick || '') + 'mm　外墙：是' + (w.outer==='是'?'√':'□') + '/否' + (w.outer==='否'?'√':'□') +
+           '<br>圈梁间距：' + escapeHtml(w.ringBeam || '') + 'mm　支架间距：' + escapeHtml(w.bracket || '') + 'mm</div>';
+  }
+
+  function floorRow(f){
+    if(!f) return '<td style="border:1px solid #000;"></td><td style="border:1px solid #000;"></td><td style="border:1px solid #000;"></td><td style="border:1px solid #000;"></td>';
+    var pos = f.doorPosition || '前门';
+    var mark = pos==='前门' ? '前√ 后×' : (pos==='后门' ? '前× 后√' : '前√ 后√');
+    return '<td style="border:1px solid #000;text-align:center;font-size:9pt;">' + escapeHtml(f.floorNo||'') + '</td>' +
+           '<td style="border:1px solid #000;text-align:center;font-size:9pt;">' + escapeHtml(f.floorHeight||'') + '</td>' +
+           '<td style="border:1px solid #000;text-align:center;font-size:8pt;">' + mark + '</td>' +
+           '<td style="border:1px solid #000;text-align:center;font-size:9pt;">' + escapeHtml(f.floorDisplay||'') + '</td>';
+  }
+
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>垂直电梯土建图出图申请表</title>';
   html += '<style>';
-  html += 'body{font-family:"Microsoft YaHei",sans-serif;padding:20px;font-size:12px;color:#333;}';
-  html += 'h1{text-align:center;font-size:18px;margin-bottom:5px;}';
-  html += '.subtitle{text-align:center;color:#666;margin-bottom:20px;font-size:11px;letter-spacing:3px;}';
-  html += '.section{margin-bottom:16px;}';
-  html += '.sec-title{font-size:14px;font-weight:bold;border-left:4px solid #667eea;padding-left:8px;margin-bottom:8px;color:#1a3a6b;}';
-  html += '.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 16px;}';
-  html += '.info-item{display:flex;}';
-  html += '.info-label{color:#666;flex-shrink:0;}';
-  html += '.info-value{flex:1;border-bottom:1px dotted #ccc;padding-left:4px;}';
-  html += 'table{width:100%;border-collapse:collapse;margin-top:8px;}';
-  html += 'th,td{border:1px solid #ccc;padding:6px 8px;text-align:center;font-size:11px;}';
-  html += 'th{background:#f0f4ff;color:#1a3a6b;}';
-  html += '.sig-area{margin-top:30px;display:grid;grid-template-columns:1fr 1fr;gap:20px;}';
-  html += '.sig-box{border:1px solid #ccc;height:100px;position:relative;}';
-  html += '.sig-box img{max-height:100%;max-width:100%;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);}';
-  html += '.sig-label{text-align:center;margin-top:4px;color:#666;font-size:11px;}';
-  html += '.img-area{margin-top:10px;text-align:center;}';
-  html += '.img-area img{max-width:100%;max-height:300px;border:1px solid #eee;}';
-  html += '@media print{body{padding:10px;}}';
+  html += 'body{font-family:"SimSun","宋体",serif;padding:0;margin:0;font-size:10.5pt;color:#000;}';
+  html += '.main-title{text-align:center;font-size:14pt;font-weight:bold;margin-bottom:2px;}';
+  html += '.sub-header{display:flex;justify-content:space-between;font-size:9pt;margin-bottom:4px;}';
+  html += 'table{width:100%;border-collapse:collapse;table-layout:fixed;}';
+  html += 'td{border:1px solid #000;padding:2px 4px;font-size:10pt;vertical-align:middle;}';
+  html += '.lbl{text-align:center;background:#f5f5f5;font-size:10pt;}';
+  html += '.val{padding-left:6px;}';
+  html += '.v-rl{writing-mode:vertical-rl;letter-spacing:4px;text-align:center;}';
+  html += '.sig-box{height:50px;position:relative;}';
+  html += '.sig-box img{max-height:45px;position:absolute;bottom:2px;left:50%;transform:translateX(-50%);}';
+  html += '.sig-lb{text-align:center;font-size:9pt;border-top:1px solid #000;padding-top:2px;}';
+  html += '.small{font-size:9pt;}';
+  html += '.c{text-align:center;}';
+  html += '@page { size: A4 portrait; margin: 8mm; }';
+  html += '@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}';
   html += '</style></head><body>';
-  
-  html += '<h1>威特电梯土建勘测报告</h1>';
-  html += '<div class="subtitle">WEITE ELEVATOR CIVIL SURVEY REPORT</div>';
-  
-  // 基本参数
-  html += '<div class="section"><div class="sec-title">一、基本参数</div>';
-  html += '<div class="info-grid">';
-  html += '<div class="info-item"><span class="info-label">项目名称：</span><span class="info-value">' + escapeHtml(d.projectName || '-') + '</span></div>';
-  html += '<div class="info-item"><span class="info-label">项目地点：</span><span class="info-value">' + escapeHtml(locStr || '-') + '</span></div>';
-  html += '<div class="info-item"><span class="info-label">销售：</span><span class="info-value">' + escapeHtml(d.sales || '-') + '</span></div>';
-  html += '<div class="info-item"><span class="info-label">联系电话：</span><span class="info-value">' + escapeHtml(d.phone || '-') + '</span></div>';
-  html += '<div class="info-item"><span class="info-label">电梯型号：</span><span class="info-value">' + escapeHtml(d.elevatorModel || '-') + '</span></div>';
-  html += '<div class="info-item"><span class="info-label">载重/速度：</span><span class="info-value">' + escapeHtml(d.load || '-') + 'kg / ' + escapeHtml(d.speed || '-') + 'm/s</span></div>';
-  html += '<div class="info-item"><span class="info-label">层站：</span><span class="info-value">' + escapeHtml(d.floors || '-') + '层' + escapeHtml(d.stops || '-') + '站</span></div>';
-  html += '<div class="info-item"><span class="info-label">开门方式：</span><span class="info-value">' + escapeHtml(d.doorType || '-') + '</span></div>';
-  html += '<div class="info-item"><span class="info-label">动力电源：</span><span class="info-value">' + escapeHtml(d.shaft ? (d.shaft.powerSupply || '-') : '-') + '</span></div>';
+
+  html += '<div class="main-title">垂直电梯土建图出图申请表</div>';
+  html += '<div class="sub-header"><span>楼号：' + escapeHtml(d.buildingNo||'') + '　梯号：' + escapeHtml(d.elevatorNo||'') + '</span><span>项目所在地：' + escapeHtml(locStr||'') + '</span><span>NO：' + escapeHtml(d.surveyNo||'') + '</span></div>';
+
+  html += '<table>';
+  html += '<col style="width:12%;"><col style="width:28%;"><col style="width:10%;"><col style="width:16%;"><col style="width:8%;"><col style="width:9%;"><col style="width:12%;"><col style="width:5%;">';
+  html += '<tr><td class="lbl">项目名称*</td><td class="val">' + escapeHtml(d.projectName||'') + '</td><td class="lbl">额定载重*</td><td class="val">' + escapeHtml(d.load||'') + 'kg</td><td class="lbl c" colspan="4">勘测次数：首勘' + (d.surveyType==='首勘'?'√':'□') + ' 复勘' + (d.surveyType==='复勘'?'√':'□') + (d.surveyType==='复勘'?' '+(d.surveyCount||1)+'次':'') + '</td></tr>';
+  html += '<tr><td class="lbl">井道状态</td><td class="val small">未建' + (d.shaftStatus==='未建'?'√':'□') + ' 在建' + (d.shaftStatus==='在建'?'√':'□') + ' 已建' + (d.shaftStatus==='已建'?'√':'□') + '</td><td class="lbl">层/站/门*</td><td class="val">' + escapeHtml(d.floors||'') + '层/' + escapeHtml(d.stops||'') + '站</td><td class="lbl c" colspan="4">控制方式：单控' + (d.controlType==='单控'?'√':'□') + '/并联' + (d.controlType==='并联'?'√':'□') + '/群控' + (d.controlType==='群控'?'√':'□') + '</td></tr>';
+  html += '<tr><td class="lbl">梯 种</td><td class="val">' + escapeHtml(d.elevatorModel||'') + '</td><td class="lbl">额定速度*</td><td class="val">' + escapeHtml(d.speed||'') + 'm/s</td><td class="lbl c" colspan="4">并联/群控梯号：' + escapeHtml(d.parallelNo||'') + '</td></tr>';
+  html += '<tr><td class="lbl">井道尺寸*</td><td class="val">净宽 ' + escapeHtml(shaftW) + '×净深 ' + escapeHtml(shaftD) + ' mm</td><td class="lbl">轿厢净尺寸</td><td class="val">' + escapeHtml(d.carSize?d.carSize.width:'') + '×' + escapeHtml(d.carSize?d.carSize.depth:'') + '×' + escapeHtml(d.carSize?d.carSize.height:'') + 'mm</td><td class="lbl">物理<br>楼层</td><td class="lbl">楼层<br>间距</td><td class="lbl">开门(前/后)<br>打√</td><td class="lbl">楼层<br>显示</td></tr>';
+  html += '<tr><td class="lbl">厅门门洞*</td><td class="val">净宽 ' + escapeHtml(d.doorClearSize?d.doorClearSize.width:'') + '×净高 ' + escapeHtml(d.doorClearSize?d.doorClearSize.height:'') + 'mm</td><td class="lbl">井道预留牛腿</td><td class="val small">无' + (s.hasCorbel==='无'?'√':'□') + '、有' + (s.hasCorbel==='有'?'√':'□') + '</td>' + floorRow(floorList[0]) + '</tr>';
+  html += '<tr><td class="lbl">净门尺寸</td><td class="val">净宽 ' + escapeHtml(d.doorClearSize?d.doorClearSize.width:'') + '×净高 ' + escapeHtml(d.doorClearSize?d.doorClearSize.height:'') + 'mm</td><td class="lbl">开门方式*</td><td class="val small">' + escapeHtml(d.doorType||'') + '</td>' + floorRow(floorList[1]) + '</tr>';
+
+  // 动力电源 + 井道结构rowspan(6行) + 楼层3 + 底坑深度(从这里开始rowspan 8行)
+  html += '<tr>';
+  html += '<td class="lbl">动力电源</td>';
+  html += '<td class="val small">单相220V' + (s.powerSupply==='220V'?'√':'□') + ' 三相380V' + (s.powerSupply==='380V'?'√':'□') + '</td>';
+  html += '<td class="lbl v-rl" rowspan="6" style="padding:8px 0;">井道结构</td>';
+  html += '<td rowspan="6" style="padding:4px;">' + wallText('back','后墙') + wallText('left','左墙') + wallText('right','右墙') + '</td>';
+  html += floorRow(floorList[2]);
+  html += '</tr>';
+
+  // 机房形式 + 楼层4
+  var mrt = mr.type || '大机房';
+  html += '<tr>';
+  html += '<td class="lbl">机房形式*</td>';
+  html += '<td class="val small">大机房' + (mrt==='大机房'?'√':'□') + ' 无机房' + (mrt==='无机房'?'√':'□') + ' 小机房' + (mrt==='小机房'?'√':'□') + '</td>';
+  html += floorRow(floorList[3]);
+  html += '</tr>';
+
+  // 机房尺寸 + 楼层5
+  html += '<tr>';
+  html += '<td class="lbl">机房尺寸</td>';
+  if(mrt !== '无机房'){
+    html += '<td class="val small">宽' + escapeHtml(mr.width||'') + '×深' + escapeHtml(mr.depth||'') + '×高' + escapeHtml(mr.height||'') + 'mm';
+    html += '<br>局部抬高：' + (mr.localRaise==='有'?'有 '+escapeHtml(mr.raiseHeight||'')+'mm':'无√') + '</td>';
+  } else {
+    html += '<td class="val small">无机房</td>';
+  }
+  html += floorRow(floorList[4]);
+  html += '</tr>';
+
+  // 贯通/观光 或 控制柜位置 + 楼层6
+  html += '<tr>';
+  if(mrt === '无机房'){
+    html += '<td class="lbl">控制柜位置</td>';
+    var cp = s.controlCabinetPos || '标准位置';
+    html += '<td class="val small">标准位置' + (cp==='标准位置'?'√':'□') + ' 非标位置' + (cp==='非标位置'?'√':'□');
+    if(cp==='非标位置' && s.controlCabinetCustom) html += '（'+escapeHtml(s.controlCabinetCustom)+'）';
+    html += '</td>';
+  } else {
+    html += '<td class="lbl">贯通/观光</td>';
+    html += '<td class="val small">贯通：是' + (s.isThrough==='是'?'√':'□') + '/否' + (s.isThrough==='否'?'√':'□') + '　观光：' + (s.isSightseeing==='是'?s.sightseeingType+' '+s.sightseeingSides:'否') + '</td>';
+  }
+  html += floorRow(floorList[5]);
+  html += '</tr>';
+
+  // 门过梁 + 楼层7
+  var hb = s.headerBeam || '有';
+  html += '<tr><td class="lbl">门过梁</td><td class="val small">是' + (hb==='有'?'√':'□') + ' 否' + (hb==='无'?'√':'□') + (s.headerBeamLen?'（长'+s.headerBeamLen+'mm）':'') + '</td>' + floorRow(floorList[6]) + '</tr>';
+
+  // 门垛 + 楼层8
+  var ps = pier.status || '未建';
+  var pst = pier.structure || '混凝土';
+  html += '<tr><td class="lbl">门 垛</td><td class="val small">';
+  html += '结构：混凝土' + (pst==='混凝土'?'√':'□') + ' 砖墙' + (pst==='砖墙'?'√':'□') + ' 钢架' + (pst==='钢架'?'√':'□');
+  html += '　状态：未建' + (ps==='未建'?'√':'□') + ' 在建' + (ps==='在建'?'√':'□') + ' 已建' + (ps==='已建'?'√':'□');
+  html += '</td>' + floorRow(floorList[7]) + '</tr>';
+
+  // 门垛宽+外呼盒 + 楼层9
+  html += '<tr><td class="lbl">门垛宽/外呼</td><td class="val small">左' + escapeHtml(pier.leftWidth||'') + ' 右' + escapeHtml(pier.rightWidth||'') + 'mm　外呼：' + escapeHtml(s.callBoxType||'') + '</td>' + floorRow(floorList[8]) + '</tr>';
+
+  html += '</table>';
+
+  // 下方两大块：左=井道示意图，右=底坑+楼层续+顶层
+  html += '<div style="height:3px;"></div>';
+  html += '<table>';
+  html += '<col style="width:66%;"><col style="width:34%;">';
+  html += '<tr>';
+
+  // 左：井道示意图（大）
+  html += '<td style="border:1px solid #000;padding:4px;vertical-align:top;">';
+  html += '<div style="font-size:10pt;text-align:center;font-weight:bold;margin-bottom:2px;">井道示意图</div>';
+  html += '<div style="height:130px;border:1px dashed #ccc;text-align:center;padding:4px;">';
+  if(d.sketches && d.sketches.shaftDiagram){ html += '<img src="'+d.sketches.shaftDiagram+'" style="max-height:120px;max-width:100%;">'; }
+  html += '</div></td>';
+
+  // 右：底坑+楼层续+顶层高度
+  html += '<td style="border:1px solid #000;padding:0;vertical-align:top;">';
+  html += '<table style="width:100%;border:none;table-layout:fixed;">';
+  html += '<tr><td class="lbl" style="width:35%;">底坑深度</td><td style="width:65%;" class="c">' + escapeHtml(tp.pitDepth||'') + ' mm</td></tr>';
+  for(var fi = 9; fi < 12; fi++){ html += '<tr>' + floorRow(floorList[fi]) + '</tr>'; }
+  html += '<tr><td class="lbl">顶层高度</td><td class="c">' + escapeHtml(tp.topHeight||'') + ' mm</td></tr>';
+  html += '</table></td>';
+  html += '</tr>';
+
+  // 第二行：机房示意图 vs 其他特殊说明
+  html += '<tr>';
+  html += '<td style="border:1px solid #000;padding:4px;">';
+  html += '<div style="font-size:10pt;text-align:center;font-weight:bold;margin-bottom:2px;">机房示意图</div>';
+  html += '<div style="height:100px;border:1px dashed #ccc;text-align:center;padding:4px;">';
+  if(d.sketches && d.sketches.machineRoomDiagram){ html += '<img src="'+d.sketches.machineRoomDiagram+'" style="max-height:90px;max-width:100%;">'; }
   html += '</div>';
-  
-  // 轿厢净尺寸
-  if(d.carSize){
-    html += '<div style="margin-top:8px;"><strong>轿厢净尺寸：</strong>';
-    html += '净宽 ' + escapeHtml(d.carSize.width || '-') + 'mm × ';
-    html += '净深 ' + escapeHtml(d.carSize.depth || '-') + 'mm × ';
-    html += '净高 ' + escapeHtml(d.carSize.height || '-') + 'mm';
-    html += '</div>';
-  }
-  
-  // 开门净尺寸
-  if(d.doorClearSize){
-    html += '<div style="margin-top:6px;"><strong>开门净尺寸：</strong>';
-    html += '净宽 ' + escapeHtml(d.doorClearSize.width || '-') + 'mm × ';
-    html += '净高 ' + escapeHtml(d.doorClearSize.height || '-') + 'mm';
-    html += '</div>';
-  }
-  
+  html += '<div style="font-size:9pt;margin-top:2px;">机房局部抬高：' + (mr.localRaise==='有'?'有 '+escapeHtml(mr.raiseHeight||'')+'mm':'无') + '</div>';
+  html += '</td>';
+  html += '<td style="border:1px solid #000;padding:4px;vertical-align:top;">';
+  html += '<div style="font-size:10pt;font-weight:bold;margin-bottom:2px;">其他特殊说明：</div>';
+  html += '<div style="min-height:80px;font-size:9pt;">' + escapeHtml(d.specialNotes||'') + '</div>';
+  html += '<div style="font-size:8pt;color:#333;border-top:1px solid #000;padding-top:2px;">注：开门多的视为前门</div>';
+  html += '</td></tr>';
+  html += '</table>';
+
+  // 底部：签字 + 提升/总高
+  html += '<div style="height:3px;"></div>';
+  html += '<table><col style="width:66%;"><col style="width:34%;"><tr>';
+  html += '<td style="border:1px solid #000;padding:4px;"><table style="width:100%;border:none;"><tr>';
+  html += '<td style="border:1px solid #000;width:33.3%;text-align:center;"><div class="sig-box">';
+  if(sig.surveyor) html += '<img src="'+sig.surveyor+'">';
+  html += '</div><div class="sig-lb">测量及申请人*：</div></td>';
+  html += '<td style="border:1px solid #000;width:33.3%;text-align:center;"><div class="sig-box"></div><div class="sig-lb">审核*：</div></td>';
+  html += '<td style="border:1px solid #000;width:33.4%;text-align:center;"><div class="sig-box"></div><div class="sig-lb">绘图接收人*：</div></td>';
+  html += '</tr><tr>';
+  html += '<td style="border:1px solid #000;text-align:center;font-size:9pt;">日期：' + escapeHtml(sig.surveyorDate||'') + '</td>';
+  html += '<td style="border:1px solid #000;text-align:center;font-size:9pt;">日期：_________</td>';
+  html += '<td style="border:1px solid #000;text-align:center;font-size:9pt;">日期：_________</td>';
+  html += '</tr></table></td>';
+  html += '<td style="border:1px solid #000;padding:8px 6px;vertical-align:middle;">';
+  html += '<div style="font-size:10.5pt;line-height:2.2;">提升高度：' + escapeHtml(d.liftHeight||'') + ' mm</div>';
+  html += '<div style="font-size:10.5pt;line-height:2.2;">井道总高度：' + escapeHtml(d.wellTotalHeight||'') + ' mm</div>';
+  html += '</td></tr></table>';
+
+  html += '<div style="font-size:8pt;margin-top:6px;line-height:1.6;">';
+  html += '注：1、此单为设计电梯的第一依据，务必认真；2、电梯排产前再确认一次，确认客户土建与初出土建图是否一致，并通知技术部（此项工作由运营中心安排落实）；';
+  html += '3、如项目有多台电梯，请将现场电梯井道及电梯分布附图说明；4、左、右以人站在厅门外，面向井道为准。注意：井道内是否有角柱等不规则结构，电梯底坑是否悬空？此表如不够填写现场数据，请另外附图说明。 此表格仅适用于垂直梯。';
   html += '</div>';
-  
-  // 井道结构
-  if(d.shaft && d.shaft.walls){
-    html += '<div class="section"><div class="sec-title">二、井道结构</div>';
-    var walls = d.shaft.walls;
-    html += '<table><tr><th>墙面</th><th>结构类型</th><th>厚度(mm)</th><th>外墙</th><th>圈梁间距(mm)</th><th>支架间距(mm)</th></tr>';
-    var wallNames = { back: '后墙', left: '左墙', right: '右墙' };
-    for(var w in wallNames){
-      var wd = walls[w] || {};
-      html += '<tr><td>' + wallNames[w] + '</td><td>' + escapeHtml(wd.type || '-') + '</td><td>' + escapeHtml(wd.thick || '-') + '</td><td>' + escapeHtml(wd.outer || '-') + '</td><td>' + escapeHtml(wd.ringBeam || '-') + '</td><td>' + escapeHtml(wd.bracket || '-') + '</td></tr>';
-    }
-    html += '</table>';
-    
-    if(d.shaft.pier){
-      var p = d.shaft.pier;
-      html += '<div style="margin-top:10px;"><strong>门过梁与门垛：</strong>';
-      html += '过梁：' + escapeHtml(d.shaft.headerBeam || '-');
-      if(d.shaft.headerBeamLen){
-        html += '（长' + escapeHtml(d.shaft.headerBeamLen) + 'mm）';
-      }
-      html += '，';
-      html += '门垛状态：' + escapeHtml(p.status || '-');
-      if(p.status !== '未建'){
-        html += '，结构：' + escapeHtml(p.structure || '-');
-        html += '，左垛：' + escapeHtml(p.leftWidth || '-') + 'mm';
-        html += '，右垛：' + escapeHtml(p.rightWidth || '-') + 'mm';
-      }
-      html += '</div>';
-    }
-    
-    // 其他参数
-    html += '<div style="margin-top:10px;"><strong>其他参数：</strong>';
-    html += '外呼盒：' + escapeHtml(d.shaft.callBoxType || '-') + '，';
-    html += '牛腿：' + escapeHtml(d.shaft.hasCorbel || '-') + '，';
-    html += '贯通：' + escapeHtml(d.shaft.isThrough || '-') + '，';
-    html += '观光：' + escapeHtml(d.shaft.isSightseeing || '否');
-    if(d.shaft.isSightseeing === '是'){
-      html += '（' + escapeHtml(d.shaft.sightseeingType || '-') + '）';
-    }
-    html += '</div>';
-    
-    html += '</div>';
-  }
-  
-  // 顶层底坑
-  if(d.topPit){
-    html += '<div class="section"><div class="sec-title">三、顶层与底坑</div>';
-    var tp = d.topPit;
-    html += '<div class="info-grid">';
-    html += '<div class="info-item"><span class="info-label">底坑实测深：</span><span class="info-value">' + escapeHtml(tp.pitMeasuredDepth || '-') + 'mm</span></div>';
-    html += '<div class="info-item"><span class="info-label">底坑装修高：</span><span class="info-value">' + escapeHtml(tp.pitFinishHeight || '-') + 'mm</span></div>';
-    html += '<div class="info-item"><span class="info-label">底坑深度：</span><span class="info-value"><strong>' + escapeHtml(tp.pitDepth || '-') + 'mm</strong></span></div>';
-    html += '<div class="info-item"><span class="info-label">顶层实测高：</span><span class="info-value">' + escapeHtml(tp.topMeasuredHeight || '-') + 'mm</span></div>';
-    html += '<div class="info-item"><span class="info-label">顶层装修高：</span><span class="info-value">' + escapeHtml(tp.topFinishHeight || '-') + 'mm</span></div>';
-    html += '<div class="info-item"><span class="info-label">顶层高度：</span><span class="info-value"><strong>' + escapeHtml(tp.topHeight || '-') + 'mm</strong></span></div>';
-    html += '</div></div>';
-  }
-  
-  // 楼层测量
-  if(d.floorData && d.floorData.length){
-    html += '<div class="section"><div class="sec-title">四、楼层测量</div>';
-    var showPier = d.shaft && d.shaft.pier && d.shaft.pier.status !== '未建';
-    var header = '<tr><th>楼层</th><th>层高(mm)</th><th>井道宽(mm)</th><th>井道深(mm)</th><th>门洞宽(mm)</th><th>门洞高(mm)</th>';
-    if(showPier){ header += '<th>左门垛(mm)</th><th>右门垛(mm)</th>'; }
-    header += '<th>备注</th></tr>';
-    html += '<table>' + header;
-    var sorted = d.floorData.slice().sort(function(a,b){ return toNum(b.floorNo) - toNum(a.floorNo); });
-    for(var i = 0; i < sorted.length; i++){
-      var f = sorted[i];
-      var row = '<tr><td>' + escapeHtml(f.floorNo || '') + '</td><td>' + escapeHtml(f.floorHeight || '') + '</td><td>' + escapeHtml(f.shaftWidth || '') + '</td><td>' + escapeHtml(f.shaftDepth || '') + '</td><td>' + escapeHtml(f.frontDoorWidth || '') + '</td><td>' + escapeHtml(f.doorHeight || '') + '</td>';
-      if(showPier){ row += '<td>' + escapeHtml(f.leftPier || '') + '</td><td>' + escapeHtml(f.rightPier || '') + '</td>'; }
-      row += '<td>' + escapeHtml(f.remark || '') + '</td></tr>';
-      html += row;
-    }
-    html += '</table>';
-    html += '<div style="margin-top:8px;text-align:right;"><strong>提升高度：' + (d.liftHeight || '-') + 'mm &nbsp;&nbsp; 井道总高：' + (d.wellTotalHeight || '-') + 'mm</strong></div>';
-    html += '</div>';
-  }
-  
-  // 示意图
-  if(d.sketches && (d.sketches.shaftDiagram || d.sketches.machineRoomDiagram)){
-    html += '<div class="section"><div class="sec-title">五、示意图</div>';
-    if(d.sketches.shaftDiagram){
-      html += '<div class="img-area"><strong>井道示意图</strong><br><img src="' + d.sketches.shaftDiagram + '"></div>';
-    }
-    if(d.sketches.machineRoomDiagram){
-      html += '<div class="img-area"><strong>机房示意图</strong><br><img src="' + d.sketches.machineRoomDiagram + '"></div>';
-    }
-    html += '</div>';
-  }
-  
-  // 签字
-  html += '<div class="section"><div class="sec-title">六、签字</div>';
-  html += '<div class="sig-area">';
-  html += '<div><div class="sig-box">';
-  if(d.signatures && d.signatures.surveyor){
-    html += '<img src="' + d.signatures.surveyor + '">';
-  }
-  html += '</div><div class="sig-label">测量人签字：</div></div>';
-  html += '<div><div class="sig-box"></div><div class="sig-label">日期：________年____月____日</div></div>';
-  html += '</div></div>';
-  
+
   html += '</body></html>';
   return html;
 }
@@ -2191,15 +2415,22 @@ function fillFormData(){
   if(!data) return;
   
   // 基本参数
+  document.getElementById('f_surveyNo').value = data.surveyNo || '';
+  document.getElementById('f_buildingNo').value = data.buildingNo || '';
+  document.getElementById('f_elevatorNo').value = data.elevatorNo || '';
   document.getElementById('f_projectName').value = data.projectName || '';
   document.getElementById('f_sales').value = data.sales || '';
   document.getElementById('f_phone').value = data.phone || '';
+  document.getElementById('f_surveyType').value = data.surveyType || '首勘';
+  document.getElementById('f_shaftStatus').value = data.shaftStatus || '未建';
   document.getElementById('f_elevatorModel').value = data.elevatorModel || '客梯';
   document.getElementById('f_load').value = data.load || '';
   document.getElementById('f_speed').value = data.speed || '';
   document.getElementById('f_floors').value = data.floors || '';
   document.getElementById('f_stops').value = data.stops || '';
   document.getElementById('f_doorType').value = data.doorType || '中分';
+  document.getElementById('f_controlType').value = data.controlType || '单控';
+  document.getElementById('f_parallelNo').value = data.parallelNo || '';
   document.getElementById('f_powerSupply').value = data.shaft ? (data.shaft.powerSupply || '380V') : '380V';
   
   // 轿厢净尺寸
@@ -2271,6 +2502,20 @@ function fillFormData(){
     document.getElementById('shaft_sightseeingSides').value = data.shaft.sightseeingSides || '1面';
   }
   
+  // 机房参数
+  if(data.shaft && data.shaft.machineRoom){
+    var mr = data.shaft.machineRoom;
+    document.getElementById('mr_type').value = mr.type || '大机房';
+    document.getElementById('mr_localRaise').value = mr.localRaise || '无';
+    document.getElementById('mr_raiseHeight').value = mr.raiseHeight || '';
+    document.getElementById('mr_width').value = mr.width || '';
+    document.getElementById('mr_depth').value = mr.depth || '';
+    document.getElementById('mr_height').value = mr.height || '';
+    document.getElementById('shaft_controlCabinetPos').value = data.shaft.controlCabinetPos || '标准位置';
+    document.getElementById('shaft_controlCabinetCustom').value = data.shaft.controlCabinetCustom || '';
+    updateMachineRoomVisibility();
+  }
+  
   // 顶层底坑
   if(data.topPit){
     var tp = data.topPit;
@@ -2294,6 +2539,11 @@ function fillFormData(){
       document.getElementById('roomPreview').style.display = 'block';
       document.getElementById('roomUploadArea').style.display = 'none';
     }
+  }
+  
+  // 签字日期
+  if(data.signatures && data.signatures.surveyorDate){
+    document.getElementById('signDate').value = data.signatures.surveyorDate;
   }
 }
 
