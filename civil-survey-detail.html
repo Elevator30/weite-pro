@@ -625,15 +625,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
               <label>抬高高度(mm)</label>
               <input type="number" id="mr_raiseHeight" onblur="updateMachineRoom('raiseHeight', this.value)">
             </div>
-            <div class="form-row">
+            <div class="form-row" id="mr_width_row">
               <label>机房宽(mm)</label>
               <input type="number" id="mr_width" onblur="updateMachineRoom('width', this.value)">
             </div>
-            <div class="form-row">
+            <div class="form-row" id="mr_depth_row">
               <label>机房深(mm)</label>
               <input type="number" id="mr_depth" onblur="updateMachineRoom('depth', this.value)">
             </div>
-            <div class="form-row">
+            <div class="form-row" id="mr_height_row">
               <label>机房高(mm)</label>
               <input type="number" id="mr_height" onblur="updateMachineRoom('height', this.value)">
             </div>
@@ -1264,25 +1264,17 @@ function updateMachineRoomVisibility(){
   var isHasRoom = !isNoRoom;
 
   // 机房尺寸：大机房/小机房显示，无机房隐藏
-  var wRow = document.getElementById('mr_width');
-  var dRow = document.getElementById('mr_depth');
-  var hRow = document.getElementById('mr_height');
-  var raiseRow = document.getElementById('mr_raise_row');
-  var raiseHRow = document.getElementById('mr_raiseHeight_row');
-  var cabinetRow = document.getElementById('mr_controlCabinet_row');
-  var customRow = document.getElementById('controlCabinetCustom_row');
-
-  if(wRow) wRow.closest('.form-row').style.display = isHasRoom ? '' : 'none';
-  if(dRow) dRow.closest('.form-row').style.display = isHasRoom ? '' : 'none';
-  if(hRow) hRow.closest('.form-row').style.display = isHasRoom ? '' : 'none';
-  if(raiseRow) raiseRow.style.display = isHasRoom ? '' : 'none';
-  if(raiseHRow) raiseHRow.style.display = (isHasRoom && data.shaft.machineRoom.localRaise === '有') ? '' : 'none';
+  document.getElementById('mr_width_row').style.display = isHasRoom ? '' : 'none';
+  document.getElementById('mr_depth_row').style.display = isHasRoom ? '' : 'none';
+  document.getElementById('mr_height_row').style.display = isHasRoom ? '' : 'none';
+  document.getElementById('mr_raise_row').style.display = isHasRoom ? '' : 'none';
+  document.getElementById('mr_raiseHeight_row').style.display = (isHasRoom && data.shaft.machineRoom.localRaise === '有') ? '' : 'none';
 
   // 控制柜：无机房显示
-  if(cabinetRow) cabinetRow.style.display = isNoRoom ? '' : 'none';
-  if(isNoRoom && customRow){
+  document.getElementById('mr_controlCabinet_row').style.display = isNoRoom ? '' : 'none';
+  if(isNoRoom){
     var isCustom = data.shaft.controlCabinetPos === '非标位置';
-    customRow.style.display = isCustom ? '' : 'none';
+    document.getElementById('controlCabinetCustom_row').style.display = isCustom ? '' : 'none';
   }
 }
 
