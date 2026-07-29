@@ -2771,12 +2771,20 @@ function initTouchSwipe(){
     _touchMoved = false;
   }, { passive: true });
   
+  slider.addEventListener('touchmove', function(e){
+    var dx = e.touches[0].clientX - _touchStartX;
+    var dy = e.touches[0].clientY - _touchStartY;
+    if(Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy)){
+      _touchMoved = true;
+    }
+  }, { passive: true });
+  
   slider.addEventListener('touchend', function(e){
     if(!_touchMoved) return;
     var dx = e.changedTouches[0].clientX - _touchStartX;
     var dy = e.changedTouches[0].clientY - _touchStartY;
     
-    if(Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy)){
+    if(Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.5){
       if(dx > 0 && currentTab > 0){
         switchTab(currentTab - 1);
       }else if(dx < 0 && currentTab < 5){
