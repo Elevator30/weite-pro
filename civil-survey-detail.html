@@ -65,7 +65,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
 .form-row input[readonly]{background:#f0f4ff;color:#667eea;font-weight:600;}
 .form-row textarea{min-height:70px;resize:vertical;}
 .form-hint{font-size:11px;color:#a0aec0;margin-top:4px;}
-.hide-row{display:none !important;}
+.hide-row{display:none !important;visibility:hidden !important;height:0 !important;padding:0 !important;margin:0 !important;overflow:hidden !important;}
 
 /* ===== 开关样式 ===== */
 .switch-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;}
@@ -609,7 +609,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
           <div class="form-grid">
             <div class="form-row">
               <label>机房形式</label>
-              <select id="mr_type" onchange="updateMachineRoom('type', this.value); updateMachineRoomVisibility()">
+              <select id="mr_type" onchange="updateMachineRoom('type', this.value); setTimeout(function(){ updateMachineRoomVisibility(); }, 10);">
                 <option value="大机房">大机房</option>
                 <option value="小机房">小机房</option>
                 <option value="无机房">无机房</option>
@@ -1252,7 +1252,13 @@ function updateMachineRoom(key, val){
     data.shaft.machineRoom = { type: '大机房', width: '', depth: '', height: '', localRaise: '无', raiseHeight: '' };
   }
   data.shaft.machineRoom[key] = val;
-  autoSave();
+  // 机房形式切换立即保存，避免退快了没存上
+  if(key === 'type'){
+    clearTimeout(_saveTimer);
+    saveDataSilent();
+  }else{
+    autoSave();
+  }
 }
 
 function setRowHidden(id, hidden){
@@ -1646,7 +1652,7 @@ function renderFloors(){
     html += '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">';
     html += '<input type="text" value="' + escapeHtml(floor.floorNo || '') + '" onblur="updateFloor(' + realIdx + ',\'floorNo\',this.value); renderFloors();" style="width:60px;text-align:center;border:2px solid #667eea;border-radius:20px;padding:4px 8px;font-size:14px;font-weight:700;background:#fff;color:#667eea;" placeholder="楼层">';
     html += '<span style="font-size:14px;font-weight:600;color:#2d3748;">层</span>';
-    html += '<select onchange="updateFloor(' + realIdx + ',\'doorPosition\',this.value); renderFloors();" style="margin-left:8px;padding:3px 8px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;background:#fff;">';
+    html += '<select onchange="updateFloor(' + realIdx + ',\'doorPosition\',this.value); setTimeout(function(){ renderFloors(); }, 10);" style="margin-left:8px;padding:3px 8px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;background:#fff;">';
     html += '<option value="前门"' + (fDoorPos === '前门' ? ' selected' : '') + '>前门</option>';
     html += '<option value="后门"' + (fDoorPos === '后门' ? ' selected' : '') + '>后门</option>';
     html += '<option value="贯通"' + (fDoorPos === '贯通' ? ' selected' : '') + '>贯通</option>';
