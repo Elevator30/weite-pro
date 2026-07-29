@@ -123,15 +123,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
 .floor-field.full{grid-column:1/-1;}
 
 /* 楼层操作栏 */
-.floor-toolbar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center;}
-.floor-toolbar-btn{padding:8px 14px;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.floor-toolbar{display:flex;gap:6px;margin-bottom:6px;flex-wrap:wrap;align-items:center;}
+.floor-toolbar-btn{padding:5px 10px;border:none;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;-webkit-tap-highlight-color:transparent;}
 .floor-toolbar-btn.primary{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;}
 .floor-toolbar-btn.secondary{background:#f7fafc;color:#4a5568;border:1.5px solid #e2e8f0;}
 
 /* 楼层统计栏 */
-.floor-stats{background:linear-gradient(135deg,#f8f9ff,#f5f3ff);border-radius:10px;padding:10px 14px;margin-bottom:12px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;}
-.floor-stat-item .stat-val{font-size:15px;font-weight:700;color:#667eea;}
-.floor-stat-item .stat-lab{font-size:10px;color:#718096;margin-top:2px;}
+.floor-stats{background:linear-gradient(135deg,#f8f9ff,#f5f3ff);border-radius:8px;padding:5px 10px;margin-bottom:4px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;text-align:center;}
+.floor-stat-item .stat-val{font-size:13px;font-weight:700;color:#667eea;}
+.floor-stat-item .stat-lab{font-size:9px;color:#718096;margin-top:1px;}
 
 /* ===== 上传区域 ===== */
 .upload-area{border:2px dashed #cbd5e0;border-radius:12px;padding:24px 16px;text-align:center;cursor:pointer;transition:all .2s;background:#fafafa;}
@@ -727,7 +727,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
 
       <!-- Tab4: 楼层测量 -->
       <div class="zone-panel" id="panel3" style="padding-top:0 !important;">
-        <div style="position:-webkit-sticky;position:sticky;top:0;z-index:20;background:#f5f7fa;padding:12px 12px 8px;margin:0 -12px 8px;box-shadow:0 2px 8px rgba(0,0,0,.06);">
+        <div style="position:-webkit-sticky;position:sticky;top:0;z-index:20;background:#f5f7fa;padding:6px 12px 4px;margin:0 -12px 6px;box-shadow:0 2px 8px rgba(0,0,0,.06);">
           <div class="floor-toolbar">
           <button class="floor-toolbar-btn primary" onclick="addFloor()">+ 添加一层</button>
           <button class="floor-toolbar-btn secondary" onclick="openBatchGen()">批量生成</button>
@@ -1891,7 +1891,7 @@ function addFloor(){
         var panelRect = panel.getBoundingClientRect();
         var cardRect = expCard.getBoundingClientRect();
         // 吸顶栏大概高度100px，留一点余量
-        var stickyH = 100;
+        var stickyH = 85;
         var offset = cardRect.top - panelRect.top - stickyH;
         panel.scrollTop = Math.max(0, panel.scrollTop + offset);
       }
