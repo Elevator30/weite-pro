@@ -295,14 +295,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
                 <option value="220V">220V</option>
               </select>
             </div>
-            <div class="form-row">
-              <label>开门位置</label>
-              <select id="f_doorPosition" onchange="updateField('doorPosition', this.value)">
-                <option value="前门">前门</option>
-                <option value="后门">后门</option>
-                <option value="贯通">贯通</option>
-              </select>
-            </div>
           </div>
         </div>
 
@@ -485,12 +477,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
             <div class="form-grid">
               <div class="form-row">
                 <label>≥300mm门过梁</label>
-                <select id="pier_headerBeam" onchange="updatePier('headerBeam', this.value)">
+                <select id="pier_headerBeam" onchange="updateShaft('headerBeam', this.value); updateHeaderBeamLenVisibility()">
                   <option value="有">有</option>
                   <option value="无">无</option>
                 </select>
               </div>
-              <div class="form-row">
+              <div class="form-row" id="headerBeamLenRow">
                 <label>门过梁长度(mm)</label>
                 <input type="number" id="pier_headerBeamLen" onblur="updatePier('headerBeamLen', this.value)">
               </div>
@@ -1070,6 +1062,13 @@ function updatePier(key, val){
   autoSave();
 }
 
+// 门过梁长度显示控制：选"无"时隐藏
+function updateHeaderBeamLenVisibility(){
+  var row = document.getElementById('headerBeamLenRow');
+  if(!row || !data || !data.shaft) return;
+  row.style.display = (data.shaft.headerBeam === '无') ? 'none' : '';
+}
+
 function updateShaft(key, val){
   if(!data || !data.shaft) return;
   data.shaft[key] = val;
@@ -1421,22 +1420,29 @@ function renderFloors(){
   
   // 门垛显示条件：已建或在建时显示
   var showPier = data.shaft && data.shaft.pier && data.shaft.pier.status !== '未建';
-  var doorPos = data.doorPosition || '前门';
-  var hasBackDoor = doorPos === '后门' || doorPos === '贯通';
   
   var html = '';
   for(var i = 0; i < sorted.length; i++){
     var floor = sorted[i];
     var realIdx = data.floorData.indexOf(floor);
+    var fDoorPos = floor.doorPosition || '前门';
+    var isThrough = fDoorPos === '贯通';
+    var frontLabel = (fDoorPos === '后门') ? '后门' : '前门';
     
     html += '<div class="floor-card">';
     html += '<div class="floor-card-header">';
-    html += '<div style="display:flex;align-items:center;gap:8px;">';
-    html += '<input type="text" value="' + escapeHtml(floor.floorNo || '') + '" onblur="updateFloor(' + realIdx + ',\'floorNo\',this.value); renderFloors();" style="width:60px;text-align:center;border:1.5px solid #cbd5e0;border-radius:20px;padding:4px 8px;font-size:14px;font-weight:700;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;">';
+    html += '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">';
+    html += '<input type="text" value="' + escapeHtml(floor.floorNo || '') + '" onblur="updateFloor(' + realIdx + ',\'floorNo\',this.value); renderFloors();" style="width:60px;text-align:center;border:2px solid #667eea;border-radius:20px;padding:4px 8px;font-size:14px;font-weight:700;background:#fff;color:#667eea;" placeholder="楼层">';
     html += '<span style="font-size:14px;font-weight:600;color:#2d3748;">层</span>';
+    html += '<select onchange="updateFloor(' + realIdx + ',\'doorPosition\',this.value); renderFloors();" style="margin-left:8px;padding:3px 8px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;background:#fff;">';
+    html += '<option value="前门"' + (fDoorPos === '前门' ? ' selected' : '') + '>前门</option>';
+    html += '<option value="后门"' + (fDoorPos === '后门' ? ' selected' : '') + '>后门</option>';
+    html += '<option value="贯通"' + (fDoorPos === '贯通' ? ' selected' : '') + '>贯通</option>';
+    html += '</select>';
     html += '</div>';
     html += '<button class="floor-del-btn" onclick="deleteFloor(' + realIdx + ')">×</button>';
     html += '</div>';
+    html += '<div style="font-size:11px;color:#a0aec0;margin:4px 0 8px;">💡 楼层号可点击修改</div>';
     html += '<div class="floor-grid">';
     
     // 1. 层高
@@ -1451,32 +1457,49 @@ function renderFloors(){
     html += '<div class="floor-field"><label>井道深(mm)</label>';
     html += '<input type="number" value="' + (floor.shaftDepth || '') + '" onblur="updateFloor(' + realIdx + ',\'shaftDepth\',this.value)"></div>';
     
-    // 4. 门洞宽（前门宽）
-    html += '<div class="floor-field"><label>门洞宽(mm)</label>';
-    html += '<input type="number" value="' + (floor.frontDoorWidth || '') + '" onblur="updateFloor(' + realIdx + ',\'frontDoorWidth\',this.value)"></div>';
-    
-    // 5. 门洞高
-    html += '<div class="floor-field"><label>门洞高(mm)</label>';
-    html += '<input type="number" value="' + (floor.doorHeight || '') + '" onblur="updateFloor(' + realIdx + ',\'doorHeight\',this.value)"></div>';
-    
-    // 贯通门时显示后门宽
-    if(hasBackDoor){
-      html += '<div class="floor-field"><label>后门宽(mm)</label>';
+    // 4. 前/侧门洞宽（前门或单开门时）
+    if(!isThrough){
+      html += '<div class="floor-field"><label>' + frontLabel + '门洞宽(mm)</label>';
+      html += '<input type="number" value="' + (floor.frontDoorWidth || '') + '" onblur="updateFloor(' + realIdx + ',\'frontDoorWidth\',this.value)"></div>';
+      
+      html += '<div class="floor-field"><label>' + frontLabel + '门洞高(mm)</label>';
+      html += '<input type="number" value="' + (floor.doorHeight || '') + '" onblur="updateFloor(' + realIdx + ',\'doorHeight\',this.value)"></div>';
+    } else {
+      // 贯通门：前后门各一组
+      html += '<div class="floor-field"><label>前门洞宽(mm)</label>';
+      html += '<input type="number" value="' + (floor.frontDoorWidth || '') + '" onblur="updateFloor(' + realIdx + ',\'frontDoorWidth\',this.value)"></div>';
+      
+      html += '<div class="floor-field"><label>前门洞高(mm)</label>';
+      html += '<input type="number" value="' + (floor.doorHeight || '') + '" onblur="updateFloor(' + realIdx + ',\'doorHeight\',this.value)"></div>';
+      
+      html += '<div class="floor-field"><label>后门洞宽(mm)</label>';
       html += '<input type="number" value="' + (floor.backDoorWidth || '') + '" onblur="updateFloor(' + realIdx + ',\'backDoorWidth\',this.value)"></div>';
-      html += '<div class="floor-field"><label>后门高(mm)</label>';
+      
+      html += '<div class="floor-field"><label>后门洞高(mm)</label>';
       html += '<input type="number" value="' + (floor.backDoorHeight || '') + '" onblur="updateFloor(' + realIdx + ',\'backDoorHeight\',this.value)"></div>';
     }
     
-    // 6-7. 左/右门垛
+    // 门垛
     if(showPier){
-      html += '<div class="floor-field"><label>左门垛(mm)</label>';
-      html += '<input type="number" value="' + (floor.leftPier || '') + '" onblur="updateFloor(' + realIdx + ',\'leftPier\',this.value)"></div>';
-      
-      html += '<div class="floor-field"><label>右门垛(mm)</label>';
-      html += '<input type="number" value="' + (floor.rightPier || '') + '" onblur="updateFloor(' + realIdx + ',\'rightPier\',this.value)"></div>';
+      if(!isThrough){
+        html += '<div class="floor-field"><label>左门垛(mm)</label>';
+        html += '<input type="number" value="' + (floor.leftPier || '') + '" onblur="updateFloor(' + realIdx + ',\'leftPier\',this.value)"></div>';
+        
+        html += '<div class="floor-field"><label>右门垛(mm)</label>';
+        html += '<input type="number" value="' + (floor.rightPier || '') + '" onblur="updateFloor(' + realIdx + ',\'rightPier\',this.value)"></div>';
+      } else {
+        html += '<div class="floor-field"><label>前左门垛(mm)</label>';
+        html += '<input type="number" value="' + (floor.frontLeftPier || '') + '" onblur="updateFloor(' + realIdx + ',\'frontLeftPier\',this.value)"></div>';
+        html += '<div class="floor-field"><label>前右门垛(mm)</label>';
+        html += '<input type="number" value="' + (floor.frontRightPier || '') + '" onblur="updateFloor(' + realIdx + ',\'frontRightPier\',this.value)"></div>';
+        html += '<div class="floor-field"><label>后左门垛(mm)</label>';
+        html += '<input type="number" value="' + (floor.backLeftPier || '') + '" onblur="updateFloor(' + realIdx + ',\'backLeftPier\',this.value)"></div>';
+        html += '<div class="floor-field"><label>后右门垛(mm)</label>';
+        html += '<input type="number" value="' + (floor.backRightPier || '') + '" onblur="updateFloor(' + realIdx + ',\'backRightPier\',this.value)"></div>';
+      }
     }
     
-    // 8. 备注
+    // 备注
     html += '<div class="floor-field full"><label>备注</label>';
     html += '<input type="text" value="' + escapeHtml(floor.remark || '') + '" onblur="updateFloor(' + realIdx + ',\'remark\',this.value)" placeholder="选填"></div>';
     
@@ -1501,6 +1524,7 @@ function addFloor(){
   }
   var newFloor = {
     floorNo: String(maxNo + 1),
+    doorPosition: '前门',
     floorHeight: '',
     frontDoorWidth: '',
     doorHeight: '',
@@ -1510,6 +1534,10 @@ function addFloor(){
     shaftDepth: '',
     leftPier: '',
     rightPier: '',
+    frontLeftPier: '',
+    frontRightPier: '',
+    backLeftPier: '',
+    backRightPier: '',
     remark: ''
   };
   data.floorData.push(newFloor);
@@ -1588,6 +1616,7 @@ function doBatchGen(){
     if(!exists){
       data.floorData.push({
         floorNo: String(n),
+        doorPosition: '前门',
         floorHeight: '',
         frontDoorWidth: '',
         doorHeight: '',
@@ -1597,6 +1626,10 @@ function doBatchGen(){
         shaftDepth: '',
         leftPier: '',
         rightPier: '',
+        frontLeftPier: '',
+        frontRightPier: '',
+        backLeftPier: '',
+        backRightPier: '',
         remark: ''
       });
       added++;
@@ -1828,7 +1861,6 @@ function exportExcel(){
       ['速度(m/s)', d.speed || ''],
       ['层站', (d.floors || '') + '层 / ' + (d.stops || '') + '站'],
       ['开门方式', d.doorType || ''],
-      ['开门位置', d.doorPosition || ''],
       ['动力电源', d.shaft ? (d.shaft.powerSupply || '') : ''],
       [],
       ['轿厢净尺寸'],
@@ -1915,10 +1947,12 @@ function exportExcel(){
     
     // Sheet4: 楼层测量
     if(d.floorData && d.floorData.length){
-      var floorHeader = ['楼层号', '层高(mm)', '井道宽(mm)', '井道深(mm)', '门洞宽(mm)', '门洞高(mm)'];
       var showPier = d.shaft && d.shaft.pier && d.shaft.pier.status !== '未建';
+      var floorHeader = ['楼层号', '开门位置', '层高(mm)', '井道宽(mm)', '井道深(mm)'];
+      // 根据每层开门位置动态决定列——为简化，统一输出所有门字段（含前后门）
+      floorHeader.push('前门洞宽(mm)', '前门洞高(mm)', '后门洞宽(mm)', '后门洞高(mm)');
       if(showPier){
-        floorHeader.push('左门垛(mm)', '右门垛(mm)');
+        floorHeader.push('前左门垛(mm)', '前右门垛(mm)', '后左门垛(mm)', '后右门垛(mm)');
       }
       floorHeader.push('备注');
       
@@ -1928,21 +1962,27 @@ function exportExcel(){
         var f = sorted[i];
         var row = [
           f.floorNo || '',
+          f.doorPosition || '前门',
           f.floorHeight || '',
           f.shaftWidth || '',
           f.shaftDepth || '',
           f.frontDoorWidth || '',
-          f.doorHeight || ''
+          f.doorHeight || '',
+          f.backDoorWidth || '',
+          f.backDoorHeight || ''
         ];
         if(showPier){
-          row.push(f.leftPier || '', f.rightPier || '');
+          // 兼容旧数据：如果有leftPier/rightPier但没有前/后分门垛，映射到前门
+          var fl = f.frontLeftPier || f.leftPier || '';
+          var fr = f.frontRightPier || f.rightPier || '';
+          row.push(fl, fr, f.backLeftPier || '', f.backRightPier || '');
         }
         row.push(f.remark || '');
         floorRows.push(row);
       }
       var ws4 = XLSX.utils.aoa_to_sheet(floorRows);
-      var cols = [{wch:8},{wch:10},{wch:10},{wch:10},{wch:10},{wch:10}];
-      if(showPier){ cols.push({wch:10}, {wch:10}); }
+      var cols = [{wch:8},{wch:10},{wch:10},{wch:10},{wch:10},{wch:12},{wch:12},{wch:12},{wch:12}];
+      if(showPier){ cols.push({wch:12}, {wch:12}, {wch:12}, {wch:12}); }
       cols.push({wch:20});
       ws4['!cols'] = cols;
       XLSX.utils.book_append_sheet(wb, ws4, '楼层测量');
@@ -2000,7 +2040,7 @@ function buildPrintHTML(){
   html += '<div class="info-item"><span class="info-label">电梯型号：</span><span class="info-value">' + escapeHtml(d.elevatorModel || '-') + '</span></div>';
   html += '<div class="info-item"><span class="info-label">载重/速度：</span><span class="info-value">' + escapeHtml(d.load || '-') + 'kg / ' + escapeHtml(d.speed || '-') + 'm/s</span></div>';
   html += '<div class="info-item"><span class="info-label">层站：</span><span class="info-value">' + escapeHtml(d.floors || '-') + '层' + escapeHtml(d.stops || '-') + '站</span></div>';
-  html += '<div class="info-item"><span class="info-label">开门方式：</span><span class="info-value">' + escapeHtml(d.doorType || '-') + ' / ' + escapeHtml(d.doorPosition || '-') + '</span></div>';
+  html += '<div class="info-item"><span class="info-label">开门方式：</span><span class="info-value">' + escapeHtml(d.doorType || '-') + '</span></div>';
   html += '<div class="info-item"><span class="info-label">动力电源：</span><span class="info-value">' + escapeHtml(d.shaft ? (d.shaft.powerSupply || '-') : '-') + '</span></div>';
   html += '</div>';
   
@@ -2160,7 +2200,6 @@ function fillFormData(){
   document.getElementById('f_floors').value = data.floors || '';
   document.getElementById('f_stops').value = data.stops || '';
   document.getElementById('f_doorType').value = data.doorType || '中分';
-  document.getElementById('f_doorPosition').value = data.doorPosition || '前门';
   document.getElementById('f_powerSupply').value = data.shaft ? (data.shaft.powerSupply || '380V') : '380V';
   
   // 轿厢净尺寸
@@ -2321,6 +2360,7 @@ function init(){
   fillFormData();
   fillWallSelects();
   updatePierVisibility();
+  updateHeaderBeamLenVisibility();
   updateSummary();
   initTouchSwipe();
   
