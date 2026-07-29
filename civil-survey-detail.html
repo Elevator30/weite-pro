@@ -1646,59 +1646,51 @@ function renderFloors(){
     html += '<div style="font-size:11px;color:#a0aec0;margin:4px 0 8px;">💡 楼层号可点击修改</div>';
     html += '<div class="floor-grid">';
     
-    // 1. 层高
+    // 公共区：层高 + 井道宽/深
     html += '<div class="floor-field full"><label>层高(mm)</label>';
     html += '<input type="number" value="' + (floor.floorHeight || '') + '" onblur="updateFloor(' + realIdx + ',\'floorHeight\',this.value); updateFloorStats();"></div>';
     
-    // 2. 井道宽
     html += '<div class="floor-field"><label>井道宽(mm)</label>';
     html += '<input type="number" value="' + (floor.shaftWidth || '') + '" onblur="updateFloor(' + realIdx + ',\'shaftWidth\',this.value)"></div>';
     
-    // 3. 井道深
     html += '<div class="floor-field"><label>井道深(mm)</label>';
     html += '<input type="number" value="' + (floor.shaftDepth || '') + '" onblur="updateFloor(' + realIdx + ',\'shaftDepth\',this.value)"></div>';
     
-    // 4. 前/侧门洞宽（前门或单开门时）
-    if(!isThrough){
-      html += '<div class="floor-field"><label>' + frontLabel + '门洞宽(mm)</label>';
-      html += '<input type="number" value="' + (floor.frontDoorWidth || '') + '" onblur="updateFloor(' + realIdx + ',\'frontDoorWidth\',this.value)"></div>';
-      
-      html += '<div class="floor-field"><label>' + frontLabel + '门洞高(mm)</label>';
-      html += '<input type="number" value="' + (floor.doorHeight || '') + '" onblur="updateFloor(' + realIdx + ',\'doorHeight\',this.value)"></div>';
-    } else {
-      // 贯通门：前后门各一组
-      html += '<div class="floor-field"><label>前门洞宽(mm)</label>';
-      html += '<input type="number" value="' + (floor.frontDoorWidth || '') + '" onblur="updateFloor(' + realIdx + ',\'frontDoorWidth\',this.value)"></div>';
-      
-      html += '<div class="floor-field"><label>前门洞高(mm)</label>';
-      html += '<input type="number" value="' + (floor.doorHeight || '') + '" onblur="updateFloor(' + realIdx + ',\'doorHeight\',this.value)"></div>';
-      
-      html += '<div class="floor-field"><label>后门洞宽(mm)</label>';
-      html += '<input type="number" value="' + (floor.backDoorWidth || '') + '" onblur="updateFloor(' + realIdx + ',\'backDoorWidth\',this.value)"></div>';
-      
-      html += '<div class="floor-field"><label>后门洞高(mm)</label>';
-      html += '<input type="number" value="' + (floor.backDoorHeight || '') + '" onblur="updateFloor(' + realIdx + ',\'backDoorHeight\',this.value)"></div>';
-    }
-    
-    // 门垛
+    // 前门组（选前门或贯通时显示）
+    var showFront = fDoorPos !== '后门';
+    var frontDisplay = showFront ? '' : 'none';
+    html += '<div style="display:' + frontDisplay + ';grid-column:1/-1;margin-top:4px;">';
+    html += '<div style="font-size:12px;font-weight:600;color:#667eea;margin-bottom:6px;padding-left:2px;">🚪 前门</div>';
+    html += '<div class="floor-grid" style="gap:6px;">';
+    html += '<div class="floor-field"><label>门洞宽(mm)</label>';
+    html += '<input type="number" value="' + (floor.frontDoorWidth || '') + '" onblur="updateFloor(' + realIdx + ',\'frontDoorWidth\',this.value)"></div>';
+    html += '<div class="floor-field"><label>门洞高(mm)</label>';
+    html += '<input type="number" value="' + (floor.doorHeight || '') + '" onblur="updateFloor(' + realIdx + ',\'doorHeight\',this.value)"></div>';
     if(showPier){
-      if(!isThrough){
-        html += '<div class="floor-field"><label>左门垛(mm)</label>';
-        html += '<input type="number" value="' + (floor.leftPier || '') + '" onblur="updateFloor(' + realIdx + ',\'leftPier\',this.value)"></div>';
-        
-        html += '<div class="floor-field"><label>右门垛(mm)</label>';
-        html += '<input type="number" value="' + (floor.rightPier || '') + '" onblur="updateFloor(' + realIdx + ',\'rightPier\',this.value)"></div>';
-      } else {
-        html += '<div class="floor-field"><label>前左门垛(mm)</label>';
-        html += '<input type="number" value="' + (floor.frontLeftPier || '') + '" onblur="updateFloor(' + realIdx + ',\'frontLeftPier\',this.value)"></div>';
-        html += '<div class="floor-field"><label>前右门垛(mm)</label>';
-        html += '<input type="number" value="' + (floor.frontRightPier || '') + '" onblur="updateFloor(' + realIdx + ',\'frontRightPier\',this.value)"></div>';
-        html += '<div class="floor-field"><label>后左门垛(mm)</label>';
-        html += '<input type="number" value="' + (floor.backLeftPier || '') + '" onblur="updateFloor(' + realIdx + ',\'backLeftPier\',this.value)"></div>';
-        html += '<div class="floor-field"><label>后右门垛(mm)</label>';
-        html += '<input type="number" value="' + (floor.backRightPier || '') + '" onblur="updateFloor(' + realIdx + ',\'backRightPier\',this.value)"></div>';
-      }
+      html += '<div class="floor-field"><label>左门垛(mm)</label>';
+      html += '<input type="number" value="' + (floor.frontLeftPier || floor.leftPier || '') + '" onblur="updateFloor(' + realIdx + ',\'frontLeftPier\',this.value)"></div>';
+      html += '<div class="floor-field"><label>右门垛(mm)</label>';
+      html += '<input type="number" value="' + (floor.frontRightPier || floor.rightPier || '') + '" onblur="updateFloor(' + realIdx + ',\'frontRightPier\',this.value)"></div>';
     }
+    html += '</div></div>';
+    
+    // 后门组（选后门或贯通时显示）
+    var showBack = fDoorPos !== '前门';
+    var backDisplay = showBack ? '' : 'none';
+    html += '<div style="display:' + backDisplay + ';grid-column:1/-1;margin-top:4px;">';
+    html += '<div style="font-size:12px;font-weight:600;color:#f6ad55;margin-bottom:6px;padding-left:2px;">🚪 后门</div>';
+    html += '<div class="floor-grid" style="gap:6px;">';
+    html += '<div class="floor-field"><label>门洞宽(mm)</label>';
+    html += '<input type="number" value="' + (floor.backDoorWidth || '') + '" onblur="updateFloor(' + realIdx + ',\'backDoorWidth\',this.value)"></div>';
+    html += '<div class="floor-field"><label>门洞高(mm)</label>';
+    html += '<input type="number" value="' + (floor.backDoorHeight || '') + '" onblur="updateFloor(' + realIdx + ',\'backDoorHeight\',this.value)"></div>';
+    if(showPier){
+      html += '<div class="floor-field"><label>左门垛(mm)</label>';
+      html += '<input type="number" value="' + (floor.backLeftPier || '') + '" onblur="updateFloor(' + realIdx + ',\'backLeftPier\',this.value)"></div>';
+      html += '<div class="floor-field"><label>右门垛(mm)</label>';
+      html += '<input type="number" value="' + (floor.backRightPier || '') + '" onblur="updateFloor(' + realIdx + ',\'backRightPier\',this.value)"></div>';
+    }
+    html += '</div></div>';
     
     // 备注
     html += '<div class="floor-field full"><label>备注</label>';
