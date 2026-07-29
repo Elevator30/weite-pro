@@ -129,9 +129,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
 .floor-toolbar-btn.secondary{background:#f7fafc;color:#4a5568;border:1.5px solid #e2e8f0;}
 
 /* 楼层统计栏 */
-.floor-stats{background:linear-gradient(135deg,#f8f9ff,#f5f3ff);border-radius:8px;padding:5px 10px;margin-bottom:4px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;text-align:center;}
-.floor-stat-item .stat-val{font-size:13px;font-weight:700;color:#667eea;}
-.floor-stat-item .stat-lab{font-size:9px;color:#718096;margin-top:1px;}
+.floor-stats{background:linear-gradient(135deg,#f8f9ff,#f5f3ff);border-radius:6px;padding:3px 8px;margin-bottom:2px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:2px;text-align:center;}
+.floor-stat-item .stat-val{font-size:12px;font-weight:700;color:#667eea;line-height:1.2;}
+.floor-stat-item .stat-lab{font-size:9px;color:#718096;margin-top:0;line-height:1.2;}
 
 /* ===== 上传区域 ===== */
 .upload-area{border:2px dashed #cbd5e0;border-radius:12px;padding:24px 16px;text-align:center;cursor:pointer;transition:all .2s;background:#fafafa;}
@@ -1891,7 +1891,7 @@ function addFloor(){
         var panelRect = panel.getBoundingClientRect();
         var cardRect = expCard.getBoundingClientRect();
         // 吸顶栏大概高度100px，留一点余量
-        var stickyH = 85;
+        var stickyH = 95;
         var offset = cardRect.top - panelRect.top - stickyH;
         panel.scrollTop = Math.max(0, panel.scrollTop + offset);
       }
