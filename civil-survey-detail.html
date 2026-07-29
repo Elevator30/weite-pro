@@ -1676,6 +1676,11 @@ function renderFloors(){
     return sortDir === 'desc' ? (nb - na) : (na - nb);
   });
   
+  // 默认展开最上面一层（排序后的第一个），只在首次无值时设置
+  if(expandedFloorIdx === undefined && sorted.length > 0){
+    expandedFloorIdx = data.floorData.indexOf(sorted[0]);
+  }
+  
   // 门垛显示条件：已建或在建时显示
   var showPier = data.shaft && data.shaft.pier && data.shaft.pier.status !== '未建';
   
@@ -1687,7 +1692,7 @@ function renderFloors(){
     var isThrough = fDoorPos === '贯通';
     var frontLabel = (fDoorPos === '后门') ? '后门' : '前门';
     
-    var isCollapsed = (expandedFloorIdx !== undefined && expandedFloorIdx !== realIdx);
+    var isCollapsed = (expandedFloorIdx !== realIdx);
     html += '<div class="floor-card' + (isCollapsed ? ' collapsed' : '') + '">';
     html += '<div class="floor-card-header" onclick="toggleFloorExpand(' + realIdx + ', event)">';
     html += '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex:1;">';
