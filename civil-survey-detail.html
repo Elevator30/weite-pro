@@ -226,14 +226,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
               <label>编号</label>
               <input type="text" id="f_surveyNo" readonly>
             </div>
-            <div class="form-row full">
-              <label>楼号 / 单元号 / 梯号</label>
-              <div style="display:flex;gap:8px;">
-                <input type="text" id="f_buildingNo" placeholder="楼号" onblur="updateField('buildingNo', this.value)" style="flex:1;">
-                <input type="text" id="f_unitNo" placeholder="单元号" onblur="updateField('unitNo', this.value)" style="flex:1;">
-                <input type="text" id="f_elevatorNo" placeholder="梯号" onblur="updateField('elevatorNo', this.value)" style="flex:1;">
-              </div>
-            </div>
+
             <div class="form-row" style="display:none;">
               <label>井道状态</label>
               <select id="f_shaftStatus" onchange="updateField('shaftStatus', this.value)">
@@ -262,12 +255,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
               <input type="number" step="0.1" id="f_speed" placeholder="如：1.5" onblur="updateField('speed', this.value)">
             </div>
             <div class="form-row">
-              <label>层站</label>
+              <label>层站门</label>
               <div style="display:flex;gap:6px;align-items:center;">
                 <input type="number" id="f_floors" placeholder="层" onblur="updateField('floors', this.value)" style="flex:1;text-align:center;">
                 <span style="color:#a0aec0;font-size:13px;">层</span>
                 <input type="number" id="f_stops" placeholder="站" onblur="updateField('stops', this.value)" style="flex:1;text-align:center;">
                 <span style="color:#a0aec0;font-size:13px;">站</span>
+                <input type="number" id="f_doors" placeholder="门" onblur="updateField('doors', this.value)" style="flex:1;text-align:center;">
+                <span style="color:#a0aec0;font-size:13px;">门</span>
               </div>
             </div>
             <div class="form-row">
@@ -916,6 +911,7 @@ function createDefaultData(){
     speed: '',
     floors: '',
     stops: '',
+    doors: '',
     doorType: '中分',
     doorPosition: '前门',
     carSize: { width: '', depth: '', height: '' },
@@ -1219,6 +1215,9 @@ function migrateData(d){
   if(d.shaftStatus === undefined) d.shaftStatus = '未建';
   if(d.controlType === undefined) d.controlType = '单控';
   if(d.parallelNo === undefined) d.parallelNo = '';
+  if(d.floors === undefined) d.floors = '';
+  if(d.stops === undefined) d.stops = '';
+  if(d.doors === undefined) d.doors = '';
   
   // 机房参数
   if(!s.machineRoom) s.machineRoom = { type: '大机房', width: '', depth: '', height: '', localRaise: '无', raiseHeight: '' };
@@ -2340,7 +2339,7 @@ function exportExcel(){
       ['电梯型号', d.elevatorModel || ''],
       ['载重(kg)', d.load || ''],
       ['速度(m/s)', d.speed || ''],
-      ['层站', (d.floors || '') + '层 / ' + (d.stops || '') + '站'],
+      ['层站门', (d.floors || '') + '层 / ' + (d.stops || '') + '站 / ' + (d.doors || '') + '门'],
       ['开门方式', d.doorType || ''],
       ['动力电源', d.shaft ? (d.shaft.powerSupply || '') : ''],
       [],
@@ -2540,7 +2539,7 @@ function buildPrintHTML(){
   html += '<table>';
   html += '<col style="width:12%;"><col style="width:28%;"><col style="width:10%;"><col style="width:16%;"><col style="width:8%;"><col style="width:9%;"><col style="width:12%;"><col style="width:5%;">';
   html += '<tr><td class="lbl">项目名称*</td><td class="val">' + escapeHtml(d.projectName||'') + '</td><td class="lbl">额定载重*</td><td class="val">' + escapeHtml(d.load||'') + 'kg</td><td class="lbl c" colspan="4">勘测次数：首勘' + (d.surveyType==='首勘'?'√':'□') + ' 复勘' + (d.surveyType==='复勘'?'√':'□') + (d.surveyType==='复勘'?' '+(d.surveyCount||1)+'次':'') + '</td></tr>';
-  html += '<tr><td class="lbl">井道状态</td><td class="val small">未建' + (d.shaftStatus==='未建'?'√':'□') + ' 在建' + (d.shaftStatus==='在建'?'√':'□') + ' 已建' + (d.shaftStatus==='已建'?'√':'□') + '</td><td class="lbl">层/站/门*</td><td class="val">' + escapeHtml(d.floors||'') + '层/' + escapeHtml(d.stops||'') + '站</td><td class="lbl c" colspan="4">控制方式：单控' + (d.controlType==='单控'?'√':'□') + '/并联' + (d.controlType==='并联'?'√':'□') + '/群控' + (d.controlType==='群控'?'√':'□') + '</td></tr>';
+  html += '<tr><td class="lbl">井道状态</td><td class="val small">未建' + (d.shaftStatus==='未建'?'√':'□') + ' 在建' + (d.shaftStatus==='在建'?'√':'□') + ' 已建' + (d.shaftStatus==='已建'?'√':'□') + '</td><td class="lbl">层/站/门*</td><td class="val">' + escapeHtml(d.floors||'') + '层/' + escapeHtml(d.stops||'') + '站/' + escapeHtml(d.doors||'') + '门</td><td class="lbl c" colspan="4">控制方式：单控' + (d.controlType==='单控'?'√':'□') + '/并联' + (d.controlType==='并联'?'√':'□') + '/群控' + (d.controlType==='群控'?'√':'□') + '</td></tr>';
   html += '<tr><td class="lbl">梯 种</td><td class="val">' + escapeHtml(d.elevatorModel||'') + '</td><td class="lbl">额定速度*</td><td class="val">' + escapeHtml(d.speed||'') + 'm/s</td><td class="lbl c" colspan="4">并联/群控梯号：' + escapeHtml(d.parallelNo||'') + '</td></tr>';
   html += '<tr><td class="lbl">井道尺寸*</td><td class="val">净宽 ' + escapeHtml(shaftW) + '×净深 ' + escapeHtml(shaftD) + ' mm</td><td class="lbl">轿厢净尺寸</td><td class="val">' + escapeHtml(d.carSize?d.carSize.width:'') + '×' + escapeHtml(d.carSize?d.carSize.depth:'') + '×' + escapeHtml(d.carSize?d.carSize.height:'') + 'mm</td><td class="lbl">物理<br>楼层</td><td class="lbl">楼层<br>间距</td><td class="lbl">开门(前/后)<br>打√</td><td class="lbl">楼层<br>显示</td></tr>';
   html += '<tr><td class="lbl">厅门门洞*</td><td class="val">净宽 ' + escapeHtml(d.doorClearSize?d.doorClearSize.width:'') + '×净高 ' + escapeHtml(d.doorClearSize?d.doorClearSize.height:'') + 'mm</td><td class="lbl">井道预留牛腿</td><td class="val small">无' + (s.hasCorbel==='无'?'√':'□') + '、有' + (s.hasCorbel==='有'?'√':'□') + '</td>' + floorRow(floorList[0]) + '</tr>';
@@ -2710,15 +2709,13 @@ function fillFormData(){
   
   // 测量记录级字段
   document.getElementById('f_surveyNo').value = data.surveyNo || '';
-  document.getElementById('f_buildingNo').value = data.buildingNo || '';
-  document.getElementById('f_unitNo').value = data.unitNo || '';
-  document.getElementById('f_elevatorNo').value = data.elevatorNo || '';
   document.getElementById('f_shaftStatus').value = data.shaftStatus || '未建';
   document.getElementById('f_elevatorModel').value = data.elevatorModel || '客梯';
   document.getElementById('f_load').value = data.load || '';
   document.getElementById('f_speed').value = data.speed || '';
   document.getElementById('f_floors').value = data.floors || '';
   document.getElementById('f_stops').value = data.stops || '';
+  document.getElementById('f_doors').value = data.doors || '';
   document.getElementById('f_doorType').value = data.doorType || '中分';
   document.getElementById('f_controlType').value = data.controlType || '单控';
   document.getElementById('f_parallelNo').value = data.parallelNo || '';
