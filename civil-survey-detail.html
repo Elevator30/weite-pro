@@ -219,19 +219,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
 
       <!-- Tab1: 基本参数 -->
       <div class="zone-panel" id="panel0">
-        <div class="zone-section-title">📋 项目基本信息</div>
+        <div class="zone-section-title">🛗 电梯参数</div>
         <div class="card">
-          <div style="font-size:11px;color:#a0aec0;margin-bottom:10px;padding:6px 10px;background:#f7fafc;border-radius:6px;">
-            💡 项目信息请在列表页点击项目卡片右上角的 ✎ 按钮修改
-          </div>
           <div class="form-grid">
             <div class="form-row" style="display:none;">
               <label>编号</label>
               <input type="text" id="f_surveyNo" readonly>
-            </div>
-            <div class="form-row full">
-              <label>项目名称</label>
-              <input type="text" id="f_projectName" readonly style="background:#f0f4ff;color:#667eea;font-weight:600;">
             </div>
             <div class="form-row full">
               <label>楼号 / 单元号 / 梯号</label>
@@ -241,39 +234,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
                 <input type="text" id="f_elevatorNo" placeholder="梯号" onblur="updateField('elevatorNo', this.value)" style="flex:1;">
               </div>
             </div>
-            <div class="form-row full">
-              <label>省 / 市 / 区县</label>
-              <div style="display:flex;gap:8px;">
-                <select id="f_province" disabled style="flex:1;opacity:.8;background:#f0f4ff;color:#667eea;font-weight:600;">
-                  <option value="">请选择</option>
-                </select>
-                <select id="f_city" disabled style="flex:1;opacity:.8;background:#f0f4ff;color:#667eea;font-weight:600;">
-                  <option value="">请选择</option>
-                </select>
-                <select id="f_district" disabled style="flex:1;opacity:.8;background:#f0f4ff;color:#667eea;font-weight:600;">
-                  <option value="">请选择</option>
-                </select>
-              </div>
-            </div>
-            <div class="form-row full">
-              <label>详细地址</label>
-              <input type="text" id="f_address" readonly style="background:#f0f4ff;color:#667eea;font-weight:600;">
-            </div>
-            <div class="form-row">
-              <label>销售</label>
-              <input type="text" id="f_sales" readonly style="background:#f0f4ff;color:#667eea;font-weight:600;">
-            </div>
-            <div class="form-row">
-              <label>联系电话</label>
-              <input type="tel" id="f_phone" readonly style="background:#f0f4ff;color:#667eea;font-weight:600;">
-            </div>
-            <div class="form-row">
-              <label>勘测类型</label>
-              <select id="f_surveyType" disabled style="background:#f0f4ff;color:#667eea;font-weight:600;">
-                <option value="首勘">首勘</option>
-                <option value="复勘">复勘</option>
-              </select>
-            </div>
             <div class="form-row" style="display:none;">
               <label>井道状态</label>
               <select id="f_shaftStatus" onchange="updateField('shaftStatus', this.value)">
@@ -282,12 +242,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
                 <option value="已建">已建</option>
               </select>
             </div>
-          </div>
-        </div>
-
-        <div class="zone-section-title">🛗 电梯参数</div>
-        <div class="card">
-          <div class="form-grid">
             <div class="form-row">
               <label>电梯型号</label>
               <select id="f_elevatorModel" onchange="updateField('elevatorModel', this.value)">
@@ -1661,85 +1615,30 @@ function toggleAccordion(id){
   el.classList.toggle('active');
 }
 
-// ============ 省市区联动 ============
+// ============ 省市区联动（项目级字段已移到列表页，详情页不显示，仅保留数据同步）============
 function initRegionSelectors(){
-  var provSel = document.getElementById('f_province');
-  var html = '<option value="">请选择</option>';
-  for(var p in regionData){
-    html += '<option value="' + p + '">' + p + '</option>';
-  }
-  provSel.innerHTML = html;
-  
-  // 设置已有值（从项目数据读取）
-  var loc = (currentProject && currentProject.location) ? currentProject.location : (data ? data.location : null);
-  if(loc){
-    if(loc.province){
-      provSel.value = loc.province;
-      onProvinceChange();
-      if(loc.city){
-        var citySel = document.getElementById('f_city');
-        if(citySel) citySel.value = loc.city;
-        onCityChange();
-        if(loc.district){
-          var distSel = document.getElementById('f_district');
-          if(distSel) distSel.value = loc.district;
-        }
-      }
-    }
-    if(loc.detail){
-      document.getElementById('f_address').value = loc.detail;
-    }
+  // 详情页不再显示省市区选择器（项目信息在列表页维护）
+  // 确保data.location从currentProject同步（已在fillFormData中处理）
+  var loc = (currentProject && currentProject.location) ? currentProject.location : null;
+  if(loc && data){
+    if(!data.location) data.location = {};
+    data.location.province = loc.province || '';
+    data.location.city = loc.city || '';
+    data.location.district = loc.district || '';
+    data.location.detail = loc.detail || '';
   }
 }
 
 function onProvinceChange(){
-  var prov = document.getElementById('f_province').value;
-  var citySel = document.getElementById('f_city');
-  var distSel = document.getElementById('f_district');
-  updateLocation('province', prov);
-  
-  distSel.innerHTML = '<option value="">请选择</option>';
-  
-  if(!prov || !regionData[prov]){
-    citySel.innerHTML = '<option value="">请选择</option>';
-    updateLocation('city', '');
-    updateLocation('district', '');
-    return;
-  }
-  
-  var html = '<option value="">请选择</option>';
-  for(var c in regionData[prov]){
-    html += '<option value="' + c + '">' + c + '</option>';
-  }
-  citySel.innerHTML = html;
-  updateLocation('city', '');
-  updateLocation('district', '');
+  // 已移到列表页维护，详情页保留空函数防报错
 }
 
 function onCityChange(){
-  var prov = document.getElementById('f_province').value;
-  var city = document.getElementById('f_city').value;
-  var distSel = document.getElementById('f_district');
-  updateLocation('city', city);
-  
-  if(!prov || !city || !regionData[prov] || !regionData[prov][city]){
-    distSel.innerHTML = '<option value="">请选择</option>';
-    updateLocation('district', '');
-    return;
-  }
-  
-  var html = '<option value="">请选择</option>';
-  var districts = regionData[prov][city];
-  for(var i = 0; i < districts.length; i++){
-    html += '<option value="' + districts[i] + '">' + districts[i] + '</option>';
-  }
-  distSel.innerHTML = html;
-  updateLocation('district', '');
+  // 已移到列表页维护，详情页保留空函数防报错
 }
 
 function onDistrictChange(){
-  var dist = document.getElementById('f_district').value;
-  updateLocation('district', dist);
+  // 已移到列表页维护，详情页保留空函数防报错
 }
 
 // ============ 观光开关 ============
@@ -2796,14 +2695,17 @@ function saveAndReturn(){
 function fillFormData(){
   if(!data) return;
   
-  // 项目级字段（从currentProject读取，只读显示）
+  // 项目级字段同步到data（打印/导出用）
   if(currentProject){
-    document.getElementById('f_projectName').value = currentProject.projectName || '';
-    document.getElementById('f_sales').value = currentProject.sales || '';
-    document.getElementById('f_phone').value = currentProject.phone || '';
-    document.getElementById('f_surveyType').value = currentProject.surveyType || '首勘';
-    var pLoc = currentProject.location || {};
-    document.getElementById('f_address').value = pLoc.detail || '';
+    data.projectName = currentProject.projectName || '';
+    data.sales = currentProject.sales || '';
+    data.phone = currentProject.phone || '';
+    data.surveyType = currentProject.surveyType || '首勘';
+    if(!data.location) data.location = {};
+    data.location.province = (currentProject.location && currentProject.location.province) || '';
+    data.location.city = (currentProject.location && currentProject.location.city) || '';
+    data.location.district = (currentProject.location && currentProject.location.district) || '';
+    data.location.detail = (currentProject.location && currentProject.location.detail) || '';
   }
   
   // 测量记录级字段
