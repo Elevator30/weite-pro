@@ -3105,7 +3105,16 @@ function convertPDFToImages(pdfData) {
   return new Promise(function(resolve) {
     if (typeof pdfjsLib === 'undefined') { resolve([]); return; }
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-    var task = pdfjsLib.getDocument({data: atob(pdfData.split(',')[1])});
+    
+    // 将base64转为Uint8Array（比atob二进制字符串更可靠，避免二进制截断）
+    var b64 = pdfData.split(',')[1];
+    var raw = atob(b64);
+    var arr = new Uint8Array(raw.length);
+    for (var i = 0; i < raw.length; i++) arr[i] = raw.charCodeAt(i);
+    
+    // disableWorker: iOS Safari 上 worker 线程可能导致渲染不完整，改主线程运行
+    // isEvalSupported: false 避免 CID 字体解析失败导致部分文字丢失
+    var task = pdfjsLib.getDocument({data: arr, disableWorker: true, isEvalSupported: false});
     task.promise.then(function(pdf) {
       var pages = [];
       var loadPage = function(pageNum) {
@@ -3117,14 +3126,26 @@ function convertPDFToImages(pdfData) {
           c.width = viewport.width;
           c.height = viewport.height;
           var ctx = c.getContext('2d');
+          // 先填白色背景（避免透明区域被裁掉）
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, c.width, c.height);
           page.render({canvasContext: ctx, viewport: viewport}).promise.then(function() {
             pages.push({data: c.toDataURL('image/jpeg', 0.92), type: 'image/jpeg', name: 'PDF第' + pageNum + '页'});
             loadPage(pageNum + 1);
+          }).catch(function(err) {
+            console.error('PDF第' + pageNum + '页渲染失败:', err);
+            loadPage(pageNum + 1);
           });
-        }).catch(function() { loadPage(pageNum + 1); });
+        }).catch(function(err) {
+          console.error('PDF第' + pageNum + '页加载失败:', err);
+          loadPage(pageNum + 1);
+        });
       };
       loadPage(1);
-    }).catch(function() { resolve([]); });
+    }).catch(function(err) {
+      console.error('PDF文档加载失败:', err);
+      resolve([]);
+    });
   });
 }
 
