@@ -3121,13 +3121,20 @@ function convertPDFToImages(pdfData) {
     
     // disableWorker: iOS Safari 上 worker 线程可能导致渲染不完整，改主线程运行
     // isEvalSupported: false 避免 CID 字体解析失败导致部分文字丢失
-    var task = pdfjsLib.getDocument({data: arr, disableWorker: true, isEvalSupported: false});
+    // cMapUrl/cMapPacked: 加载中文字体映射，解决火车票等PDF中文文字渲染为空的问题
+    var task = pdfjsLib.getDocument({
+      data: arr,
+      disableWorker: true,
+      isEvalSupported: false,
+      cMapUrl: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/cmaps/',
+      cMapPacked: true
+    });
     task.promise.then(function(pdf) {
       var pages = [];
       var loadPage = function(pageNum) {
         if (pageNum > pdf.numPages) { resolve(pages); return; }
         pdf.getPage(pageNum).then(function(page) {
-          var scale = 2; // 2x渲染保证清晰
+          var scale = 3; // 3x渲染保证小字体清晰（火车票等票据字体较小）
           var viewport = page.getViewport({scale: scale});
           var c = document.createElement('canvas');
           c.width = viewport.width;
