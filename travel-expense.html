@@ -1713,6 +1713,10 @@ function buildReimbursementForm(project, exps, settings) {
       });
     }
   });
+  // 交通工具单据张数（不含住宿费/其他费用）
+  var transportReceipts = 0;
+  transportItems.forEach(function(t) { transportReceipts += (t.receiptCount || 0); });
+
   var today = new Date();
   var workDesc = getWorkItems(project).map(function(w){ return w.type + w.qty + '台'; }).join(' ');
 
@@ -1920,7 +1924,7 @@ function buildReimbursementForm(project, exps, settings) {
     // 住勤费
     if (i < hotelCount) {
       var hItem = hotelItems[i];
-      html += td('', false); html += td('', false); html += td('', false); html += td(hItem.amountDisplay, false);
+      html += td('', false); html += td('', false); html += td('', false); html += td('', false);
       html += '<td class="dbl-col"></td>';
     } else {
       html += td('', false); html += td('', false); html += td('', false); html += td('', false);
@@ -1952,14 +1956,14 @@ function buildReimbursementForm(project, exps, settings) {
   html += '<td class="td-total" colspan="10">合&emsp;&emsp;&emsp;计</td>';
   html += '<td class="dbl-col td-total"></td>';
   html += '<td class="td-total"></td>';
-  html += '<td class="td-total">' + totalReceipts + '</td>';
+  html += '<td class="td-total">' + (transportReceipts > 0 ? transportReceipts : '') + '</td>';
   html += '<td class="td-total">' + (totals['车船费'] > 0 ? totals['车船费'].toFixed(2) : '') + '</td>';
   html += '<td class="dbl-col td-total"></td>';
   html += '<td class="td-total"></td><td class="td-total"></td><td class="td-total"></td><td class="td-total" colspan="2"></td>';
   html += '<td class="td-total" colspan="2">' + (totals['途中补贴'] > 0 ? totals['途中补贴'].toFixed(2) : '') + '</td>';
   html += '<td class="dbl-col td-total"></td>';
   html += '<td class="td-total"></td><td class="td-total"></td><td class="td-total"></td>';
-  html += '<td class="td-total">' + (totals['住勤费'] > 0 ? totals['住勤费'].toFixed(2) : '') + '</td>';
+  html += '<td class="td-total"></td>';
   html += '<td class="dbl-col td-total"></td>';
   html += '<td class="td-total" colspan="2"></td>';
   html += '<td class="td-total"></td>';
