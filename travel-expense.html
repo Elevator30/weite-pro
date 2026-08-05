@@ -1713,9 +1713,12 @@ function buildReimbursementForm(project, exps, settings) {
       });
     }
   });
-  // 交通工具单据张数（不含住宿费/其他费用）
+  // 交通工具单据张数
   var transportReceipts = 0;
   transportItems.forEach(function(t) { transportReceipts += (t.receiptCount || 0); });
+  // 其他费用单据张数
+  var otherReceipts = 0;
+  Object.keys(otherExpMap).forEach(function(key) { otherReceipts += (otherExpMap[key].receipts || 0); });
 
   var today = new Date();
   var workDesc = getWorkItems(project).map(function(w){ return w.type + w.qty + '台'; }).join(' ');
@@ -1966,7 +1969,7 @@ function buildReimbursementForm(project, exps, settings) {
   html += '<td class="td-total"></td>';
   html += '<td class="dbl-col td-total"></td>';
   html += '<td class="td-total" colspan="2"></td>';
-  html += '<td class="td-total"></td>';
+  html += '<td class="td-total">' + (otherReceipts > 0 ? otherReceipts : '') + '</td>';
   html += '<td class="td-total">' + (totals['其他费用'] > 0 ? totals['其他费用'].toFixed(2) : '') + '</td>';
   html += '</tr>';
 
