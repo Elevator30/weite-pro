@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#667eea">
-<title>土建勘测 - 垂直电梯 V1</title>
+<title>土建勘测 V1</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',sans-serif;background:#f5f7fa;-webkit-overflow-scrolling:touch;overflow:hidden;height:100vh;}
@@ -230,6 +230,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
 .sig-area span{font-size:12px;color:#aaa;}
 .sig-clear-btn{margin-top:4px;font-size:11px;color:#a0aec0;background:none;border:none;cursor:pointer;}
 
+
+/* ===== 电梯类别选择器 ===== */
+.elev-category-tabs{display:flex;gap:0;margin-bottom:16px;background:#f7fafc;border-radius:10px;padding:3px;border:1.5px solid #e2e8f0;}
+.elev-category-tab{flex:1;padding:10px 8px;text-align:center;font-size:13px;font-weight:600;color:#718096;cursor:pointer;border-radius:8px;transition:all .2s;border:none;background:transparent;}
+.elev-category-tab.active{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;box-shadow:0 2px 6px rgba(102,126,234,.3);}
+.elev-category-tab:active{opacity:.8;}
+.elev-form-section{display:none;}
+.elev-form-section.active{display:block;}
+
 /* ===== 模态框 ===== */
 .modal-mask{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:999;align-items:center;justify-content:center;padding:20px;}
 .modal-mask.show{display:flex;}
@@ -304,7 +313,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
       <div class="sidebar-title">🏗️ 土建勘测</div>
-      <div class="sidebar-sub">垂直电梯 V1.0</div>
+      <div class="sidebar-sub">土建勘测 V1.0</div>
       <div class="sidebar-actions">
         <button class="sidebar-btn" onclick="showNewProject()">+ 新建</button>
       </div>
@@ -402,68 +411,142 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
       <button class="modal-close" onclick="closeModal('newElevatorModal')">×</button>
     </div>
     <div class="modal-body">
-      <div class="form-grid">
-        <div class="form-row">
-          <label>梯号 *</label>
-          <input type="text" id="ne_elevatorNo" placeholder="如：1#梯">
+      <!-- 电梯类别选择 -->
+      <div class="elev-category-tabs">
+        <div class="elev-category-tab active" id="catTabVertical" onclick="switchElevatorCategory('vertical')">🛗 垂直电梯</div>
+        <div class="elev-category-tab" id="catTabEscalator" onclick="switchElevatorCategory('escalator')">↗️ 扶梯</div>
+      </div>
+
+      <!-- 垂直电梯表单 -->
+      <div class="elev-form-section active" id="verticalFormSection">
+        <div class="form-grid">
+          <div class="form-row">
+            <label>梯号 *</label>
+            <input type="text" id="ne_elevatorNo" placeholder="如：1#梯">
+          </div>
+          <div class="form-row">
+            <label>单元号</label>
+            <input type="text" id="ne_unit" placeholder="如：1单元">
+          </div>
         </div>
         <div class="form-row">
-          <label>单元号</label>
-          <input type="text" id="ne_unit" placeholder="如：1单元">
+          <label>安装地址</label>
+          <input type="text" id="ne_address" placeholder="安装地址">
+        </div>
+        <div class="form-grid">
+          <div class="form-row">
+            <label>梯型</label>
+            <select id="ne_elevatorType">
+              <option value="客梯">客梯</option>
+              <option value="货梯">货梯</option>
+              <option value="医用梯">医用梯</option>
+              <option value="观光梯">观光梯</option>
+              <option value="杂物梯">杂物梯</option>
+              <option value="其他">其他</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label>开门方式</label>
+            <select id="ne_doorType">
+              <option value="中分">中分</option>
+              <option value="旁开">旁开</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-row">
+            <label>载重(kg)</label>
+            <input type="number" id="ne_load" placeholder="如：1000">
+          </div>
+          <div class="form-row">
+            <label>速度(m/s)</label>
+            <input type="number" step="0.1" id="ne_speed" placeholder="如：1.6">
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-row">
+            <label>层数</label>
+            <input type="number" id="ne_floors" placeholder="层数">
+          </div>
+          <div class="form-row">
+            <label>站数</label>
+            <input type="number" id="ne_stops" placeholder="站数">
+          </div>
+          <div class="form-row">
+            <label>门数</label>
+            <input type="number" id="ne_doors" placeholder="门数">
+          </div>
+          <div class="form-row">
+            <label>有无机房</label>
+            <select id="ne_hasMachineRoom">
+              <option value="有">有机房</option>
+              <option value="无">无机房</option>
+            </select>
+          </div>
         </div>
       </div>
-      <div class="form-row">
-        <label>安装地址</label>
-        <input type="text" id="ne_address" placeholder="安装地址">
-      </div>
-      <div class="form-grid">
-        <div class="form-row">
-          <label>梯型</label>
-          <select id="ne_elevatorType">
-            <option value="客梯">客梯</option>
-            <option value="货梯">货梯</option>
-            <option value="医用梯">医用梯</option>
-            <option value="观光梯">观光梯</option>
-            <option value="杂物梯">杂物梯</option>
-            <option value="其他">其他</option>
-          </select>
+
+      <!-- 扶梯表单 -->
+      <div class="elev-form-section" id="escalatorFormSection">
+        <div class="form-grid">
+          <div class="form-row">
+            <label>梯号 *</label>
+            <input type="text" id="ne_esc_escalatorNo" placeholder="如：1#梯">
+          </div>
+          <div class="form-row">
+            <label>单元</label>
+            <input type="text" id="ne_esc_unit" placeholder="如：1单元">
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-row">
+            <label>楼号</label>
+            <input type="text" id="ne_esc_buildingNo" placeholder="如：1#楼">
+          </div>
+          <div class="form-row">
+            <label>单元号</label>
+            <input type="text" id="ne_esc_unitNo" placeholder="如：1单元">
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-row">
+            <label>室内外</label>
+            <select id="ne_esc_indoorOutdoor">
+              <option value="室内">室内</option>
+              <option value="室外">室外</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label>布置方式</label>
+            <select id="ne_esc_layoutType">
+              <option value="单梯">单梯</option>
+              <option value="并列">并列</option>
+              <option value="交叉">交叉</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-row">
+            <label>倾斜角度</label>
+            <select id="ne_esc_angle">
+              <option value="30">30°</option>
+              <option value="35">35°</option>
+              <option value="10">10°</option>
+              <option value="11">11°</option>
+              <option value="12">12°</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label>提升高度 H (mm)</label>
+            <input type="number" id="ne_esc_height" placeholder="请输入提升高度">
+          </div>
         </div>
         <div class="form-row">
-          <label>开门方式</label>
-          <select id="ne_doorType">
-            <option value="中分">中分</option>
-            <option value="旁开">旁开</option>
-          </select>
-        </div>
-      </div>
-      <div class="form-grid">
-        <div class="form-row">
-          <label>载重(kg)</label>
-          <input type="number" id="ne_load" placeholder="如：1000">
-        </div>
-        <div class="form-row">
-          <label>速度(m/s)</label>
-          <input type="number" step="0.1" id="ne_speed" placeholder="如：1.6">
-        </div>
-      </div>
-      <div class="form-grid">
-        <div class="form-row">
-          <label>层数</label>
-          <input type="number" id="ne_floors" placeholder="层数">
-        </div>
-        <div class="form-row">
-          <label>站数</label>
-          <input type="number" id="ne_stops" placeholder="站数">
-        </div>
-        <div class="form-row">
-          <label>门数</label>
-          <input type="number" id="ne_doors" placeholder="门数">
-        </div>
-        <div class="form-row">
-          <label>有无机房</label>
-          <select id="ne_hasMachineRoom">
-            <option value="有">有机房</option>
-            <option value="无">无机房</option>
+          <label>梯级宽度 (mm)</label>
+          <select id="ne_esc_stepWidth">
+            <option value="600">600</option>
+            <option value="800" selected>800</option>
+            <option value="1000">1000</option>
           </select>
         </div>
       </div>
@@ -811,7 +894,10 @@ function renderProjectTree() {
             var isElevActive = e.id === currentElevatorId && isBldgActive;
             html += '<div class="tree-elevator ' + (isElevActive ? 'active' : '') + '" onclick="event.stopPropagation();selectElevator(\'' + p.id + '\',\'' + b.id + '\',\'' + e.id + '\')" oncontextmenu="showElevMenu(event,\'' + p.id + '\',\'' + b.id + '\',\'' + e.id + '\');return false;">';
             html += '<span class="tree-elev-name">' + escapeHtml(e.elevatorNo || '未命名') + '</span>';
-            html += '<span class="tree-elev-type">' + escapeHtml(e.elevatorType || '') + '</span>';
+            var typeLabel = '';
+            if (e.category === 'escalator') { typeLabel = '扶梯'; }
+            else { typeLabel = e.elevatorType || '垂直电梯'; }
+            html += '<span class="tree-elev-type">' + escapeHtml(typeLabel) + '</span>';
             html += '</div>';
           }
         }
@@ -870,6 +956,9 @@ function selectElevator(projId, bldgId, elevId) {
   currentElevatorId = elevId;
   if (!expandedProjects[projId]) expandedProjects[projId] = true;
   if (!expandedBuildings[bldgId]) expandedBuildings[bldgId] = true;
+  // Reset tab indices when switching elevators
+  currentTabIndex = 0;
+  currentEscalatorTabIndex = 0;
   renderProjectTree();
   updateToolbar();
   renderElevatorContent();
@@ -1034,6 +1123,9 @@ var newElevBldgId = null;
 function openNewElevator(projId, bldgId) {
   newElevProjId = projId;
   newElevBldgId = bldgId;
+  // Reset to vertical elevator category
+  switchElevatorCategory('vertical');
+  // Reset vertical elevator fields
   document.getElementById('ne_elevatorNo').value = '';
   document.getElementById('ne_unit').value = '';
   document.getElementById('ne_address').value = '';
@@ -1045,45 +1137,86 @@ function openNewElevator(projId, bldgId) {
   document.getElementById('ne_stops').value = '';
   document.getElementById('ne_doors').value = '';
   document.getElementById('ne_hasMachineRoom').value = '有';
+  // Reset escalator fields
+  document.getElementById('ne_esc_escalatorNo').value = '';
+  document.getElementById('ne_esc_unit').value = '';
+  document.getElementById('ne_esc_buildingNo').value = '';
+  document.getElementById('ne_esc_unitNo').value = '';
+  document.getElementById('ne_esc_indoorOutdoor').value = '室内';
+  document.getElementById('ne_esc_layoutType').value = '单梯';
+  document.getElementById('ne_esc_angle').value = '30';
+  document.getElementById('ne_esc_height').value = '';
+  document.getElementById('ne_esc_stepWidth').value = '800';
   showModal('newElevatorModal');
   setTimeout(function() { document.getElementById('ne_elevatorNo').focus(); }, 100);
 }
 
 function createElevator() {
-  var elevatorNo = document.getElementById('ne_elevatorNo').value.trim();
-  if (!elevatorNo) { showToast('请输入梯号'); return; }
-  
+  var category = currentElevatorCategory; // 'vertical' or 'escalator'
   var proj = getProject(newElevProjId);
   if (!proj) return;
   var bldg = getBuilding(proj, newElevBldgId);
   if (!bldg) return;
   
-  var elev = {
-    id: genId(),
-    elevatorNo: elevatorNo,
-    unit: document.getElementById('ne_unit').value.trim(),
-    address: document.getElementById('ne_address').value.trim(),
-    pitDepth: '',
-    topHeight: '',
-    floors: document.getElementById('ne_floors').value || '',
-    stops: document.getElementById('ne_stops').value || '',
-    doors: document.getElementById('ne_doors').value || '',
-    load: document.getElementById('ne_load').value || '',
-    speed: document.getElementById('ne_speed').value || '',
-    elevatorType: document.getElementById('ne_elevatorType').value,
-    doorType: document.getElementById('ne_doorType').value,
-    hasMachineRoom: document.getElementById('ne_hasMachineRoom').value,
-    roomWidth: '',
-    roomDepth: '',
-    roomHeight: '',
-    ringBeamSpec: '',
-    headerBeamHeight: '',
-    headerBeamLength: '',
-    floorData: [],
-    specialNotes: '',
-    sketches: [],
-    signatures: { surveyor: '', reviewer: '', draftsman: '' }
-  };
+  var elev;
+  
+  if (category === 'escalator') {
+    var escalatorNo = document.getElementById('ne_esc_escalatorNo').value.trim();
+    if (!escalatorNo) { showToast('请输入梯号'); return; }
+    elev = {
+      id: genId(),
+      category: 'escalator',
+      elevatorNo: escalatorNo,
+      unit: document.getElementById('ne_esc_unit').value.trim(),
+      buildingNo: document.getElementById('ne_esc_buildingNo').value.trim(),
+      unitNo: document.getElementById('ne_esc_unitNo').value.trim(),
+      indoorOutdoor: document.getElementById('ne_esc_indoorOutdoor').value,
+      layoutType: document.getElementById('ne_esc_layoutType').value,
+      angle: document.getElementById('ne_esc_angle').value,
+      height: document.getElementById('ne_esc_height').value || '',
+      stepWidth: document.getElementById('ne_esc_stepWidth').value,
+      // 现场测量数据
+      horizontalSpan: '',
+      openingLength: '',
+      beamHeight: '',
+      pitDepth: '',
+      pitLength: '',
+      pitWidth: '',
+      specialNotes: '',
+      sketches: [],
+      signatures: { surveyor: '', reviewer: '', draftsman: '' }
+    };
+  } else {
+    var elevatorNo = document.getElementById('ne_elevatorNo').value.trim();
+    if (!elevatorNo) { showToast('请输入梯号'); return; }
+    elev = {
+      id: genId(),
+      category: 'vertical',
+      elevatorNo: elevatorNo,
+      unit: document.getElementById('ne_unit').value.trim(),
+      address: document.getElementById('ne_address').value.trim(),
+      pitDepth: '',
+      topHeight: '',
+      floors: document.getElementById('ne_floors').value || '',
+      stops: document.getElementById('ne_stops').value || '',
+      doors: document.getElementById('ne_doors').value || '',
+      load: document.getElementById('ne_load').value || '',
+      speed: document.getElementById('ne_speed').value || '',
+      elevatorType: document.getElementById('ne_elevatorType').value,
+      doorType: document.getElementById('ne_doorType').value,
+      hasMachineRoom: document.getElementById('ne_hasMachineRoom').value,
+      roomWidth: '',
+      roomDepth: '',
+      roomHeight: '',
+      ringBeamSpec: '',
+      headerBeamHeight: '',
+      headerBeamLength: '',
+      floorData: [],
+      specialNotes: '',
+      sketches: [],
+      signatures: { surveyor: '', reviewer: '', draftsman: '' }
+    };
+  }
   
   bldg.elevators.push(elev);
   proj.updateTime = Date.now();
@@ -1190,6 +1323,11 @@ function renderZoneTabs() {
 }
 
 function switchTab(index) {
+  var elev = getCurrentElevator();
+  if (elev && elev.category === 'escalator') {
+    switchEscalatorTab(index);
+    return;
+  }
   if (index < 0 || index >= tabNames.length) return;
   currentTabIndex = index;
   renderZoneTabs();
@@ -1207,6 +1345,14 @@ function renderElevatorContent() {
   // 显示tab栏
   var tabsEl = document.getElementById('zoneTabs');
   if (tabsEl) tabsEl.style.display = 'flex';
+  
+  // Check if escalator
+  if (elev.category === 'escalator') {
+    renderEscalatorContent(elev);
+    return;
+  }
+  
+  // Vertical elevator
   renderZoneTabs();
   
   var html = '';
@@ -1392,6 +1538,164 @@ function updateSurveyCount(fieldId, value) {
   proj.surveyCount = value;
   saveCurrentProject();
 }
+
+// ===== 电梯类别切换（模态框内） =====
+var currentElevatorCategory = 'vertical';
+function switchElevatorCategory(cat) {
+  currentElevatorCategory = cat;
+  var vTab = document.getElementById('catTabVertical');
+  var eTab = document.getElementById('catTabEscalator');
+  var vForm = document.getElementById('verticalFormSection');
+  var eForm = document.getElementById('escalatorFormSection');
+  if (cat === 'escalator') {
+    vTab.classList.remove('active');
+    eTab.classList.add('active');
+    vForm.classList.remove('active');
+    eForm.classList.add('active');
+  } else {
+    vTab.classList.add('active');
+    eTab.classList.remove('active');
+    vForm.classList.add('active');
+    eForm.classList.remove('active');
+  }
+}
+
+// ===== 扶梯 Tab 管理 =====
+var escalatorTabNames = ['基本信息', '现场测量', '示意图', '签字'];
+var currentEscalatorTabIndex = 0;
+
+function renderEscalatorZoneTabs() {
+  var tabsEl = document.getElementById('zoneTabs');
+  if (!tabsEl) return;
+  var html = '';
+  for (var i = 0; i < escalatorTabNames.length; i++) {
+    var active = i === currentEscalatorTabIndex ? ' active' : '';
+    html += '<div class="zone-tab' + active + '" onclick="switchEscalatorTab(' + i + ')">' + escalatorTabNames[i] + '</div>';
+  }
+  tabsEl.innerHTML = html;
+}
+
+function switchEscalatorTab(index) {
+  if (index < 0 || index >= escalatorTabNames.length) return;
+  currentEscalatorTabIndex = index;
+  renderEscalatorZoneTabs();
+  renderEscalatorContent(getCurrentElevator());
+  var contentArea = document.getElementById('contentArea');
+  if (contentArea) contentArea.scrollTop = 0;
+}
+
+function renderEscalatorContent(elev) {
+  if (!elev) return;
+  var tabsEl = document.getElementById('zoneTabs');
+  if (tabsEl) tabsEl.style.display = 'flex';
+  renderEscalatorZoneTabs();
+  
+  var html = '';
+  for (var i = 0; i < escalatorTabNames.length; i++) {
+    var active = i === currentEscalatorTabIndex ? ' active' : '';
+    html += '<div class="zone-panel' + active + '" id="escZonePanel_' + i + '">';
+    if (i === 0) html += renderEscalatorBasicTab(elev);
+    else if (i === 1) html += renderEscalatorMeasurementTab(elev);
+    else if (i === 2) html += renderSketchesTab(elev);
+    else if (i === 3) html += renderSignatureTab(elev);
+    html += '</div>';
+  }
+  document.getElementById('elevatorContent').innerHTML = html;
+}
+
+// ===== 扶梯 Tab1: 基本信息 =====
+function renderEscalatorBasicTab(elev) {
+  var html = '<div class="card">';
+  html += '<div class="section-header"><span>📋 基本信息</span></div>';
+  html += '<div class="form-grid">';
+  html += '<div class="form-row"><label>楼号</label><input type="text" value="' + escapeHtml(getCurrentBuildingName()) + '" readonly style="background:#f0f0f0;color:#718096;cursor:default;"></div>';
+  html += formField('梯号', 'esc_elevatorNo', elev.elevatorNo || '', 'text', 'updateEscField');
+  html += formField('单元', 'esc_unit', elev.unit || '', 'text', 'updateEscField');
+  html += formField('楼号', 'esc_buildingNo', elev.buildingNo || '', 'text', 'updateEscField');
+  html += formField('单元号', 'esc_unitNo', elev.unitNo || '', 'text', 'updateEscField');
+  html += '</div></div>';
+  
+  html += '<div class="card">';
+  html += '<div class="section-header"><span>⚙️ 梯型信息</span></div>';
+  html += '<div class="form-grid">';
+  html += formField('室内外', 'esc_indoorOutdoor', elev.indoorOutdoor || '室内', 'select', 'updateEscField', false,
+    [['室内','室内'],['室外','室外']]);
+  html += formField('布置方式', 'esc_layoutType', elev.layoutType || '单梯', 'select', 'updateEscField', false,
+    [['单梯','单梯'],['并列','并列'],['交叉','交叉']]);
+  html += formField('倾斜角度', 'esc_angle', elev.angle || '30', 'select', 'updateEscField', false,
+    [['30','30°'],['35','35°'],['10','10°'],['11','11°'],['12','12°']]);
+  html += formField('提升高度 H (mm)', 'esc_height', elev.height || '', 'number', 'updateEscField');
+  html += formField('梯级宽度 (mm)', 'esc_stepWidth', elev.stepWidth || '800', 'select', 'updateEscField', false,
+    [['600','600'],['800','800'],['1000','1000']]);
+  html += '</div></div>';
+  
+  return html;
+}
+
+// ===== 扶梯 Tab2: 现场测量数据 =====
+function renderEscalatorMeasurementTab(elev) {
+  var html = '<div class="card">';
+  html += '<div class="section-header"><span>📐 现场测量数据</span><span class="section-count">单位：mm</span></div>';
+  html += '<div class="form-grid">';
+  html += formField('水平跨度 L', 'esc_horizontalSpan', elev.horizontalSpan || '', 'number', 'updateEscField');
+  html += formField('开口长度 L1', 'esc_openingLength', elev.openingLength || '', 'number', 'updateEscField');
+  html += formField('开口处梁高 S', 'esc_beamHeight', elev.beamHeight || '', 'number', 'updateEscField');
+  html += formField('底坑深度 D1', 'esc_pitDepth', elev.pitDepth || '', 'number', 'updateEscField');
+  html += formField('底坑长度 D2', 'esc_pitLength', elev.pitLength || '', 'number', 'updateEscField');
+  html += formField('底坑宽度 D3', 'esc_pitWidth', elev.pitWidth || '', 'number', 'updateEscField');
+  html += '</div></div>';
+  
+  // 备注说明
+  html += '<div class="card">';
+  html += '<div class="section-header"><span>📝 特殊说明</span></div>';
+  html += '<textarea id="esc_specialNotes" style="width:100%;min-height:100px;border:1.5px solid #e2e8f0;border-radius:8px;padding:10px;font-size:13px;font-family:inherit;resize:vertical;" onblur="updateEscField(this.id, this.value)" placeholder="填写特殊情况说明...">' + escapeHtml(elev.specialNotes || '') + '</textarea>';
+  html += '</div>';
+  
+  // 备注提示
+  html += '<div style="background:#fffbea;border-left:3px solid #f59e0b;padding:12px;border-radius:4px;font-size:12px;color:#666;margin-bottom:14px;">';
+  html += '<strong style="color:#92400e;display:block;margin-bottom:4px;">备注说明：</strong>';
+  html += '<ul style="margin-left:16px;">';
+  html += '<li>当扶梯/人行道现场已施工完毕的，以现场实际水平跨度为准，超出标准水平跨度的，需另行加价。</li>';
+  html += '<li>当2台或2台以上梯并列时，须告知2台或2台以上的井道宽度。</li>';
+  html += '</ul></div>';
+  
+  return html;
+}
+
+// 扶梯字段映射
+var escFieldMap = {
+  'esc_elevatorNo': 'elevatorNo',
+  'esc_unit': 'unit',
+  'esc_buildingNo': 'buildingNo',
+  'esc_unitNo': 'unitNo',
+  'esc_indoorOutdoor': 'indoorOutdoor',
+  'esc_layoutType': 'layoutType',
+  'esc_angle': 'angle',
+  'esc_height': 'height',
+  'esc_stepWidth': 'stepWidth',
+  'esc_horizontalSpan': 'horizontalSpan',
+  'esc_openingLength': 'openingLength',
+  'esc_beamHeight': 'beamHeight',
+  'esc_pitDepth': 'pitDepth',
+  'esc_pitLength': 'pitLength',
+  'esc_pitWidth': 'pitWidth',
+  'esc_specialNotes': 'specialNotes'
+};
+
+function updateEscField(fieldId, value) {
+  var elev = getCurrentElevator();
+  if (!elev) return;
+  var prop = escFieldMap[fieldId];
+  if (!prop) return;
+  elev[prop] = value;
+  saveCurrentProject();
+  updateToolbar();
+  if (prop === 'elevatorNo') {
+    renderProjectTree();
+  }
+}
+
+
 
 
 // ===== Tab1: 基本参数 =====
@@ -2303,8 +2607,123 @@ function openPrintPreview() {
   var bldg = getBuilding(proj, currentBuildingId);
   if (!elev || !proj || !bldg) { showToast('请选择电梯'); return; }
   
-  buildPrintContent(proj, bldg, elev);
+  if (elev.category === 'escalator') {
+    buildEscalatorPrintContent(proj, bldg, elev);
+  } else {
+    buildPrintContent(proj, bldg, elev);
+  }
   setTimeout(function() { window.print(); }, 200);
+}
+
+function buildEscalatorPrintContent(proj, bldg, elev) {
+  var printArea = document.getElementById('printArea');
+  var sigs = elev.signatures || {};
+  
+  var html = '';
+  html += '<style>';
+  html += '.print-page{width:210mm;min-height:297mm;padding:15mm 12mm;box-sizing:border-box;font-family:"SimSun","宋体",serif;font-size:10.5pt;color:#000;margin:0 auto;background:#fff;}';
+  html += '.print-title{text-align:center;font-size:18pt;font-weight:bold;margin-bottom:4px;letter-spacing:4px;}';
+  html += '.print-subtitle{text-align:center;font-size:12pt;margin-bottom:10px;}';
+  html += '.print-table{width:100%;border-collapse:collapse;font-size:10.5pt;margin-bottom:8px;table-layout:fixed;}';
+  html += '.print-table th,.print-table td{border:1px solid #333;padding:4px 6px;text-align:center;vertical-align:middle;word-break:break-all;}';
+  html += '.print-table th{font-weight:bold;background:#f5f5f5;}';
+  html += '.print-table .align-left{text-align:left;padding-left:8px;}';
+  html += '.print-table .label-cell{background:#fafafa;font-weight:bold;width:22%;}';
+  html += '.print-table .value-cell{width:28%;}';
+  html += '.info-row{display:flex;justify-content:space-between;font-size:10.5pt;margin-bottom:6px;}';
+  html += '.section-title{font-size:12pt;font-weight:bold;margin:10px 0 6px;padding-left:8px;border-left:3px solid #333;}';
+  html += '.sig-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;margin-top:16px;}';
+  html += '.sig-item{text-align:center;}';
+  html += '.sig-label{font-size:10.5pt;margin-bottom:4px;}';
+  html += '.sig-box{height:60px;border-bottom:1px solid #333;display:flex;align-items:center;justify-content:center;}';
+  html += '.sig-box img{max-height:55px;max-width:90%;}';
+  html += '.sketch-section{margin-top:10px;}';
+  html += '.sketch-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}';
+  html += '.sketch-item{border:1px solid #333;height:80px;display:flex;align-items:center;justify-content:center;}';
+  html += '.sketch-item img{max-height:75px;max-width:95%;}';
+  html += '.notes-area{border:1px solid #333;min-height:60px;padding:6px 8px;font-size:10.5pt;}';
+  html += '@page{size:A4 portrait;margin:10mm 8mm;}';
+  html += '</style>';
+  
+  html += '<div class="print-page">';
+  html += '<div class="print-title">扶梯土建确认表</div>';
+  html += '<div class="print-subtitle">Escalator Civil Works Confirmation Form</div>';
+  
+  html += '<div class="info-row">';
+  html += '<span>楼号：' + escapeHtml(bldg.name || '') + '</span>';
+  html += '<span>梯号：' + escapeHtml(elev.elevatorNo || '') + '</span>';
+  html += '<span>No.：________</span>';
+  html += '</div>';
+  html += '<div class="info-row">';
+  html += '<span>项目名称：' + escapeHtml(proj.name || '') + '</span>';
+  html += '<span>勘测次数：' + escapeHtml(proj.surveyCount || '首勘1次') + '</span>';
+  html += '</div>';
+  
+  // 基本信息
+  html += '<div class="section-title">基本信息</div>';
+  html += '<table class="print-table">';
+  html += '<tr><th class="label-cell">单元</th><td class="value-cell align-left">' + escapeHtml(elev.unit || '') + '</td>';
+  html += '<th class="label-cell">楼号</th><td class="value-cell align-left">' + escapeHtml(elev.buildingNo || '') + '</td></tr>';
+  html += '<tr><th class="label-cell">单元号</th><td class="value-cell align-left">' + escapeHtml(elev.unitNo || '') + '</td>';
+  html += '<th class="label-cell">室内外</th><td class="value-cell">' + escapeHtml(elev.indoorOutdoor || '') + '</td></tr>';
+  html += '</table>';
+  
+  // 梯型参数
+  html += '<div class="section-title">梯型参数</div>';
+  html += '<table class="print-table">';
+  html += '<tr><th class="label-cell">布置方式</th><td class="value-cell">' + escapeHtml(elev.layoutType || '') + '</td>';
+  html += '<th class="label-cell">倾斜角度</th><td class="value-cell">' + escapeHtml(elev.angle || '') + '°</td></tr>';
+  html += '<tr><th class="label-cell">提升高度 H (mm)</th><td class="value-cell">' + escapeHtml(elev.height || '') + '</td>';
+  html += '<th class="label-cell">梯级宽度 (mm)</th><td class="value-cell">' + escapeHtml(elev.stepWidth || '') + '</td></tr>';
+  html += '</table>';
+  
+  // 现场测量数据
+  html += '<div class="section-title">现场测量数据 (mm)</div>';
+  html += '<table class="print-table">';
+  html += '<tr><th class="label-cell">水平跨度 L</th><td class="value-cell">' + escapeHtml(elev.horizontalSpan || '') + '</td>';
+  html += '<th class="label-cell">开口长度 L1</th><td class="value-cell">' + escapeHtml(elev.openingLength || '') + '</td></tr>';
+  html += '<tr><th class="label-cell">开口处梁高 S</th><td class="value-cell">' + escapeHtml(elev.beamHeight || '') + '</td>';
+  html += '<th class="label-cell">底坑深度 D1</th><td class="value-cell">' + escapeHtml(elev.pitDepth || '') + '</td></tr>';
+  html += '<tr><th class="label-cell">底坑长度 D2</th><td class="value-cell">' + escapeHtml(elev.pitLength || '') + '</td>';
+  html += '<th class="label-cell">底坑宽度 D3</th><td class="value-cell">' + escapeHtml(elev.pitWidth || '') + '</td></tr>';
+  html += '</table>';
+  
+  // 示意图
+  html += '<div class="section-title">示意图</div>';
+  html += '<div class="sketch-section">';
+  if (elev.sketches && elev.sketches.length) {
+    html += '<div class="sketch-grid">';
+    var displayCount = Math.min(elev.sketches.length, 4);
+    for (var s = 0; s < displayCount; s++) {
+      html += '<div class="sketch-item"><img src="' + elev.sketches[s].data + '"></div>';
+    }
+    for (var s = displayCount; s < 4; s++) {
+      html += '<div class="sketch-item" style="color:#aaa;font-size:9pt;">示意图 ' + (s+1) + '</div>';
+    }
+    html += '</div>';
+  }
+  html += '</div>';
+  
+  // 特殊说明
+  html += '<div class="section-title">特殊说明</div>';
+  html += '<div class="notes-area">' + escapeHtml(elev.specialNotes || '') + '&nbsp;</div>';
+  
+  // 签字
+  html += '<div class="sig-row">';
+  var sigLabels = [{key:'surveyor',label:'测量及申请人：'},{key:'reviewer',label:'审核：'},{key:'draftsman',label:'绘图接收人：'}];
+  for (var si = 0; si < sigLabels.length; si++) {
+    html += '<div class="sig-item">';
+    html += '<div class="sig-label">' + sigLabels[si].label + '</div>';
+    html += '<div class="sig-box">';
+    if (sigs[sigLabels[si].key]) html += '<img src="' + sigs[sigLabels[si].key] + '">';
+    html += '</div></div>';
+  }
+  html += '</div>';
+  
+  html += '<div style="text-align:right;margin-top:20px;font-size:9pt;color:#666;">测量日期：' + formatDate(new Date()) + '</div>';
+  html += '</div>';
+  
+  printArea.innerHTML = html;
 }
 
 function buildPrintContent(proj, bldg, elev) {
