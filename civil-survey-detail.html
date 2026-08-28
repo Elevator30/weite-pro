@@ -984,7 +984,20 @@ function createDefaultData(){
       draftsmanDate: ''
     },
     
-    specialNotes: ''
+    specialNotes: '',
+    
+    // 扶梯专用字段
+    indoorOutdoor: '室内',
+    layoutType: '单梯',
+    angle: '30',
+    height: '',
+    stepWidth: '800',
+    horizontalSpan: '',
+    openingLength: '',
+    beamHeight: '',
+    pitDepth: '',
+    pitLength: '',
+    pitWidth: ''
   };
 }
 
@@ -1240,6 +1253,19 @@ function migrateData(d){
       if(ff.doorPosition === undefined) ff.doorPosition = '前门';
     }
   }
+  
+  // 扶梯字段迁移
+  if(d.indoorOutdoor === undefined) d.indoorOutdoor = '室内';
+  if(d.layoutType === undefined) d.layoutType = '单梯';
+  if(d.angle === undefined) d.angle = '30';
+  if(d.height === undefined) d.height = '';
+  if(d.stepWidth === undefined) d.stepWidth = '800';
+  if(d.horizontalSpan === undefined) d.horizontalSpan = '';
+  if(d.openingLength === undefined) d.openingLength = '';
+  if(d.beamHeight === undefined) d.beamHeight = '';
+  if(d.pitDepth === undefined) d.pitDepth = '';
+  if(d.pitLength === undefined) d.pitLength = '';
+  if(d.pitWidth === undefined) d.pitWidth = '';
   
   return d;
 }
@@ -1570,7 +1596,9 @@ function saveDataSilent(){
 
 // ============ Tab切换 ============
 function switchTab(index){
-  if(index < 0 || index >= 6) return;
+  var maxTab = (data && data.elevatorType === '扶梯') ? 3 : 5;
+  var panelPct = (data && data.elevatorType === '扶梯') ? 25 : 16.666;
+  if(index < 0 || index > maxTab) return;
   if(index === currentTab) return;
   
   var tabs = document.querySelectorAll('.zone-tab');
@@ -1582,7 +1610,7 @@ function switchTab(index){
   }
   
   // 滑动
-  content.style.transform = 'translateX(' + (-index * 16.666) + '%)';
+  content.style.transform = 'translateX(-' + (index * panelPct) + '%)';
   
   // Tab滚动到可视区域
   var activeTab = tabs[index];
@@ -2244,8 +2272,8 @@ function printSurvey(){
   _printing = true;
   showToast('正在生成PDF...');
   
-  // 构建打印HTML并插入隐藏容器
-  var html = buildPrintHTML();
+  // 构建打印HTML并插入隐藏容器（扶梯走专用模板）
+  var html = (data && data.elevatorType === '扶梯') ? buildEscalatorPrintHTML() : buildPrintHTML();
   var container = document.getElementById('printPdfContainer');
   if(!container){
     container = document.createElement('div');
@@ -2672,6 +2700,87 @@ function buildPrintHTML(){
   return html;
 }
 
+// ============ 扶梯打印模板 ============
+function buildEscalatorPrintHTML(){
+  var d = data || {};
+  var proj = currentProject || {};
+  var loc = proj.location || d.location || {};
+  var locStr = [loc.province, loc.city, loc.district, loc.detail].filter(Boolean).join(' ');
+  var sig = d.signatures || {};
+  var sketch = (d.sketches && d.sketches.shaftDiagram) ? d.sketches.shaftDiagram : '';
+  
+  function v(val){ return (val === undefined || val === null || val === '') ? '' : escapeHtml(String(val)); }
+  function lbl(t){ return '<td style="border:1px solid #000;text-align:center;background:#f5f5f5;font-size:10pt;width:18%;">' + t + '</td>'; }
+  function val(t){ return '<td style="border:1px solid #000;padding:2px 6px;font-size:10pt;">' + t + '</td>'; }
+  
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>扶梯土建确认表</title>';
+  html += '<style>';
+  html += 'body{font-family:"SimSun","宋体",serif;padding:0;margin:0;font-size:10.5pt;color:#000;}';
+  html += '.main-title{text-align:center;font-size:16pt;font-weight:bold;margin:4px 0 2px;}';
+  html += '.sub-title{text-align:center;font-size:10pt;margin-bottom:8px;color:#333;}';
+  html += '.sub-header{display:flex;justify-content:space-between;font-size:9pt;margin-bottom:6px;}';
+  html += 'table{width:100%;border-collapse:collapse;table-layout:fixed;margin-bottom:10px;}';
+  html += 'td{border:1px solid #000;padding:4px 6px;font-size:10pt;vertical-align:middle;word-break:break-all;}';
+  html += '.sec{text-align:center;font-weight:bold;font-size:11pt;background:#eef2f7;}';
+  html += '.sig-box{height:60px;position:relative;text-align:center;}';
+  html += '.sig-box img{max-height:52px;position:absolute;bottom:2px;left:50%;transform:translateX(-50%);}';
+  html += '.sig-lb{text-align:center;font-size:9pt;border-top:1px solid #000;padding-top:3px;}';
+  html += '.sketch-cell{text-align:center;height:150px;}';
+  html += '.sketch-cell img{max-width:90%;max-height:150px;}';
+  html += '@page { size: A4 portrait; margin: 10mm; }';
+  html += '</style></head><body>';
+  
+  html += '<div class="main-title">扶梯土建确认表</div>';
+  html += '<div class="sub-title">威特电梯技术服务有限公司</div>';
+  html += '<div class="sub-header"><span>勘测单编号：' + v(d.surveyNo) + '</span><span>日期：' + v(sig.surveyorDate) + '</span></div>';
+  
+  // 项目信息
+  html += '<table>';
+  html += '<tr><td class="sec" colspan="4">项目信息</td></tr>';
+  html += '<tr>' + lbl('项目名称') + '<td colspan="3" style="border:1px solid #000;padding:2px 6px;font-size:10pt;">' + v(proj.projectName || d.projectName) + '</td></tr>';
+  html += '<tr>' + lbl('项目地址') + '<td colspan="3" style="border:1px solid #000;padding:2px 6px;font-size:10pt;">' + v(locStr) + '</td></tr>';
+  html += '<tr>' + lbl('楼号/单元') + val(v(d.buildingNo) + ' ' + v(d.unitNo)) + lbl('梯号') + val(v(d.elevatorNo)) + '</tr>';
+  html += '</table>';
+  
+  // 梯型参数
+  html += '<table>';
+  html += '<tr><td class="sec" colspan="4">扶梯参数</td></tr>';
+  html += '<tr>' + lbl('室内/室外') + val(v(d.indoorOutdoor)) + lbl('布置方式') + val(v(d.layoutType)) + '</tr>';
+  html += '<tr>' + lbl('倾斜角度') + val(v(d.angle) ? d.angle + '°' : '') + lbl('梯级宽度') + val(v(d.stepWidth) ? d.stepWidth + 'mm' : '') + '</tr>';
+  html += '<tr>' + lbl('提升高度H') + val(v(d.height) ? d.height + 'mm' : '') + lbl('备注') + val('') + '</tr>';
+  html += '</table>';
+  
+  // 现场测量数据
+  html += '<table>';
+  html += '<tr><td class="sec" colspan="4">现场测量数据（单位：mm）</td></tr>';
+  html += '<tr>' + lbl('水平跨度 L') + val(v(d.horizontalSpan)) + lbl('开口长度 L1') + val(v(d.openingLength)) + '</tr>';
+  html += '<tr>' + lbl('开口处梁高 S') + val(v(d.beamHeight)) + lbl('底坑深度 D1') + val(v(d.pitDepth)) + '</tr>';
+  html += '<tr>' + lbl('底坑长度 D2') + val(v(d.pitLength)) + lbl('底坑宽度 D3') + val(v(d.pitWidth)) + '</tr>';
+  html += '<tr>' + lbl('特殊说明') + '<td colspan="3" style="border:1px solid #000;padding:4px 6px;font-size:10pt;min-height:40px;">' + v(d.specialNotes) + '</td></tr>';
+  html += '</table>';
+  
+  // 示意图
+  html += '<table>';
+  html += '<tr><td class="sec">现场示意图</td></tr>';
+  html += '<tr><td class="sketch-cell" style="border:1px solid #000;">' + (sketch ? '<img src="' + sketch + '">' : '<span style="color:#999;font-size:9pt;">（未上传示意图）</span>') + '</td></tr>';
+  html += '</table>';
+  
+  // 备注
+  html += '<div style="font-size:9pt;color:#333;line-height:1.7;margin:6px 2px;">注：当扶梯/人行道现场已施工完毕的，以现场实际水平跨度为准；土建施工时应保证扶梯两端支撑梁的水平跨度偏差不超过±10mm。</div>';
+  
+  // 签字
+  html += '<table style="margin-top:16px;">';
+  html += '<tr>';
+  html += '<td style="border:1px solid #000;width:33%;"><div class="sig-box">' + (sig.surveyor ? '<img src="' + sig.surveyor + '">' : '') + '</div><div class="sig-lb">测量人</div></td>';
+  html += '<td style="border:1px solid #000;width:33%;"><div class="sig-box">' + (sig.reviewer ? '<img src="' + sig.reviewer + '">' : '') + '</div><div class="sig-lb">审核人</div></td>';
+  html += '<td style="border:1px solid #000;width:34%;"><div class="sig-box">' + (sig.draftsman ? '<img src="' + sig.draftsman + '">' : '') + '</div><div class="sig-lb">制图人</div></td>';
+  html += '</tr>';
+  html += '</table>';
+  
+  html += '</body></html>';
+  return html;
+}
+
 // ============ 返回 & 保存返回 ============
 function goBack(){
   saveDataSilent();
@@ -2909,24 +3018,239 @@ function initTouchSwipe(){
     var dy = e.changedTouches[0].clientY - _touchStartY;
     
     if(Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.5){
+      var maxTab = (data && data.elevatorType === '扶梯') ? 3 : 5;
       if(dx > 0 && currentTab > 0){
         switchTab(currentTab - 1);
-      }else if(dx < 0 && currentTab < 5){
+      }else if(dx < 0 && currentTab < maxTab){
         switchTab(currentTab + 1);
       }
     }
   }, { passive: true });
 }
 
+// ============ 扶梯模式 ============
+function initEscalatorMode(){
+  var tabsEl = document.getElementById('zoneTabs');
+  tabsEl.innerHTML = '<div class="zone-tab active" onclick="switchTab(0)">基本信息</div>' +
+    '<div class="zone-tab" onclick="switchTab(1)">现场测量</div>' +
+    '<div class="zone-tab" onclick="switchTab(2)">示意图</div>' +
+    '<div class="zone-tab" onclick="switchTab(3)">签字</div>';
+  
+  var zoneContent = document.getElementById('zoneContent');
+  zoneContent.style.width = '400%';
+  zoneContent.innerHTML = '';
+  
+  var panel0 = document.createElement('div');
+  panel0.className = 'zone-panel';
+  panel0.id = 'panel0';
+  panel0.style.width = '25%';
+  panel0.innerHTML = renderEscalatorBasicTab();
+  zoneContent.appendChild(panel0);
+  
+  var panel1 = document.createElement('div');
+  panel1.className = 'zone-panel';
+  panel1.id = 'panel1';
+  panel1.style.width = '25%';
+  panel1.innerHTML = renderEscalatorMeasurementTab();
+  zoneContent.appendChild(panel1);
+  
+  var panel2 = document.createElement('div');
+  panel2.className = 'zone-panel';
+  panel2.id = 'panel2';
+  panel2.style.width = '25%';
+  panel2.innerHTML = renderEscalatorSketchTab();
+  zoneContent.appendChild(panel2);
+  
+  var panel3 = document.createElement('div');
+  panel3.className = 'zone-panel';
+  panel3.id = 'panel3';
+  panel3.style.width = '25%';
+  panel3.innerHTML = renderEscalatorSignTab();
+  zoneContent.appendChild(panel3);
+  
+  fillEscalatorFormData();
+}
+
+function renderEscalatorBasicTab(){
+  var proj = currentProject || {};
+  var projName = escapeHtml(proj.projectName || '');
+  var loc = proj.location || {};
+  var locStr = [loc.province, loc.city, loc.district, loc.detail].filter(Boolean).join(' ');
+  var phone = escapeHtml(proj.phone || '');
+  var sq = "'";
+  
+  var html = '';
+  html += '<div class="zone-section-title">\ud83c\udfe2 项目信息</div>';
+  html += '<div class="card"><div class="form-grid">';
+  html += '<div class="form-row full"><label>项目名称</label><input type="text" readonly value="' + projName + '"></div>';
+  html += '<div class="form-row full"><label>项目地址</label><input type="text" readonly value="' + escapeHtml(locStr) + '"></div>';
+  html += '<div class="form-row full"><label>联系电话</label><input type="text" readonly value="' + phone + '"></div>';
+  html += '</div></div>';
+  
+  html += '<div class="zone-section-title">\u2699\ufe0f 梯型参数</div>';
+  html += '<div class="card"><div class="form-grid">';
+  html += '<div class="form-row"><label>室内外</label>';
+  html += '<select id="esc_indoorOutdoor" onchange="updateEscField(' + sq + 'indoorOutdoor' + sq + ', this.value)">';
+  html += '<option value="室内">室内</option><option value="室外">室外</option></select></div>';
+  html += '<div class="form-row"><label>布置方式</label>';
+  html += '<select id="esc_layoutType" onchange="updateEscField(' + sq + 'layoutType' + sq + ', this.value)">';
+  html += '<option value="单梯">单梯</option><option value="并列">并列</option><option value="交叉">交叉</option></select></div>';
+  html += '<div class="form-row"><label>倾斜角度</label>';
+  html += '<select id="esc_angle" onchange="updateEscField(' + sq + 'angle' + sq + ', this.value)">';
+  html += '<option value="30">30°</option><option value="35">35°</option></select></div>';
+  html += '<div class="form-row"><label>提升高度H(mm)</label>';
+  html += '<input type="number" id="esc_height" placeholder="提升高度" onblur="updateEscField(' + sq + 'height' + sq + ', this.value)"></div>';
+  html += '<div class="form-row"><label>梯级宽度</label>';
+  html += '<select id="esc_stepWidth" onchange="updateEscField(' + sq + 'stepWidth' + sq + ', this.value)">';
+  html += '<option value="600">600mm</option><option value="800">800mm</option><option value="1000">1000mm</option></select></div>';
+  html += '</div></div>';
+  
+  html += '<div class="zone-section-title">\ud83d\udd22 编号信息</div>';
+  html += '<div class="card"><div class="form-grid">';
+  html += '<div class="form-row"><label>楼号</label><input type="text" readonly value="' + escapeHtml(data.buildingNo || '') + '"></div>';
+  html += '<div class="form-row"><label>单元号</label><input type="text" readonly value="' + escapeHtml(data.unitNo || '') + '"></div>';
+  html += '<div class="form-row"><label>梯号</label><input type="text" readonly value="' + escapeHtml(data.elevatorNo || '') + '"></div>';
+  html += '</div></div>';
+  
+  return html;
+}
+
+function renderEscalatorMeasurementTab(){
+  var sq = "'";
+  var html = '';
+  html += '<div class="zone-section-title">\ud83d\udccf 现场测量数据</div>';
+  html += '<div class="card"><div class="form-grid">';
+  html += '<div class="form-row"><label>水平跨度L(mm)</label>';
+  html += '<input type="number" id="esc_horizontalSpan" placeholder="水平跨度" onblur="updateEscField(' + sq + 'horizontalSpan' + sq + ', this.value)"></div>';
+  html += '<div class="form-row"><label>开口长度L1(mm)</label>';
+  html += '<input type="number" id="esc_openingLength" placeholder="开口长度" onblur="updateEscField(' + sq + 'openingLength' + sq + ', this.value)"></div>';
+  html += '<div class="form-row"><label>开口处梁高S(mm)</label>';
+  html += '<input type="number" id="esc_beamHeight" placeholder="开口处梁高" onblur="updateEscField(' + sq + 'beamHeight' + sq + ', this.value)"></div>';
+  html += '<div class="form-row"><label>底坑深度D1(mm)</label>';
+  html += '<input type="number" id="esc_pitDepth" placeholder="底坑深度" onblur="updateEscField(' + sq + 'pitDepth' + sq + ', this.value)"></div>';
+  html += '<div class="form-row"><label>底坑长度D2(mm)</label>';
+  html += '<input type="number" id="esc_pitLength" placeholder="底坑长度" onblur="updateEscField(' + sq + 'pitLength' + sq + ', this.value)"></div>';
+  html += '<div class="form-row"><label>底坑宽度D3(mm)</label>';
+  html += '<input type="number" id="esc_pitWidth" placeholder="底坑宽度" onblur="updateEscField(' + sq + 'pitWidth' + sq + ', this.value)"></div>';
+  html += '<div class="form-row full"><label>特殊说明</label>';
+  html += '<textarea id="esc_specialNotes" placeholder="请输入特殊说明" onblur="updateEscField(' + sq + 'specialNotes' + sq + ', this.value)"></textarea></div>';
+  html += '</div></div>';
+  
+  html += '<div style="background:#fffbeb;border:1.5px solid #f6e05e;border-radius:12px;padding:12px 14px;margin-top:4px;">';
+  html += '<div style="font-size:12px;color:#975a16;font-weight:600;margin-bottom:6px;">\ud83d\udccc 备注</div>';
+  html += '<div style="font-size:12px;color:#975a16;line-height:1.6;">';
+  html += '当扶梯/人行道现场已施工完毕的，以现场实际水平跨度为准；';
+  html += '土建施工时应保证扶梯两端支撑梁的水平跨度偏差不超过\u00b110mm。';
+  html += '</div></div>';
+  
+  return html;
+}
+
+function renderEscalatorSketchTab(){
+  var html = '';
+  html += '<div class="zone-section-title">\ud83d\udcd0 扶梯示意图</div>';
+  html += '<div class="card">';
+  html += '<div class="upload-area" id="shaftUploadArea" onclick="document.getElementById(\'shaftFileInput\').click()">';
+  html += '<div class="upload-icon">\ud83c\udfd7\ufe0f</div>';
+  html += '<div class="upload-text">点击上传扶梯示意图</div>';
+  html += '<div class="upload-hint">支持 JPG / PNG 格式</div>';
+  html += '</div>';
+  html += '<input type="file" id="shaftFileInput" accept="image/*" style="display:none;" onchange="onShaftUpload(event)">';
+  html += '<div class="upload-preview" id="shaftPreview" style="display:none;">';
+  html += '<img id="shaftPreviewImg" alt="扶梯示意图">';
+  html += '<div class="upload-del" onclick="clearShaftImg()">\u00d7</div>';
+  html += '</div>';
+  html += '</div>';
+  return html;
+}
+
+function renderEscalatorSignTab(){
+  var html = '';
+  html += '<div class="zone-section-title">\u270d\ufe0f 测量人签字</div>';
+  html += '<div class="sign-section">';
+  html += '<div class="sign-canvas-box">';
+  html += '<canvas class="sign-canvas" id="signCanvas"></canvas>';
+  html += '<button class="sign-clear-btn" onclick="clearSignature()">清除</button>';
+  html += '</div>';
+  html += '<div class="form-hint" style="margin-top:8px;text-align:center;">请在上方区域手写签字</div>';
+  html += '</div>';
+  html += '<div style="padding:10px 20px;">';
+  html += '<div style="display:flex;gap:10px;align-items:center;margin-bottom:10px;">';
+  html += '<span style="font-size:13px;color:#4a5568;white-space:nowrap;">签字日期：</span>';
+  html += '<input type="date" id="signDate" onchange="onSignDateChange()" style="flex:1;padding:8px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;">';
+  html += '</div>';
+  html += '</div>';
+  html += '<div style="padding:20px 10px;text-align:center;">';
+  html += '<button style="padding:12px 32px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;box-shadow:0 4px 12px rgba(102,126,234,.3);cursor:pointer;" onclick="saveAndReturn()">\ud83d\udcbe 保存并返回</button>';
+  html += '</div>';
+  return html;
+}
+
+function fillEscalatorFormData(){
+  if(!data) return;
+  if(currentProject){
+    data.projectName = currentProject.projectName || '';
+    data.sales = currentProject.sales || '';
+    data.phone = currentProject.phone || '';
+    data.surveyType = currentProject.surveyType || '首勘';
+    if(!data.location) data.location = {};
+    data.location.province = (currentProject.location && currentProject.location.province) || '';
+    data.location.city = (currentProject.location && currentProject.location.city) || '';
+    data.location.district = (currentProject.location && currentProject.location.district) || '';
+    data.location.detail = (currentProject.location && currentProject.location.detail) || '';
+  }
+  
+  var el;
+  el = document.getElementById('esc_indoorOutdoor'); if(el) el.value = data.indoorOutdoor || '室内';
+  el = document.getElementById('esc_layoutType'); if(el) el.value = data.layoutType || '单梯';
+  el = document.getElementById('esc_angle'); if(el) el.value = data.angle || '30';
+  el = document.getElementById('esc_height'); if(el) el.value = data.height || '';
+  el = document.getElementById('esc_stepWidth'); if(el) el.value = data.stepWidth || '800';
+  
+  el = document.getElementById('esc_horizontalSpan'); if(el) el.value = data.horizontalSpan || '';
+  el = document.getElementById('esc_openingLength'); if(el) el.value = data.openingLength || '';
+  el = document.getElementById('esc_beamHeight'); if(el) el.value = data.beamHeight || '';
+  el = document.getElementById('esc_pitDepth'); if(el) el.value = data.pitDepth || '';
+  el = document.getElementById('esc_pitLength'); if(el) el.value = data.pitLength || '';
+  el = document.getElementById('esc_pitWidth'); if(el) el.value = data.pitWidth || '';
+  el = document.getElementById('esc_specialNotes'); if(el) el.value = data.specialNotes || '';
+  
+  if(data.sketches){
+    if(data.sketches.shaftDiagram){
+      var imgEl = document.getElementById('shaftPreviewImg');
+      var prevEl = document.getElementById('shaftPreview');
+      var upEl = document.getElementById('shaftUploadArea');
+      if(imgEl) imgEl.src = data.sketches.shaftDiagram;
+      if(prevEl) prevEl.style.display = 'block';
+      if(upEl) upEl.style.display = 'none';
+    }
+  }
+  
+  if(data.signatures && data.signatures.surveyorDate){
+    el = document.getElementById('signDate');
+    if(el) el.value = data.signatures.surveyorDate;
+  }
+}
+
+function updateEscField(fieldId, value){
+  if(!data) return;
+  data[fieldId] = value;
+  autoSave();
+}
+
 // ============ 初始化 ============
 function init(){
   loadData();
-  initRegionSelectors();
-  fillFormData();
-  fillWallSelects();
-  updatePierVisibility();
-  updateHeaderBeamLenVisibility();
-  updateSummary();
+  if(data && data.elevatorType === '扶梯'){
+    initEscalatorMode();
+  } else {
+    initRegionSelectors();
+    fillFormData();
+    fillWallSelects();
+    updatePierVisibility();
+    updateHeaderBeamLenVisibility();
+    updateSummary();
+  }
   initTouchSwipe();
   
   // 排序按钮文字初始化
@@ -2978,6 +3302,7 @@ window.hideBatchGen = hideBatchGen;
 window.doBatchGen = doBatchGen;
 window.onShaftUpload = onShaftUpload;
 window.clearShaftImg = clearShaftImg;
+window.updateEscField = updateEscField;
 window.onRoomUpload = onRoomUpload;
 window.clearRoomImg = clearRoomImg;
 window.clearSignature = clearSignature;
