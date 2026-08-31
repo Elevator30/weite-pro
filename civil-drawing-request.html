@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#667eea">
+<title>垂直电梯土建图出图申请表</title>
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%231a3a6b'/%3E%3Ctext x='50' y='42' font-family='Arial' font-size='28' font-weight='900' text-anchor='middle' fill='white'%3EVEITE%3C/text%3E%3Ctext x='50' y='72' font-family='serif' font-size='16' font-weight='800' text-anchor='middle' fill='%23e63946'%3E电梯%3C/text%3E%3C/svg%3E">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+html{-webkit-text-size-adjust:100%;}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',sans-serif;
+  background:#f5f7fa;color:#2d3748;
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;padding-bottom:80px;
+  padding-top:env(safe-area-inset-top);
+}
+
+/* ===== 顶部标题 ===== */
+.page-header{
+  background:linear-gradient(135deg,#1a3a6b 0%,#2d5aa0 50%,#667eea 100%);
+  padding:20px 16px 18px;text-align:center;
+  position:sticky;top:0;z-index:100;
+  box-shadow:0 2px 12px rgba(26,58,107,.25);
+}
+.page-header h1{
+  font-size:18px;font-weight:800;color:#fff;
+  letter-spacing:2px;text-shadow:0 1px 3px rgba(0,0,0,.2);
+}
+.page-header .subtitle{
+  font-size:11px;color:rgba(255,255,255,.7);
+  margin-top:4px;letter-spacing:1px;
+}
+
+/* ===== 内容容器 ===== */
+.form-container{
+  max-width:600px;margin:0 auto;padding:12px 12px 20px;
+}
+
+/* ===== 卡片 ===== */
+.card{
+  background:#fff;border-radius:12px;padding:16px;
+  margin-bottom:12px;border:1.5px solid #e2e8f0;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+}
+.card-title{
+  font-size:14px;font-weight:700;color:#718096;
+  margin-bottom:14px;display:flex;align-items:center;gap:8px;
+  padding-bottom:10px;border-bottom:1px solid #edf2f7;
+}
+.card-title .icon{font-size:18px;}
+.card-title .req{color:#e53e3e;font-size:12px;margin-left:auto;}
+
+/* ===== 表单网格 ===== */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.form-grid.cols-3{grid-template-columns:1fr 1fr 1fr;}
+.form-grid.cols-1{grid-template-columns:1fr;}
+.form-row{display:flex;flex-direction:column;}
+.form-row.full{grid-column:1/-1;}
+.form-row.span-2{grid-column:span 2;}
+.form-row label{
+  font-size:12px;color:#4a5568;margin-bottom:5px;font-weight:500;
+  display:flex;align-items:center;gap:3px;
+}
+.form-row label .star{color:#e53e3e;font-size:14px;}
+.form-row input,.form-row select,.form-row textarea{
+  width:100%;border:1.5px solid #e2e8f0;border-radius:8px;
+  padding:10px 12px;font-size:14px;background:#fafafa;
+  transition:all .15s;font-family:inherit;color:#2d3748;
+  -webkit-appearance:none;appearance:none;
+}
+.form-row input:focus,.form-row select:focus,.form-row textarea:focus{
+  border-color:#667eea;background:#fff;outline:none;
+  box-shadow:0 0 0 3px rgba(102,126,234,.12);
+}
+.form-row input::placeholder{color:#a0aec0;}
+.form-row select{
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23667eea' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center;
+  padding-right:32px;
+}
+.form-row textarea{min-height:80px;resize:vertical;}
+
+/* ===== Pill / Tab 按钮组 ===== */
+.pill-group{display:flex;flex-wrap:wrap;gap:8px;}
+.pill-group .pill{
+  padding:8px 14px;border:1.5px solid #e2e8f0;border-radius:8px;
+  font-size:13px;color:#64748b;background:#fff;cursor:pointer;
+  transition:all .15s;-webkit-tap-highlight-color:transparent;
+  text-align:center;white-space:nowrap;user-select:none;
+}
+.pill-group .pill:active{transform:scale(.96);}
+.pill-group .pill.active{
+  border-color:#667eea;background:#667eea;color:#fff;font-weight:600;
+  box-shadow:0 2px 6px rgba(102,126,234,.3);
+}
+
+/* 紧凑型pill */
+.pill-group.compact .pill{padding:6px 10px;font-size:12px;}
+.pill-group.door-type{gap:6px;}
+.pill-group.door-type .pill{padding:6px 8px;font-size:12px;}
+
+/* ===== 内联组合 ===== */
+.inline-group{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.inline-group .pill{flex:0 0 auto;}
+.inline-input{
+  width:70px;border:1.5px solid #e2e8f0;border-radius:8px;
+  padding:8px 8px;font-size:13px;text-align:center;background:#fafafa;
+  font-family:inherit;-webkit-appearance:none;
+}
+.inline-input:focus{border-color:#667eea;background:#fff;outline:none;}
+.inline-input.sm{width:56px;}
+
+/* ===== 楼层手风琴 ===== */
+.floor-section{margin-top:-2px;}
+.floor-card{
+  background:#fff;border-radius:10px;margin-bottom:8px;
+  border:1.5px solid #e2e8f0;overflow:hidden;
+  box-shadow:0 1px 3px rgba(0,0,0,.03);
+}
+.floor-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 14px;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;transition:background .15s;
+}
+.floor-header:active{background:#f7fafc;}
+.floor-header-left{display:flex;align-items:center;gap:10px;}
+.floor-num{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:28px;height:28px;border-radius:50%;
+  background:#edf2ff;color:#667eea;font-size:12px;font-weight:700;
+}
+.floor-label{font-size:14px;font-weight:600;color:#2d3748;}
+.floor-summary{font-size:11px;color:#a0aec0;margin-left:8px;}
+.floor-arrow{font-size:12px;color:#a0aec0;transition:transform .25s;}
+.floor-card.active .floor-header{background:linear-gradient(135deg,#f8f9ff,#f0f4ff);}
+.floor-card.active .floor-arrow{transform:rotate(180deg);color:#667eea;}
+.floor-body{
+  max-height:0;overflow:hidden;
+  transition:max-height .3s ease,padding .3s ease;
+  padding:0 14px;
+}
+.floor-card.active .floor-body{
+  max-height:2000px;padding:12px 14px 14px;
+  border-top:1px solid #edf2f7;
+}
+.floor-delete{
+  position:absolute;right:14px;top:12px;
+  width:24px;height:24px;border-radius:50%;border:none;
+  background:#fff5f5;color:#e53e3e;font-size:14px;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+}
+
+/* 添加楼层按钮 */
+.add-floor-btn{
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  width:100%;padding:12px;border:2px dashed #cbd5e0;
+  border-radius:10px;color:#667eea;font-size:13px;font-weight:600;
+  background:transparent;cursor:pointer;transition:all .15s;
+  -webkit-tap-highlight-color:transparent;
+}
+.add-floor-btn:active{background:#f0f4ff;border-color:#667eea;}
+
+/* ===== Canvas 手绘区 ===== */
+.sketch-container{margin-bottom:14px;}
+.sketch-title{font-size:13px;font-weight:600;color:#4a5568;margin-bottom:8px;}
+.sketch-toolbar{
+  display:flex;gap:8px;margin-bottom:8px;align-items:center;
+}
+.sketch-tool{
+  padding:6px 12px;border:1px solid #e2e8f0;border-radius:6px;
+  font-size:12px;color:#64748b;background:#fff;cursor:pointer;
+  transition:all .15s;-webkit-tap-highlight-color:transparent;
+}
+.sketch-tool.active{border-color:#667eea;background:#667eea;color:#fff;}
+.sketch-tool.danger{color:#e53e3e;border-color:#fed7d7;}
+.sketch-canvas-wrap{
+  border:1.5px solid #e2e8f0;border-radius:8px;overflow:hidden;
+  background:#fafafa;position:relative;
+}
+.sketch-canvas{display:block;width:100%;touch-action:none;}
+.sketch-canvas-placeholder{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  color:#cbd5e0;font-size:13px;pointer-events:none;
+}
+
+/* ===== 签字区 ===== */
+.signature-grid{display:grid;grid-template-columns:1fr;gap:12px;}
+.signature-row{
+  display:flex;align-items:flex-end;gap:10px;
+  padding:10px 0;border-bottom:1px solid #edf2f7;
+}
+.signature-row:last-child{border-bottom:none;}
+.signature-field{flex:1;}
+.signature-field label{font-size:12px;color:#4a5568;margin-bottom:5px;display:block;font-weight:500;}
+.signature-field input{
+  width:100%;border:none;border-bottom:1.5px solid #cbd5e0;
+  padding:8px 0;font-size:14px;background:transparent;
+  font-family:inherit;color:#2d3748;
+}
+.signature-field input:focus{border-bottom-color:#667eea;outline:none;}
+
+/* ===== 底部注释 ===== */
+.notes-card{
+  background:#fffbeb;border:1.5px solid #fbd38d;
+  border-radius:12px;padding:14px 16px;margin-bottom:12px;
+}
+.notes-card .notes-title{
+  font-size:13px;font-weight:700;color:#92400e;margin-bottom:8px;
+  display:flex;align-items:center;gap:6px;
+}
+.notes-card ol{padding-left:20px;font-size:12px;color:#744210;line-height:1.8;}
+.notes-card .note-extra{
+  font-size:12px;color:#744210;margin-top:6px;padding-top:6px;
+  border-top:1px dashed #fbd38d;line-height:1.7;
+}
+
+/* ===== 底部工具栏 ===== */
+.bottom-bar{
+  position:fixed;bottom:0;left:0;right:0;
+  background:#fff;border-top:1px solid #e2e8f0;
+  padding:10px 16px;padding-bottom:calc(10px + env(safe-area-inset-bottom));
+  display:flex;gap:12px;z-index:200;
+  box-shadow:0 -2px 8px rgba(0,0,0,.06);
+}
+.bottom-bar .btn{
+  flex:1;padding:12px;border-radius:10px;font-size:15px;
+  font-weight:700;border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  transition:all .15s;-webkit-tap-highlight-color:transparent;
+}
+.bottom-bar .btn:active{transform:scale(.97);}
+.btn-save{background:#667eea;color:#fff;box-shadow:0 2px 8px rgba(102,126,234,.3);}
+.btn-print{background:#fff;color:#2d3748;border:1.5px solid #e2e8f0;}
+
+/* ===== 保存状态 ===== */
+.save-indicator{
+  position:fixed;top:60px;right:12px;
+  background:rgba(72,187,120,.9);color:#fff;
+  padding:4px 12px;border-radius:20px;font-size:11px;
+  opacity:0;transition:opacity .3s;z-index:300;
+  pointer-events:none;
+}
+.save-indicator.show{opacity:1;}
+
+/* ===== 加载遮罩 ===== */
+.loading-overlay{
+  position:fixed;top:0;left:0;right:0;bottom:0;
+  background:rgba(0,0,0,.5);z-index:999;
+  display:none;align-items:center;justify-content:center;
+  flex-direction:column;gap:12px;
+}
+.loading-overlay.show{display:flex;}
+.loading-spinner{
+  width:40px;height:40px;border:4px solid rgba(255,255,255,.3);
+  border-top-color:#fff;border-radius:50%;
+  animation:spin .8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+.loading-text{color:#fff;font-size:14px;font-weight:600;}
+
+/* ===== 打印隐藏 ===== */
+@media print{
+  .bottom-bar,.add-floor-btn,.floor-delete,.sketch-toolbar{display:none !important;}
+  body{background:#fff;padding-bottom:0;}
+  .page-header{position:static;background:#1a3a6b !important;print-color-adjust:exact;-webkit-print-color-adjust:exact;}
+  .card{box-shadow:none;page-break-inside:avoid;}
+}
+</style>
+</head>
+<body>
+
+<!-- 顶部 -->
+<div class="page-header">
+  <h1>垂直电梯土建图出图申请表</h1>
+  <div class="subtitle">VERTICAL ELEVATOR CIVIL DRAWING REQUEST</div>
+</div>
+
+<!-- 保存提示 -->
+<div class="save-indicator" id="saveIndicator">✓ 已自动保存</div>
+
+<!-- 加载遮罩 -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-spinner"></div>
+  <div class="loading-text">正在生成PDF...</div>
+</div>
+
+<div class="form-container" id="formContent">
+
+<!-- ====== 1. 基本信息行1 ====== -->
+<div class="card">
+  <div class="card-title"><span class="icon">📋</span> 基本信息</div>
+  <div class="form-grid">
+    <div class="form-row">
+      <label>楼号</label>
+      <input type="text" data-key="building_no" placeholder="请输入楼号">
+    </div>
+    <div class="form-row">
+      <label>梯号</label>
+      <input type="text" data-key="elevator_no" placeholder="请输入梯号">
+    </div>
+    <div class="form-row">
+      <label>项目所在地</label>
+      <input type="text" data-key="project_location" placeholder="请输入项目所在地">
+    </div>
+    <div class="form-row">
+      <label>NO</label>
+      <input type="text" data-key="serial_no" placeholder="编号">
+    </div>
+  </div>
+</div>
+
+<!-- ====== 2. 基本信息行2 ====== -->
+<div class="card">
+  <div class="card-title"><span class="icon">📝</span> 项目信息</div>
+  <div class="form-grid cols-1">
+    <div class="form-row full">
+      <label><span class="star">*</span> 项目名称</label>
+      <input type="text" data-key="project_name" placeholder="请输入项目名称" required>
+    </div>
+  </div>
+  <div class="form-grid" style="margin-top:12px;">
+    <div class="form-row">
+      <label><span class="star">*</span> 额定载重</label>
+      <input type="text" data-key="rated_load" placeholder="如:1000kg">
+    </div>
+    <div class="form-row">
+      <label>勘测次数</label>
+      <div class="inline-group" style="margin-top:2px;">
+        <div class="pill-group compact" data-group="survey_type">
+          <div class="pill active" data-val="首勘">首勘</div>
+          <div class="pill" data-val="复勘">复勘</div>
+        </div>
+        <input type="number" data-key="survey_count" placeholder="次数" style="width:60px;border:1.5px solid #e2e8f0;border-radius:8px;padding:6px 8px;font-size:13px;text-align:center;background:#fafafa;">
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== 3. 基本信息行3 ====== -->
+<div class="card">
+  <div class="card-title"><span class="icon">🏗️</span> 井道与层站</div>
+  <div class="form-grid cols-1">
+    <div class="form-row full">
+      <label>井道状态</label>
+      <div class="pill-group" data-group="shaft_status">
+        <div class="pill" data-val="未建">未建</div>
+        <div class="pill" data-val="在建">在建</div>
+        <div class="pill" data-val="已建">已建</div>
+      </div>
+    </div>
+  </div>
+  <div class="form-grid cols-3" style="margin-top:12px;">
+    <div class="form-row">
+      <label><span class="star">*</span> 层</label>
+      <input type="number" data-key="floor_count" placeholder="层数">
+    </div>
+    <div class="form-row">
+      <label><span class="star">*</span> 站</label>
+      <input type="number" data-key="stop_count" placeholder="站数">
+    </div>
+    <div class="form-row">
+      <label><span class="star">*</span> 门</label>
+      <input type="number" data-key="door_count" placeholder="门数">
+    </div>
+  </div>
+  <div class="form-grid cols-1" style="margin-top:12px;">
+    <div class="form-row full">
+      <label>控制方式</label>
+      <div class="pill-group" data-group="control_mode">
+        <div class="pill" data-val="单控">单控</div>
+        <div class="pill" data-val="并联">并联</div>
+        <div class="pill" data-val="群控">群控</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== 4. 基本信息行4 ====== -->
+<div class="card">
+  <div class="card-title"><span class="icon">🛗</span> 梯种信息</div>
+  <div class="form-grid">
+    <div class="form-row">
+      <label>梯种</label>
+      <select data-key="elevator_type">
+        <option value="">请选择</option>
+        <option value="客梯">客梯</option>
+        <option value="货梯">货梯</option>
+        <option value="医梯">医梯</option>
+        <option value="别墅梯">别墅梯</option>
+        <option value="观光梯">观光梯</option>
+        <option value="杂物梯">杂物梯</option>
+        <option value="自动扶梯">自动扶梯</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label><span class="star">*</span> 额定速度</label>
+      <input type="text" data-key="rated_speed" placeholder="如:1.75m/s">
+    </div>
+    <div class="form-row full">
+      <label>并联/群控梯号</label>
+      <input type="text" data-key="group_elevator_no" placeholder="请输入并联/群控梯号">
+    </div>
+  </div>
+</div>
+
+<!-- ====== 5. 井道与轿厢尺寸 ====== -->
+<div class="card">
+  <div class="card-title"><span class="icon">📐</span> 井道与轿厢尺寸</div>
+  <div style="font-size:12px;color:#667eea;font-weight:600;margin-bottom:10px;">
+    <span class="star" style="color:#e53e3e;">*</span> 井道尺寸
+  </div>
+  <div class="form-grid">
+    <div class="form-row">
+      <label>净宽 (mm)</label>
+      <input type="number" data-key="shaft_width" placeholder="净宽">
+    </div>
+    <div class="form-row">
+      <label>净深 (mm)</label>
+      <input type="number" data-key="shaft_depth" placeholder="净深">
+    </div>
+  </div>
+  <div style="font-size:12px;color:#4a5568;font-weight:600;margin:14px 0 10px;">
+    轿厢净尺寸
+  </div>
+  <div class="form-grid cols-3">
+    <div class="form-row">
+      <label>宽 (mm)</label>
+      <input type="number" data-key="car_width" placeholder="宽">
+    </div>
+    <div class="form-row">
+      <label>深 (mm)</label>
+      <input type="number" data-key="car_depth" placeholder="深">
+    </div>
+    <div class="form-row">
+      <label>高 (mm)</label>
+      <input type="number" data-key="car_height" placeholder="高">
+    </div>
+  </div>
+</div>
+
+<!-- ====== 6. 楼层动态区域 ====== -->
+<div class="card">
+  <div class="card-title"><span class="icon">🏢</span> 楼层信息 <span class="req">可增删楼层</span></div>
+  <div id="floorContainer"></div>
+  <button class="add-floor-btn" onclick="addFloor()">
+    <span style="font-size:18px;">＋</span> 添加楼层
+  </button>
+</div>
+
+<!-- ====== 7. 厅门与门洞 ====== -->
+<div class="card">
+  <div class="card-title"><span class="icon">🚪</span> 厅门与门洞</div>
+  <div style="font-size:12px;color:#667eea;font-weight:600;margin-bottom:10px;">
+    <span class="star" style="color:#e53e3e;">*</span> 厅门门洞
+  </div>
+  <div class="form-grid">
+    <div class="form-row">
+      <label>净宽 (mm)</label>
+      <input type="number" data-key="hall_door_width" placeholder="净宽">
+    </div>
+    <div class="form-row">
+      <label>净高 (mm)</label>
+      <input type="number" data-key="hall_door_height" placeholder="净高">
+    </div>
+  </div>
+
+  <div style="margin-top:14px;">
+    <label style="font-size:12px;color:#4a5568;font-weight:500;display:block;margin-bottom:8px;">井道预留牛腿</label>
+    <div class="pill-group compact" data-group="shaft_corbel">
+      <div class="pill" data-val="无">无</div>
+      <div class="pill" data-val="有">有</div>
+    </div>
+  </div>
+
+  <div style="font-size:12px;color:#4a5568;font-weight:600;margin:14px 0 10px;">净门尺寸</div>
+  <div class="form-grid">
+    <div class="form-row">
+      <label>净宽 (mm)</label>
+      <input type="number" data-key="net_door_width" placeholder="净宽">
+    </div>
+    <div class="form-row">
+      <label>净高 (mm)</label>
+      <input type="number" data-key="net_door_height" placeholder="净高">
+    </div>
+  </div>
+
+  <div style="margin-top:14px;">
+    <label style="font-size:12px;color:#4a5568;font-weight:500;display:block;margin-bottom:8px;">
+      <span class="star" style="color:#e53e3e;">*</span> 开门方式
+    </label>
+    <div class="pill-group door-type" data-group="door_open_type" data-multi="false">
+      <div class="pill" data-val="中分">中分</div>
+      <div class="pill" data-val="手拉">手拉</div>
+      <div class="pill" data-val="中分双折">中分双折</div>
+      <div class="pill" data-val="旁开双折">旁开双折</div>
+    </div>
+    <div id="sideOpenGroup" style="margin-top:8px;display:none;">
+      <div class="pill-group compact" data-group="side_open_dir">
+        <div class="pill" data-val="左开">左开</div>
+        <div class="pill" data-val="右开">右开</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="font-size:12px;color:#4a5568;font-weight:600;margin:14px 0 10px;">底坑深度</div>
+  <div class="form-grid">
+    <div class="form-row">
+      <label>前 (mm)</label>
+      <input type="number" data-key="pit_depth_front" placeholder="前底坑深度">
+    </div>
+    <div class="form-row">
+      <label>后 (mm)</label>
+      <input type="number" data-key="pit_depth_rear" placeholder="后底坑深度">
+    </div>
+  </div>
+</div>
+
+<!-- ====== 8. 动力电源 ====== -->
+<div class="card">
+  <div class="card-title"><span class="icon">⚡</span> 动力电源</div>
+  <div class="pill-group" data-group="power_supply">
+    <div class="pill" data-val="单相220V">单相 220V</div>
+    <div class="pill" data-val="三相380V">三相 380V</div>
+  </div>
+</div>
+
+<!-- ====== 9. 机房 ====== -->
+<div class="card">
+  <div class="card-title"><span class="icon">🏠</span> 机房</div>
+  <div class="form-row full" style="margin-bottom:14px;">
+    <label style="font-size:12px;color:#4a5568;font-weight:500;margin-bottom:8px;display:block;">
+      <span class="star" style="color:#e53e3e;">*</span> 机房形式
+    </label>
+    <div class="pill-group" data-group="machine_room_type">
+      <div class="pill" data-val="大机房">大机房</div>
+      <div class="pill" data-val="无机房">无机房</div>
+      <div class="pill" data-val="小机房">小机房</div>
+    </div>
+  </div>
+  <div class="form-grid cols-3">
+    <div class="form-row">
+      <label>宽 (mm)</label>
+      <input type="number" data-key="machine_room_w" placeholder="宽">
+    </div>
+    <div class="form-row">
+      <label>深 (mm)</label>
+      <input type="number" data-key="machine_room_d" placeholder="深">
+    </div>
+    <div class="form-row">
+      <label>高 (mm)</label>
+      <input type="number" data-key="machine_room_h" placeholder="高">
+    </div>
+  </div>
+</div>
+
+<!-- ====== 10. 井道结构 ====== -->
+<div class="card">
+  <div class="card-title"><span class="icon">🧱</span> 井道结构</div>
+
+  <!-- 后墙 -->
+  <div class="wall-section" style="margin-bottom:16px;">
+    <div style="font-size:13px;font-weight:700;color:#667eea;margin-bottom:10px;">后墙</div>
+    <div class="form-row full" style="margin-bottom:10px;">
+      <label style="font-size:12px;color:#4a5568;font-weight:500;margin-bottom:8px;display:block;">材质</label>
+      <div class="pill-group compact" data-group="rear_wall_material">
+        <div class="pill" data-val="砖混墙">砖混墙</div>
+        <div class="pill" data-val="混凝土墙">混凝土墙</div>
+        <div class="pill" data-val="钢架">钢架</div>
+      </div>
+    </div>
+    <div class="form-grid">
+      <div class="form-row">
+        <label>厚度 (mm)</label>
+        <input type="number" data-key="rear_wall_thick" placeholder="厚度">
+      </div>
+      <div class="form-row">
+        <label>外墙</label>
+        <div class="pill-group compact" data-group="rear_wall_exterior">
+          <div class="pill" data-val="是">是</div>
+          <div class="pill" data-val="否">否</div>
+        </div>
+      </div>
+    </div>
+    <div class="form-grid" style="margin-top:10px;">
+      <div class="form-row">
+        <label>后墙圈梁间距 (mm)</label>
+        <input type="number" data-key="rear_beam_spacing" placeholder="圈梁间距">
+      </div>
+      <div class="form-row">
+        <label>要求客户支架间距 (mm)</label>
+        <input type="number" data-key="rear_bracket_spacing" placeholder="支架间距">
+      </div>
+    </div>
+  </div>
+
+  <!-- 左墙 -->
+  <div class="wall-section" style="margin-bottom:16px;">
+    <div style="font-size:13px;font-weight:700;color:#667eea;margin-bottom:10px;">左墙</div>
+    <div class="form-row full" style="margin-bottom:10px;">
+      <label style="font-size:12px;color:#4a5568;font-weight:500;margin-bottom:8px;display:block;">材质</label>
+      <div class="pill-group compact" data-group="left_wall_material">
+        <div class="pill" data-val="砖混墙">砖混墙</div>
+        <div class="pill" data-val="混凝土墙">混凝土墙</div>
+        <div class="pill" data-val="钢架">钢架</div>
+      </div>
+    </div>
+    <div class="form-grid">
+      <div class="form-row">
+        <label>厚度 (mm)</label>
+        <input type="number" data-key="left_wall_thick" placeholder="厚度">
+      </div>
+      <div class="form-row">
+        <label>外墙</label>
+        <div class="pill-group compact" data-group="left_wall_exterior">
+          <div class="pill" data-val="是">是</div>
+          <div class="pill" data-val="否">否</div>
+        </div>
+      </div>
+    </div>
+    <div class="form-grid" style="margin-top:10px;">
+      <div class="form-row">
+        <label>左墙圈梁间距 (mm)</label>
+        <input type="number" data-key="left_beam_spacing" placeholder="圈梁间距">
+      </div>
+      <div class="form-row">
+        <label>要求客户支架间距 (mm)</label>
+        <input type="number" data-key="left_bracket_spacing" placeholder="支架间距">
+      </div>
+    </div>
+  </div>
+
+  <!-- 右墙 -->
+  <div class="wall-section">
+    <div style="font-size:13px;font-weight:700;color:#667eea;margin-bottom:10px;">右墙</div>
+    <div class="form-row full" style="margin-bottom:10px;">
+      <label style="font-size:12px;color:#4a5568;font-weight:500;margin-bottom:8px;display:block;">材质</label>
+      <div class="pill-group compact" data-group="right_wall_material">
+        <div class="pill" data-val="砖混墙">砖混墙</div>
+        <div class="pill" data-val="混凝土墙">混凝土墙</div>
+        <div class="pill" data-val="钢架">钢架</div>
+      </div>
+    </div>
+    <div class="form-grid">
+      <div class="form-row">
+        <label>厚度 (mm)</label>
+        <input type="number" data-key="right_wall_thick" placeholder="厚度">
+      </div>
+      <div class="form-row">
+        <label>外墙</label>
+        <div class="pill-group compact" data-group="right_wall_exterior">
+          <div class="pill" data-val="是">是</div>
+          <div class="pill" data-val="否">否</div>
+        </div>
+      </div>
+    </div>
+    <div class="form-grid" style="margin-top:10px;">
+      <div class="form-row">
+        <label>右墙圈梁间距 (mm)</label>
+        <input type="number" data-key="right_beam_spacing" placeholder="圈梁间距">
+      </div>
+      <div class="form-row">
+        <label>要求客户支架间距 (mm)</label>
+        <input type="number" data-key="right_bracket_spacing" placeholder="支架间距">
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== 11. 门过梁 ====== -->
+<div class="card">
+  <div class="card-title"><span class="icon">🔲</span> 门过梁</div>
+  <div style="font-size:12px;color:#718096;margin-bottom:10px;">
+    对于砖混及钢架结构井道，是否有≥300mm高度的门过梁
+  </div>
+  <div class="pill-group" data-group="door_lintel">
+    <div class="pill" data-val="是">是</div>
+    <div class="pill" data-val="否">否</div>
+  </div>
+</div>
+
+<!-- ====== 12. 门垛 ====== -->
+<div class="card">
+  <div class="card-title"><span class="icon">🧱</span> 门垛</div>
+  <div class="form-row full" style="margin-bottom:12px;">
+    <label style="font-size:12px;color:#4a5568;font-weight:500;margin-bottom:8px;display:block;">门垛结构</label>
+    <div class="pill-group" data-group="door_jamb_material">
+      <div class="pill" data-val="混凝土">混凝土</div>
+      <div class="pill" data-val="砖墙">砖墙</div>
+      <div class="pill" data-val="钢架">钢架</div>
+    </div>
+  </div>
+  <div class="form-row full" style="margin-bottom:12px;">
+    <label style="font-size:12px;color:#4a5568;font-weight:500;margin-bottom:8px;display:block;">门垛状态</label>
+    <div class="pill-group" data-group="door_jamb_status">
+      <div class="pill" data-val="未建">未建</div>
+      <div class="pill" data-val="在建">在建</div>
+      <div class="pill" data-val="已建">已建</div>
+    </div>
+  </div>
+  <div class="form-grid">
+    <div class="form-row">
+      <label>左门垛宽 (mm)</label>
+      <input type="number" data-key="door_jamb_left" placeholder="左门垛宽">
+    </div>
+    <div class="form-row">
+      <label>右门垛宽 (mm)</label>
+      <input type="number" data-key="door_jamb_right" placeholder="右门垛宽">
+    </div>
+  </div>
+</div>
+
+<!-- ====== 13. 外呼盒 ====== -->
+<div class="card">
+  <div class="card-title"><span class="icon">📞</span> 外呼盒</div>
+  <div class="form-row full">
+    <label style="font-size:12px;color:#4a5568;font-weight:500;margin-bottom:8px;display:block;">
+      <span class="star" style="color:#e53e3e;">*</span> 外呼盒形式
+    </label>
+    <div class="pill-group" data-group="call_box_type">
+      <div class="pill" data-val="有底盒">有底盒</div>
+      <div class="pill" data-val="无底盒">无底盒</div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== 14. 无机房控制柜 ====== -->
+<div class="card">
+  <div class="card-title"><span class="icon">🔌</span> 无机房控制柜</div>
+  <div class="form-row full">
+    <label style="font-size:12px;color:#4a5568;font-weight:500;margin-bottom:8px;display:block;">
+      <span class="star" style="color:#e53e3e;">*</span> 无机房控制柜位置
+    </label>
+    <div class="pill-group" data-group="cabinet_position">
+      <div class="pill" data-val="标准位置">标准位置（顶层厅门门垛位置）</div>
+      <div class="pill" data-val="非标位置">非标位置</div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== 15. 贯通与观光 ====== -->
+<div class="card">
+  <div class="card-title"><span class="icon">👁️</span> 贯通与观光</div>
+  <div class="form-row full" style="margin-bottom:12px;">
+    <label style="font-size:12px;color:#4a5568;font-weight:500;margin-bottom:8px;display:block;">是否贯通</label>
+    <div class="pill-group" data-group="is_through">
+      <div class="pill" data-val="是">是</div>
+      <div class="pill" data-val="否">否</div>
+    </div>
+  </div>
+  <div style="font-size:12px;color:#4a5568;font-weight:500;margin-bottom:8px;">轿厢观光类型</div>
+  <div class="inline-group" style="gap:8px;">
+    <div class="pill-group compact" data-group="car_sightseeing">
+      <div class="pill" data-val="方形">方形</div>
+      <div class="pill" data-val="半圆形">半圆形</div>
+    </div>
+    <input type="text" data-key="car_sightseeing_count" placeholder="观光几面" style="width:80px;border:1.5px solid #e2e8f0;border-radius:8px;padding:6px 8px;font-size:13px;background:#fafafa;">
+  </div>
+</div>
+
+<!-- ====== 16. 示意图 ====== -->
+<div class="card">
+  <div class="card-title"><span class="icon">✏️</span> 示意图</div>
+
+  <div class="sketch-container">
+    <div class="sketch-title">井道示意图</div>
+    <div class="sketch-toolbar">
+      <button class="sketch-tool active" data-tool="pen" onclick="setSketchTool(this,'shaft')">✏️ 画笔</button>
+      <button class="sketch-tool" data-tool="eraser" onclick="setSketchTool(this,'shaft')">🧹 橡皮擦</button>
+      <button class="sketch-tool danger" onclick="clearSketch('shaft')">🗑️ 清除</button>
+    </div>
+    <div class="sketch-canvas-wrap">
+      <canvas id="shaftSketch" class="sketch-canvas" width="560" height="300"></canvas>
+      <div class="sketch-canvas-placeholder" id="shaftPlaceholder">在此绘制井道示意图</div>
+    </div>
+  </div>
+
+  <div class="sketch-container">
+    <div class="sketch-title">机房示意图</div>
+    <div class="sketch-toolbar">
+      <button class="sketch-tool active" data-tool="pen" onclick="setSketchTool(this,'machine')">✏️ 画笔</button>
+      <button class="sketch-tool" data-tool="eraser" onclick="setSketchTool(this,'machine')">🧹 橡皮擦</button>
+      <button class="sketch-tool danger" onclick="clearSketch('machine')">🗑️ 清除</button>
+    </div>
+    <div class="sketch-canvas-wrap">
+      <canvas id="machineSketch" class="sketch-canvas" width="560" height="300"></canvas>
+      <div class="sketch-canvas-placeholder" id="machinePlaceholder">在此绘制机房示意图</div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== 17. 高度数据 ====== -->
+<div class="card">
+  <div class="card-title"><span class="icon">📏</span> 高度数据</div>
+  <div class="form-grid">
+    <div class="form-row">
+      <label>顶层高度 (mm)</label>
+      <input type="number" data-key="top_floor_height" placeholder="顶层高度">
+    </div>
+    <div class="form-row">
+      <label>提升高度 (mm)</label>
+      <input type="number" data-key="lift_height" placeholder="提升高度">
+    </div>
+  </div>
+  <div style="margin-top:14px;">
+    <label style="font-size:12px;color:#4a5568;font-weight:500;margin-bottom:8px;display:block;">机房局部抬高</label>
+    <div class="inline-group">
+      <div class="pill-group compact" data-group="machine_room_raise">
+        <div class="pill" data-val="有抬高">有抬高</div>
+        <div class="pill" data-val="无">无</div>
+      </div>
+      <input type="number" data-key="machine_room_raise_val" placeholder="抬高mm" style="width:90px;border:1.5px solid #e2e8f0;border-radius:8px;padding:6px 8px;font-size:13px;background:#fafafa;">
+    </div>
+  </div>
+  <div class="form-grid" style="margin-top:14px;">
+    <div class="form-row">
+      <label>井道总高 (mm)</label>
+      <input type="number" data-key="shaft_total_height" placeholder="井道总高">
+    </div>
+  </div>
+</div>
+
+<!-- ====== 18. 特殊说明 ====== -->
+<div class="card">
+  <div class="card-title"><span class="icon">💬</span> 特殊说明</div>
+  <div class="form-row full">
+    <label style="font-size:12px;color:#4a5568;font-weight:500;margin-bottom:8px;display:block;">其他特殊说明</label>
+    <textarea data-key="special_notes" placeholder="请输入其他需要说明的事项..." rows="4"></textarea>
+  </div>
+</div>
+
+<!-- ====== 19. 签字区 ====== -->
+<div class="card">
+  <div class="card-title"><span class="icon">✍️</span> 签字确认</div>
+  <div class="signature-grid">
+    <div class="signature-row">
+      <div class="signature-field">
+        <label><span class="star" style="color:#e53e3e;">*</span> 测量及申请人</label>
+        <input type="text" data-key="sign_applicant" placeholder="签名">
+      </div>
+      <div class="signature-field" style="flex:0 0 140px;">
+        <label>日期</label>
+        <input type="date" data-key="sign_applicant_date">
+      </div>
+    </div>
+    <div class="signature-row">
+      <div class="signature-field">
+        <label>审核</label>
+        <input type="text" data-key="sign_reviewer" placeholder="签名">
+      </div>
+      <div class="signature-field" style="flex:0 0 140px;">
+        <label>日期</label>
+        <input type="date" data-key="sign_reviewer_date">
+      </div>
+    </div>
+    <div class="signature-row">
+      <div class="signature-field">
+        <label>绘图接收人</label>
+        <input type="text" data-key="sign_receiver" placeholder="签名">
+      </div>
+      <div class="signature-field" style="flex:0 0 140px;">
+        <label>日期</label>
+        <input type="date" data-key="sign_receiver_date">
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== 20. 底部注释 ====== -->
+<div class="notes-card">
+  <div class="notes-title">⚠️ 注意事项</div>
+  <ol>
+    <li>此单为设计电梯的第一依据，务必认真；</li>
+    <li>电梯排产前再确认一次，确认客户土建与初出土建图是否一致，并通知技术部（此项工作由运营中心安排落实）；</li>
+    <li>如项目有多台电梯，请将现场电梯井道及电梯分布附图说明；</li>
+    <li>左、右以人站在厅门外，面向井道为准。</li>
+  </ol>
+  <div class="note-extra">
+    注意：井道内是否有角柱等不规则结构，电梯底坑是否悬空？此表如不够填写现场数据，请另外附图说明。此表格仅适用于垂直梯。
+  </div>
+</div>
+
+</div><!-- end form-container -->
+
+<!-- 底部工具栏 -->
+<div class="bottom-bar">
+  <button class="btn btn-save" onclick="saveForm()">💾 保存</button>
+  <button class="btn btn-print" onclick="exportPDF()">📄 打印</button>
+</div>
+
+<script>
+/* ===== 全局变量 ===== */
+var STORAGE_KEY = 'civil_drawing_request_v1';
+var formData = {};
+var floorData = [];
+var saveTimer = null;
+var sketchStates = { shaft: { tool: 'pen', drawing: false }, machine: { tool: 'pen', drawing: false } };
+
+/* ===== 初始化 ===== */
+document.addEventListener('DOMContentLoaded', function() {
+  loadForm();
+  initPillGroups();
+  initFloorAccordion();
+  initSketchPads();
+  bindAutoSave();
+  initDoorOpenTypeLink();
+});
+
+/* ===== Pill 按钮组逻辑 ===== */
+function initPillGroups() {
+  var groups = document.querySelectorAll('.pill-group[data-group]');
+  groups.forEach(function(g) {
+    var key = g.dataset.group;
+    var val = formData[key] || '';
+    var pills = g.querySelectorAll('.pill');
+    if (!val) {
+      // 默认选中第一个
+      // pills[0] && pills[0].classList.add('active');
+      // formData[key] = pills[0] ? pills[0].dataset.val : '';
+    }
+    pills.forEach(function(p) {
+      if (p.dataset.val === val) p.classList.add('active');
+      else p.classList.remove('active');
+      p.addEventListener('click', function() {
+        pills.forEach(function(x) { x.classList.remove('active'); });
+        p.classList.add('active');
+        formData[key] = p.dataset.val;
+        triggerAutoSave();
+        // 联动逻辑：旁开双折 显示左开/右开
+        if (key === 'door_open_type' && p.dataset.val === '旁开双折') {
+          document.getElementById('sideOpenGroup').style.display = '';
+        } else if (key === 'door_open_type') {
+          document.getElementById('sideOpenGroup').style.display = 'none';
+        }
+      });
+    });
+  });
+}
+
+/* ===== 开门方式联动 ===== */
+function initDoorOpenTypeLink() {
+  var val = formData['door_open_type'] || '';
+  if (val === '旁开双折') {
+    document.getElementById('sideOpenGroup').style.display = '';
+  }
+}
+
+/* ===== Input / Select / Textarea 绑定 ===== */
+function bindAutoSave() {
+  var inputs = document.querySelectorAll('[data-key]');
+  inputs.forEach(function(el) {
+    var key = el.dataset.key;
+    if (formData[key] !== undefined && formData[key] !== null) {
+      el.value = formData[key];
+    }
+    el.addEventListener('input', function() {
+      formData[key] = el.value;
+      triggerAutoSave();
+    });
+    el.addEventListener('change', function() {
+      formData[key] = el.value;
+      triggerAutoSave();
+    });
+  });
+}
+
+/* ===== 自动保存 ===== */
+function triggerAutoSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(function() { saveForm(true); }, 500);
+}
+
+function saveForm(silent) {
+  // 收集楼层数据
+  collectFloorData();
+  // 收集 canvas 数据
+  collectSketchData();
+  var data = { form: formData, floors: floorData, sketches: sketchDataSave, ts: Date.now() };
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    if (!silent) showToast('✓ 保存成功');
+    showSaveIndicator();
+  } catch(e) {
+    if (!silent) showToast('保存失败: ' + e.message);
+  }
+}
+
+function loadForm() {
+  try {
+    var raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    var data = JSON.parse(raw);
+    formData = data.form || {};
+    floorData = data.floors || [];
+    if (data.sketches) sketchDataLoad = data.sketches;
+    // 恢复楼层
+    if (floorData.length > 0) {
+      floorData.forEach(function(fd, i) {
+        addFloor(fd, i === 0);
+      });
+    }
+  } catch(e) {
+    console.warn('Load failed:', e);
+  }
+}
+
+function showSaveIndicator() {
+  var el = document.getElementById('saveIndicator');
+  el.classList.add('show');
+  setTimeout(function() { el.classList.remove('show'); }, 1500);
+}
+
+function showToast(msg) {
+  var existing = document.querySelector('.toast-msg');
+  if (existing) existing.remove();
+  var t = document.createElement('div');
+  t.className = 'toast-msg';
+  t.textContent = msg;
+  t.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.75);color:#fff;padding:10px 24px;border-radius:10px;font-size:14px;z-index:999;pointer-events:none;';
+  document.body.appendChild(t);
+  setTimeout(function() { t.remove(); }, 2000);
+}
+
+/* ===== 楼层动态区域 ===== */
+var floorCounter = 0;
+
+function addFloor(data, expand) {
+  floorCounter++;
+  var idx = floorCounter;
+  var container = document.getElementById('floorContainer');
+
+  var card = document.createElement('div');
+  card.className = 'floor-card' + (expand ? ' active' : '');
+  card.dataset.floorIdx = idx;
+  card.style.position = 'relative';
+
+  card.innerHTML =
+    '<div class="floor-header" onclick="toggleFloor(this)">' +
+      '<div class="floor-header-left">' +
+        '<div class="floor-num">' + idx + '</div>' +
+        '<div class="floor-label">楼层 <span class="floor-summary" data-floor-summary="' + idx + '"></span></div>' +
+      '</div>' +
+      '<div class="floor-arrow">▼</div>' +
+    '</div>' +
+    '<button class="floor-delete" onclick="deleteFloor(this)" title="删除楼层">×</button>' +
+    '<div class="floor-body">' +
+      '<div class="form-grid">' +
+        '<div class="form-row">' +
+          '<label>物理楼层号</label>' +
+          '<input type="number" data-floor-key="floor_num" data-floor-idx="' + idx + '" placeholder="楼层号">' +
+        '</div>' +
+        '<div class="form-row">' +
+          '<label>楼层间距 (mm)</label>' +
+          '<input type="number" data-floor-key="floor_gap" data-floor-idx="' + idx + '" placeholder="间距">' +
+        '</div>' +
+      '</div>' +
+      '<div style="margin-top:10px;">' +
+        '<label style="font-size:12px;color:#4a5568;font-weight:500;margin-bottom:8px;display:block;">开门方式</label>' +
+        '<div class="pill-group compact" data-floor-group="door_side" data-floor-idx="' + idx + '">' +
+          '<div class="pill" data-val="前门">前门</div>' +
+          '<div class="pill" data-val="后门">后门</div>' +
+        '</div>' +
+      '</div>' +
+      '<div style="margin-top:10px;">' +
+        '<label style="font-size:12px;color:#4a5568;font-weight:500;margin-bottom:8px;display:block;">楼层显示</label>' +
+        '<div class="pill-group compact" data-floor-group="floor_display" data-floor-idx="' + idx + '">' +
+          '<div class="pill" data-val="是">是</div>' +
+          '<div class="pill" data-val="否">否</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+
+  container.appendChild(card);
+
+  // 绑定楼层内的 input
+  card.querySelectorAll('[data-floor-key]').forEach(function(inp) {
+    inp.addEventListener('input', function() { triggerAutoSave(); updateFloorSummary(idx); });
+    inp.addEventListener('change', function() { triggerAutoSave(); });
+  });
+
+  // 绑定楼层内的 pill group
+  card.querySelectorAll('.pill-group[data-floor-group]').forEach(function(g) {
+    var pills = g.querySelectorAll('.pill');
+    pills.forEach(function(p) {
+      p.addEventListener('click', function() {
+        pills.forEach(function(x) { x.classList.remove('active'); });
+        p.classList.add('active');
+        triggerAutoSave();
+        updateFloorSummary(idx);
+      });
+    });
+  });
+
+  // 恢复数据
+  if (data) {
+    restoreFloorData(card, data, idx);
+  }
+}
+
+function restoreFloorData(card, data, idx) {
+  card.querySelectorAll('[data-floor-key]').forEach(function(inp) {
+    var key = inp.dataset.floorKey;
+    if (data[key] !== undefined) inp.value = data[key];
+  });
+  card.querySelectorAll('.pill-group[data-floor-group]').forEach(function(g) {
+    var key = g.dataset.floorGroup;
+    var val = data[key] || '';
+    g.querySelectorAll('.pill').forEach(function(p) {
+      if (p.dataset.val === val) p.classList.add('active');
+    });
+  });
+  updateFloorSummary(idx);
+}
+
+function toggleFloor(header) {
+  var card = header.closest('.floor-card');
+  card.classList.toggle('active');
+}
+
+function deleteFloor(btn) {
+  var card = btn.closest('.floor-card');
+  if (document.querySelectorAll('.floor-card').length <= 1) {
+    showToast('至少保留一个楼层');
+    return;
+  }
+  card.remove();
+  // 重新编号
+  var cards = document.querySelectorAll('.floor-card');
+  cards.forEach(function(c, i) {
+    c.querySelector('.floor-num').textContent = i + 1;
+    c.dataset.floorIdx = i + 1;
+  });
+  triggerAutoSave();
+}
+
+function updateFloorSummary(idx) {
+  var card = document.querySelector('.floor-card[data-floor-idx="' + idx + '"]');
+  if (!card) return;
+  var numInput = card.querySelector('[data-floor-key="floor_num"]');
+  var gapInput = card.querySelector('[data-floor-key="floor_gap"]');
+  var summary = '';
+  if (numInput && numInput.value) summary += 'F' + numInput.value;
+  if (gapInput && gapInput.value) summary += ' / ' + gapInput.value + 'mm';
+  var el = card.querySelector('[data-floor-summary="' + idx + '"]');
+  if (el) el.textContent = summary;
+}
+
+function collectFloorData() {
+  floorData = [];
+  var cards = document.querySelectorAll('.floor-card');
+  cards.forEach(function(card) {
+    var fd = {};
+    card.querySelectorAll('[data-floor-key]').forEach(function(inp) {
+      fd[inp.dataset.floorKey] = inp.value;
+    });
+    card.querySelectorAll('.pill-group[data-floor-group]').forEach(function(g) {
+      var active = g.querySelector('.pill.active');
+      if (active) fd[g.dataset.floorGroup] = active.dataset.val;
+    });
+    floorData.push(fd);
+  });
+}
+
+/* ===== Canvas 手绘 ===== */
+var sketchDataSave = {};
+var sketchDataLoad = {};
+
+function initSketchPads() {
+  setupSketch('shaft');
+  setupSketch('machine');
+  // 恢复
+  if (sketchDataLoad) {
+    setTimeout(function() {
+      restoreSketch('shaft');
+      restoreSketch('machine');
+    }, 300);
+  }
+}
+
+function setupSketch(name) {
+  var canvas = document.getElementById(name === 'shaft' ? 'shaftSketch' : 'machineSketch');
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  var state = sketchStates[name];
+
+  // 设置 canvas 实际像素
+  function resizeCanvas() {
+    var wrap = canvas.parentElement;
+    var w = wrap.clientWidth;
+    var ratio = window.devicePixelRatio || 1;
+    canvas.width = w * ratio;
+    canvas.height = 300 * ratio;
+    canvas.style.width = w + 'px';
+    canvas.style.height = '300px';
+    ctx.scale(ratio, ratio);
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    // 如果有保存的数据则恢复
+    restoreSketch(name);
+  }
+
+  function getPos(e) {
+    var rect = canvas.getBoundingClientRect();
+    var touch = e.touches ? e.touches[0] : e;
+    return { x: touch.clientX - rect.left, y: touch.clientY - rect.top };
+  }
+
+  function startDraw(e) {
+    e.preventDefault();
+    state.drawing = true;
+    var pos = getPos(e);
+    ctx.beginPath();
+    ctx.moveTo(pos.x, pos.y);
+    hidePlaceholder(name);
+  }
+
+  function moveDraw(e) {
+    e.preventDefault();
+    if (!state.drawing) return;
+    var pos = getPos(e);
+    if (state.tool === 'eraser') {
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.lineWidth = 20;
+    } else {
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.strokeStyle = '#2d3748';
+      ctx.lineWidth = 2;
+    }
+    ctx.lineTo(pos.x, pos.y);
+    ctx.stroke();
+  }
+
+  function endDraw(e) {
+    if (e) e.preventDefault();
+    state.drawing = false;
+    ctx.beginPath();
+    ctx.globalCompositeOperation = 'source-over';
+    triggerAutoSave();
+  }
+
+  canvas.addEventListener('mousedown', startDraw);
+  canvas.addEventListener('mousemove', moveDraw);
+  canvas.addEventListener('mouseup', endDraw);
+  canvas.addEventListener('mouseleave', endDraw);
+  canvas.addEventListener('touchstart', startDraw, { passive: false });
+  canvas.addEventListener('touchmove', moveDraw, { passive: false });
+  canvas.addEventListener('touchend', endDraw, { passive: false });
+
+  resizeCanvas();
+  window.addEventListener('resize', function() {
+    // 保存数据后 resize
+    collectSketchData();
+    resizeCanvas();
+  });
+}
+
+function setSketchTool(btn, name) {
+  var toolbar = btn.closest('.sketch-toolbar');
+  toolbar.querySelectorAll('.sketch-tool[data-tool]').forEach(function(t) { t.classList.remove('active'); });
+  btn.classList.add('active');
+  sketchStates[name].tool = btn.dataset.tool;
+}
+
+function clearSketch(name) {
+  var canvas = document.getElementById(name === 'shaft' ? 'shaftSketch' : 'machineSketch');
+  var ctx = canvas.getContext('2d');
+  var ratio = window.devicePixelRatio || 1;
+  ctx.clearRect(0, 0, canvas.width / ratio, canvas.height / ratio);
+  showPlaceholder(name);
+  triggerAutoSave();
+}
+
+function hidePlaceholder(name) {
+  var el = document.getElementById(name === 'shaft' ? 'shaftPlaceholder' : 'machinePlaceholder');
+  if (el) el.style.display = 'none';
+}
+
+function showPlaceholder(name) {
+  var el = document.getElementById(name === 'shaft' ? 'shaftPlaceholder' : 'machinePlaceholder');
+  if (el) el.style.display = '';
+}
+
+function collectSketchData() {
+  ['shaft', 'machine'].forEach(function(name) {
+    var canvas = document.getElementById(name === 'shaft' ? 'shaftSketch' : 'machineSketch');
+    try {
+      sketchDataSave[name] = canvas.toDataURL();
+    } catch(e) {}
+  });
+}
+
+function restoreSketch(name) {
+  if (!sketchDataLoad || !sketchDataLoad[name]) return;
+  var canvas = document.getElementById(name === 'shaft' ? 'shaftSketch' : 'machineSketch');
+  var ctx = canvas.getContext('2d');
+  var img = new Image();
+  img.onload = function() {
+    var ratio = window.devicePixelRatio || 1;
+    ctx.drawImage(img, 0, 0, canvas.width / ratio, canvas.height / ratio);
+    hidePlaceholder(name);
+  };
+  img.src = sketchDataLoad[name];
+}
+
+/* ===== 打印 PDF ===== */
+function exportPDF() {
+  var overlay = document.getElementById('loadingOverlay');
+  overlay.classList.add('show');
+
+  // 先保存
+  saveForm(true);
+
+  setTimeout(function() {
+    var el = document.getElementById('formContent');
+    html2canvas(el, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: '#f5f7fa',
+      logging: false,
+      windowWidth: 600
+    }).then(function(canvas) {
+      var jsPDF = window.jspdf.jsPDF;
+      var pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+      var pdfW = 210;
+      var pdfH = 297;
+      var margin = 10;
+      var contentW = pdfW - margin * 2;
+      var imgW = contentW;
+      var imgH = (canvas.height * imgW) / canvas.width;
+      var imgData = canvas.toDataURL('image/jpeg', 0.92);
+
+      // 多页处理
+      var pageContentH = pdfH - margin * 2;
+      var totalPages = Math.ceil(imgH / pageContentH);
+
+      for (var i = 0; i < totalPages; i++) {
+        if (i > 0) pdf.addPage();
+        var srcY = i * pageContentH;
+        // 创建裁剪 canvas
+        var sliceCanvas = document.createElement('canvas');
+        var sliceRatio = canvas.width / imgW;
+        sliceCanvas.width = canvas.width;
+        sliceCanvas.height = Math.min(pageContentH * sliceRatio, canvas.height - srcY * sliceRatio);
+        var sliceCtx = sliceCanvas.getContext('2d');
+        sliceCtx.drawImage(canvas, 0, srcY * sliceRatio, canvas.width, sliceCanvas.height, 0, 0, canvas.width, sliceCanvas.height);
+        var sliceData = sliceCanvas.toDataURL('image/jpeg', 0.92);
+        var sliceH = (sliceCanvas.height * imgW) / canvas.width;
+        pdf.addImage(sliceData, 'JPEG', margin, margin, imgW, sliceH);
+      }
+
+      // 生成文件名
+      var projName = formData['project_name'] || '表单';
+      pdf.save('土建出图申请_' + projName + '.pdf');
+      overlay.classList.remove('show');
+    }).catch(function(err) {
+      overlay.classList.remove('show');
+      showToast('生成PDF失败');
+      console.error(err);
+    });
+  }, 300);
+}
+</script>
+</body>
+</html>
