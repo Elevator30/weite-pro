@@ -1398,7 +1398,9 @@ function exportExcel() {
   XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(projectData), '项目明细');
   XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(expenseData), '费用明细');
   XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(typeStatData), '分类统计');
-  XLSX.writeFile(wb, '差旅费报销_' + rangeLabel.replace(/-/g,'') + '.xlsx');
+  var wbout = XLSX.write(wb, {bookType:'xlsx', type:'array'});
+  var xlsxBlob = new Blob([wbout], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  safeDownload(xlsxBlob, '差旅费报销_' + rangeLabel.replace(/-/g,'') + '.xlsx');
   closeModal('excelDateModal');
   showToast('Excel导出成功');
 }
@@ -2323,7 +2325,8 @@ async function exportPDF(projectId) {
     });
   }
 
-  doc.save(fileName);
+  var pdfBlob = doc.output('blob');
+  safeDownload(pdfBlob, fileName);
   closeModal('exportModal');
 
   // 标记已打印的项目
@@ -2339,12 +2342,7 @@ async function exportPDF(projectId) {
 function exportBackup() {
   const data = { projects, expenses, exportDate: new Date().toISOString() };
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = '差旅费备份_' + new Date().toISOString().slice(0,10) + '.json';
-  a.click();
-  URL.revokeObjectURL(url);
+  safeDownload(blob, '差旅费备份_' + new Date().toISOString().slice(0,10) + '.json');
   closeModal('exportModal');
   showToast('备份成功');
 }
@@ -3051,6 +3049,55 @@ function saveEditExpense(eid) {
   renderViewExpenses();
   updateHomeStats();
   showToast('已保存');
+}
+
+
+// === 下载兼容层：解决华为/部分安卓浏览器Blob下载失败 ===
+function safeDownload(blob, filename) {
+  // 先尝试标准 Blob URL + <a download> 方式
+  try {
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function() {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 5000);
+    // 检测是否是可能有问题的浏览器（华为浏览器、部分国产浏览器）
+    var ua = navigator.userAgent || '';
+    var isProblematic = /HuaweiBrowser/i.test(ua) || /BaiduBrowser/i.test(ua) || /MQQBrowser/i.test(ua);
+    if (isProblematic) {
+      // 对问题浏览器直接用data URL打开作为备份
+      var reader = new FileReader();
+      reader.onload = function() {
+        setTimeout(function() {
+          window.open(reader.result, '_blank');
+        }, 300);
+      };
+      reader.readAsDataURL(blob);
+    }
+    return;
+  } catch(e) {
+    console.warn('Standard download failed, trying fallback:', e);
+  }
+  // 降级方案：FileReader → data URL → window.open
+  try {
+    var reader = new FileReader();
+    reader.onload = function() {
+      window.open(reader.result, '_blank');
+    };
+    reader.onerror = function() {
+      showToast('下载失败，请尝试使用Chrome浏览器');
+    };
+    reader.readAsDataURL(blob);
+  } catch(e2) {
+    console.error('Fallback download also failed:', e2);
+    showToast('下载失败，请尝试使用Chrome浏览器');
+  }
 }
 
 function showToast(msg) {
