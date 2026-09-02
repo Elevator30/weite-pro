@@ -222,6 +222,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','微软雅黑',s
 .card-btn{flex:1;padding:8px 0;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;-webkit-tap-highlight-color:transparent;}
 .btn-view{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;}
 .btn-print{background:linear-gradient(135deg,#27ae60,#2ecc71);color:#fff;}
+.btn-copy{background:#ebf8ff;color:#2b6cb0;border:1px solid #bee3f8;}
 .btn-delete{background:#fff5f5;color:#c53030;border:1px solid #fed7d7;}
 
 /* 空状态 */
@@ -441,6 +442,25 @@ function deleteRecord(idx){
   });
 }
 
+// ============ 复制记录 ============
+function copyRecord(idx){
+  var list = _wtListCache;
+  if(!list[idx]) return;
+  var src = list[idx];
+  var copy = JSON.parse(JSON.stringify(src));
+  // 清除ID和时间戳，作为新记录
+  delete copy.id;
+  copy.createTime = new Date().toISOString();
+  copy.updateTime = new Date().toISOString();
+  if(copy.projectName) copy.projectName = copy.projectName + '(副本)';
+  // 插入到原记录后面
+  list.splice(idx + 1, 0, copy);
+  _wtListCache = list;
+  _saveWtListCache();
+  renderList();
+  showToast('已复制');
+}
+
 // ============ 打印单条记录 ============
 function printRecord(idx){
   var list = _wtListCache;
@@ -532,6 +552,7 @@ function renderList(){
     html += '<div class="card-btns">';
     html += '<button class="card-btn btn-view" onclick="goToDetail(' + i + ')">查看</button>';
     html += '<button class="card-btn btn-print" onclick="printRecord(' + i + ')">打印</button>';
+    html += '<button class="card-btn btn-copy" onclick="copyRecord(' + i + ')">复制</button>';
     html += '<button class="card-btn btn-delete" onclick="deleteRecord(' + i + ')">删除</button>';
     html += '</div>';
     html += '</div>';
