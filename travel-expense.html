@@ -1050,8 +1050,8 @@ function updateMealPreview() {
 
 // 图片压缩：限制最大边长，转为JPEG，减小localStorage占用
 function compressImage(dataUrl, maxDim, quality) {
-  maxDim = maxDim || 1200;
-  quality = quality || 0.7;
+  maxDim = maxDim || 2000;
+  quality = quality || 0.85;
   return new Promise(function(resolve) {
     var img = new Image();
     img.onload = function() {
