@@ -3244,9 +3244,9 @@ function autoCropImage(imgData) {
       var data = imgData2.data;
       var w = c.width, h = c.height;
 
-      // 判断像素是否为白色（阈值252，更积极裁剪）
+      // 判断像素是否为白色（阈值245，保守裁剪，避免裁掉发票边缘内容）
       function isWhite(idx) {
-        return data[idx] >= 252 && data[idx+1] >= 252 && data[idx+2] >= 252 && data[idx+3] >= 128;
+        return data[idx] >= 245 && data[idx+1] >= 245 && data[idx+2] >= 245 && data[idx+3] >= 128;
       }
 
       // 第一遍：像素级扫描，找内容边界
@@ -3263,9 +3263,9 @@ function autoCropImage(imgData) {
       }
       if (top > bottom || left > right) { resolve(imgData); return; }
 
-      // 第二遍：行列级裁剪，移除90%以上像素为白的行/列
-      var whiteRowRatio = 0.90;
-      var whiteColRatio = 0.90;
+      // 第二遍：行列级裁剪，移除97%以上像素为白的行/列（保守裁剪，保留发票边缘）
+      var whiteRowRatio = 0.97;
+      var whiteColRatio = 0.97;
       // 从上往下裁
       while (top < bottom) {
         var wc = 0;
@@ -3292,11 +3292,11 @@ function autoCropImage(imgData) {
       }
 
       if (top > bottom || left > right) { resolve(imgData); return; }
-      // 加3px边距
-      top = Math.max(0, top - 3);
-      left = Math.max(0, left - 3);
-      bottom = Math.min(h - 1, bottom + 3);
-      right = Math.min(w - 1, right + 3);
+      // 加10px边距（给发票边框留够余量）
+      top = Math.max(0, top - 10);
+      left = Math.max(0, left - 10);
+      bottom = Math.min(h - 1, bottom + 10);
+      right = Math.min(w - 1, right + 10);
       var cropW = right - left + 1;
       var cropH = bottom - top + 1;
       var cc = document.createElement('canvas');
