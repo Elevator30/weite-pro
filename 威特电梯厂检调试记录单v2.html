@@ -4114,12 +4114,27 @@ configPartsData = {};
             partKey = '驱动主机';
           } else if (matchKw(partName, ['控制柜'])) {
             partKey = '控制柜';
-          } else if (matchKw(partName, ['限速器'])) {
-            partKey = '限速器';
-          } else if (matchKw(partName, ['安全钳'])) {
-            partKey = '安全钳';
-          } else if (matchKw(partName, ['缓冲器'])) {
-            partKey = '缓冲器';
+          } else if (partNameNorm.indexOf('限速器') >= 0) {
+            // 区分轿厢限速器和对重限速器
+            if (partNameNorm.indexOf('对重') >= 0) {
+              partKey = '对重限速器';
+            } else {
+              partKey = '轿厢限速器';
+            }
+          } else if (partNameNorm.indexOf('安全钳') >= 0) {
+            // 区分轿厢安全钳和对重安全钳
+            if (partNameNorm.indexOf('对重') >= 0) {
+              partKey = '对重安全钳';
+            } else {
+              partKey = '轿厢安全钳';
+            }
+          } else if (partNameNorm.indexOf('缓冲器') >= 0) {
+            // 区分轿厢缓冲器和对重缓冲器
+            if (partNameNorm.indexOf('对重') >= 0) {
+              partKey = '对重缓冲器';
+            } else {
+              partKey = '轿厢缓冲器';
+            }
           } else if (matchKw(partName, ['安全电路', '含有电子元件的安全电路'])) {
             partKey = '安全电路';
           } else if (matchKw(partName, ['层门']) && partNameNorm.indexOf('门锁') < 0) {
@@ -4315,10 +4330,11 @@ function renderCheckRow(itemId, color) {
   var configBadge = '';
   if (item.id >= 1 && item.id <= 12) {
     var partKey = getConfigPartKey(item);
-    if (partKey && configPartsData[partKey + '_型号']) {
-      var model = configPartsData[partKey + '_型号'];
-      var serial = configPartsData[partKey + '_编号'] || '';
-      configBadge = '<span class="ck-badge">配置:' + model + (serial ? '/' + serial : '') + '</span>';
+    if (partKey) {
+      var _pd = getConfigPartData(partKey);
+      if (_pd.model) {
+        configBadge = '<span class="ck-badge">配置:' + _pd.model + (_pd.serial ? '/' + _pd.serial : '') + '</span>';
+      }
     }
   }
   
@@ -5055,10 +5071,11 @@ function openRegionModal(index) {
       var configBadge = '';
       if (item.id >= 1 && item.id <= 12) {
         var partKey = getConfigPartKey(item);
-        if (partKey && configPartsData[partKey + '_型号']) {
-          var model = configPartsData[partKey + '_型号'];
-          var serial = configPartsData[partKey + '_编号'] || '';
-          configBadge = '<span class="config-badge">配置:' + model + (serial ? '/' + serial : '') + '</span>';
+        if (partKey) {
+          var _pd = getConfigPartData(partKey);
+          if (_pd.model) {
+            configBadge = '<span class="config-badge">配置:' + _pd.model + (_pd.serial ? '/' + _pd.serial : '') + '</span>';
+          }
         }
       }
       html += '<div class="ci-row">' +
@@ -5104,6 +5121,19 @@ function getConfigPartKey(item) {
   return '';
 }
 
+// 获取configPartsData中某个部件的型号/编号，兼容轿厢/对重前缀
+function getConfigPartData(baseKey) {
+  var model = configPartsData[baseKey + '_型号'] || '';
+  var serial = configPartsData[baseKey + '_编号'] || '';
+  // 如果没找到，尝试轿厢前缀
+  if (!model) {
+    model = configPartsData['轿厢' + baseKey + '_型号'] || '';
+    serial = configPartsData['轿厢' + baseKey + '_编号'] || '';
+  }
+  // 如果还没找到，尝试不带前缀的旧格式
+  return { model: model, serial: serial };
+}
+
 function openSubGroupModal(regionIdx, groupIdx) {
   var groups = subGroupMap[regionIdx + 1];
   var grp = groups[groupIdx];
@@ -5129,10 +5159,11 @@ function openSubGroupModal(regionIdx, groupIdx) {
     var configBadge = '';
     if (item.id >= 1 && item.id <= 12) {
       var partKey = getConfigPartKey(item);
-      if (partKey && configPartsData[partKey + '_型号']) {
-        var model = configPartsData[partKey + '_型号'];
-        var serial = configPartsData[partKey + '_编号'] || '';
-        configBadge = '<span class="config-badge">配置:' + model + (serial ? '/' + serial : '') + '</span>';
+      if (partKey) {
+        var _pd = getConfigPartData(partKey);
+        if (_pd.model) {
+          configBadge = '<span class="config-badge">配置:' + _pd.model + (_pd.serial ? '/' + _pd.serial : '') + '</span>';
+        }
       }
     }
     
