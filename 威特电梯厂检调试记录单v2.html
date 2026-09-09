@@ -3718,7 +3718,7 @@ function openTask(index) {
     configPartsData = task.configParts;
   }
   document.getElementById('checkProdNo').textContent = task.prodNo || '未编号';
-  document.getElementById('checkHeaderSub').textContent = (task.model ? task.model + ' · v57' : '厂检调试记录单V2 v57');
+  document.getElementById('checkHeaderSub').textContent = (task.model ? task.model + ' · v58' : '厂检调试记录单V2 v58');
   goPage('check');
   renderZoneTabs();
   switchZone(0);
@@ -3899,6 +3899,7 @@ function handleConfigUpload(input) {
         return String(s || '').replace(/\s/g, '').replace(/\n/g, '').toLowerCase();
       }
 
+      console.log('[CONFIG] 解析开始, 总行数:', json.length);
 configPartsData = {};
       var prodNo = '', addr = '', modelPrefix = '', loadWeight = '', speed = '';
       
@@ -4022,6 +4023,7 @@ configPartsData = {};
       // 保存载重和速度到configPartsData
       configPartsData['额定载重量'] = loadWeight;
       configPartsData['额定速度'] = speed;
+      console.log('[CONFIG] 载重:', loadWeight, '速度:', speed, '载重列:', loadCol, '速度列:', speedCol, '表头行:', headerRow);
       
       // === 3. 拼接产品型号 ===
       var model = '';
@@ -4054,6 +4056,7 @@ configPartsData = {};
         }
       }
       if (partStartRow > 0) {
+        console.log('[CONFIG] 部件表起始行:', partStartRow);
         // 先确定型号列和编号列的位置（不同配置表列可能不同）
         var modelCol = 2; // 默认C列
         var codeCol = 3;  // 默认D列（编号或制造批次号）
@@ -4089,6 +4092,7 @@ configPartsData = {};
           // 如果没找到精确匹配的编号列，用默认值（D列，索引3）
           if (codeCol < 0) codeCol = 3;
           if (modelCol < 0) modelCol = 2;
+          console.log('[CONFIG] 型号列:', modelCol, '编号列:', codeCol);
         }
         
         for (var r4 = partStartRow; r4 < Math.min(partStartRow + 25, json.length); r4++) {
@@ -4146,11 +4150,13 @@ configPartsData = {};
           if (partKey) {
             configPartsData[partKey + '_型号'] = partModel;
             configPartsData[partKey + '_编号'] = partCode;
+            console.log('[CONFIG] 部件:', partName, '→', partKey, '型号:', partModel, '编号:', partCode);
           }
         }
       }
       
       // === 5. 产品编号唯一性检查 ===
+      console.log('[CONFIG] 解析完成, configPartsData:', JSON.stringify(configPartsData));
       if (prodNo) {
         var _checkProj = getCurrentProject();
         var _checkTasks = _checkProj ? (_checkProj.tasks || []) : [];
