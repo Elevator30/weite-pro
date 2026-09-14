@@ -1594,7 +1594,7 @@ function buildReimbursementForm(project, exps, settings) {
   };
   var isInterCity = function(t) { return ['train','plane','bus','ship'].indexOf(t) >= 0; };
   var isTransport = function(t) { return ['train','plane','bus','ship','taxi','didi','subway','bus_local'].indexOf(t) >= 0; };
-  var preprintedItems = ['行李费', '市内车费', '住宿费', '邮电费', '不买卧铺补贴'];
+  var preprintedItems = ['行李费', '市内交通', '住宿费', '邮电费', '不买卧铺补贴'];
 
   var totals = {车船费:0, 途中补贴:0, 住勤费:0, 其他费用:0};
   var totalReceipts = 0;
@@ -1698,23 +1698,25 @@ function buildReimbursementForm(project, exps, settings) {
     }
   }
 
-  // 市内交通按城市分行，每城一行"打车"
+  // 市内交通统一汇总到右侧"其他费用"→"市内交通"栏，不在前面交通工具区逐条列出
+  var localTransportTotalCount = 0;
+  var localTransportTotalAmount = 0;
+  var localTransportTotalReceipts = 0;
   Object.keys(localTransportMap).forEach(function(city) {
     var ltData = localTransportMap[city];
-    if (ltData.count > 0) {
-      transportItems.push({
-        transport: '打车',
-        receiptCount: ltData.receipts,
-        amountDisplay: ltData.isCtrip && ltData.amount === 0 ? '携程' : ltData.amount.toFixed(2),
-        isCtrip: ltData.isCtrip && ltData.amount === 0,
-        from: city,
-        to: city,
-        date: ltData.lastDate || '',
-        firstDate: ltData.firstDate || '',
-        isLocal: true
-      });
+    localTransportTotalReceipts += ltData.receipts;
+    if (!ltData.isCtrip) {
+      localTransportTotalAmount += ltData.amount;
+      localTransportTotalCount += ltData.count;
     }
   });
+  if (localTransportTotalCount > 0 || localTransportTotalReceipts > 0) {
+    var key = '市内交通';
+    if (!otherExpMap[key]) otherExpMap[key] = {amount:0, receipts:0, isCtrip:false};
+    otherExpMap[key].amount += localTransportTotalAmount;
+    otherExpMap[key].receipts += localTransportTotalReceipts;
+    totals['其他费用'] += localTransportTotalAmount;
+  }
   // 交通工具单据张数
   var transportReceipts = 0;
   transportItems.forEach(function(t) { transportReceipts += (t.receiptCount || 0); });
@@ -1822,6 +1824,17 @@ function buildReimbursementForm(project, exps, settings) {
   html += '<td class="td-lbl" colspan="6">出 差 事 由</td>';
   html += '<td class="td-info-overflow" colspan="7">' + (project.name || '') + (workDesc ? '（' + workDesc + '）' : '') + '</td>';
   html += '</tr>';
+
+  // 出差日期汇总行（让审核人看清出差跨度）
+  if (project.startDate && project.endDate) {
+    var ps = new Date(project.startDate);
+    var pe = new Date(project.endDate);
+    var pDays = calcDateDiff(project.startDate, project.endDate);
+    html += '<tr style="height:20px;">';
+    html += '<td class="td-lbl" colspan="3">出差日期</td>';
+    html += '<td class="td-info" colspan="19">' + (ps.getMonth()+1) + '月' + ps.getDate() + '日 至 ' + (pe.getMonth()+1) + '月' + pe.getDate() + '日，共' + pDays + '天</td>';
+    html += '</tr>';
+  }
 
   // 行2: 大分类头（th-group），双竖线列独立
   html += '<tr style="height:22px;">';
