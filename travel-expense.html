@@ -2194,26 +2194,13 @@ async function exportPDF(projectId) {
   var totalReceiptCount = rideGroups.reduce(function(s,g){return s+g.items.length;},0) + otherInvoices.length + photoItems.length;
   if (totalReceiptCount > 0) {
     await new Promise(function(resolveReceipt) {
-      // 工具：裁剪+竖图旋转+获取尺寸
+      // 工具：裁剪+获取尺寸（保持原图方向，不再自动旋转，避免行程单等竖版文档文字方向错乱）
       function processImg(imgDataUrl) {
         return autoCropImage(imgDataUrl).then(function(cropped) {
           return new Promise(function(res) {
             var img = new Image();
             img.onload = function() {
-              var w = img.width, h = img.height;
-              // 竖图自动旋转90度（高宽比>1.33，排除近方形）
-              if (h > w && h / w > 1.33) {
-                var c = document.createElement('canvas');
-                c.width = h; c.height = w;
-                var ctx = c.getContext('2d');
-                ctx.translate(h / 2, w / 2);
-                ctx.rotate(-Math.PI / 2);
-                ctx.drawImage(img, -w / 2, -h / 2);
-                var rotated = c.toDataURL('image/jpeg', 0.92);
-                res({ data: rotated, w: h, h: w });
-              } else {
-                res({ data: cropped, w: w, h: h });
-              }
+              res({ data: cropped, w: img.width, h: img.height });
             };
             img.onerror = function() { res({ data: cropped, w: 0, h: 0 }); };
             img.src = cropped;
@@ -3286,7 +3273,17 @@ function autoCropImage(imgData) {
         for (var x = left; x <= right; x++) { if (isWhite((top * w + x) * 4)) wc++; }
         if (wc / (right - left + 1) >= whiteRowRatio) top++; else break;
       }
-      // 从下往上裁
+      // 从下往上裁：先找主体内容底边（忽略底部页码等稀疏页脚），再裁掉尾部空白
+      var contentBottom = bottom;
+      for (var cy = bottom; cy > top; cy--) {
+        var cw = 0;
+        for (var x = left; x <= right; x++) { if (isWhite((cy * w + x) * 4)) cw++; }
+        if ((1 - cw / (right - left + 1)) >= 0.10) { contentBottom = cy; break; }
+      }
+      // 底部存在明显页脚噪声区（稀疏内容与主体之间有空白）时，以主体内容底边为准
+      if (bottom - contentBottom > Math.max(8, Math.round(h * 0.02))) {
+        bottom = contentBottom;
+      }
       while (bottom > top) {
         var wc = 0;
         for (var x = left; x <= right; x++) { if (isWhite((bottom * w + x) * 4)) wc++; }
