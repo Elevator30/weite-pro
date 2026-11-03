@@ -2207,7 +2207,7 @@ async function exportPDF(projectId) {
                 c.width = h; c.height = w;
                 var ctx = c.getContext('2d');
                 ctx.translate(h / 2, w / 2);
-                ctx.rotate(Math.PI / 2);
+                ctx.rotate(-Math.PI / 2);
                 ctx.drawImage(img, -w / 2, -h / 2);
                 var rotated = c.toDataURL('image/jpeg', 0.92);
                 res({ data: rotated, w: h, h: w });
