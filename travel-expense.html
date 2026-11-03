@@ -1624,8 +1624,7 @@ function buildReimbursementForm(project, exps, settings) {
         date: e.date
       });
     } else if (isTransport(e.type)) {
-      // 市内交通 → 按城市分组
-      if (!isCtrip) totals['车船费'] += e.amount;
+      // 市内交通 → 按城市分组（金额统一归入右侧"其他费用-市内交通"，不再计入车船费合计）
       var ltCity = e.city || '未指定';
       if (!localTransportMap[ltCity]) localTransportMap[ltCity] = {count:0, receipts:0, amount:0, isCtrip:false, firstDate:'', lastDate:''};
       var ltData = localTransportMap[ltCity];
